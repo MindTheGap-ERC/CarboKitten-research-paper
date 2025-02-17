@@ -3,6 +3,8 @@ A paper describing CarboKitten
 
 The source files for the paper should be placed in `md/`, that is `md/paper.md` figures in `md/fig`, and references in `md/ref.bib`. The paper is written in Markdown, that is then compiled down to LaTeX and PDF using Pandoc. Any source files for the LaTeX (`cls` files for the Journal template mostly) should be placed in `latex/`, while Pandoc filters are placed in `pandoc/`.
 
+Figures should be located in `md/fig` so that the Markdown renders reasonably well on Github.
+
 Figures and example code should be evaluated by Julia, so there should be a `Project.toml`, `Manifest.toml` and `src/jl/*.jl` for scripts.
 
 Code fragments in the paper should be evaluating to the given output. Something that should be enforced by using Entangled.
@@ -35,7 +37,7 @@ dnf install pandoc
 Use TeXLive &ge; 2023, building with LuaTeX and `latexmk`. On Fedora:
 
 ```bash
-dnf install texlive-scheme-medium latexmk
+dnf install texlive-scheme-medium latexmk texlive-selnolig texlive-svg
 ```
 
 ### Entangled
@@ -75,3 +77,14 @@ A similar thing can be done with `span`s.
 ~~~
 
 See the [Pandoc documentation](https://pandoc.org/chunkedhtml-demo/8.18-divs-and-spans.html).
+
+Citations follow a syntax like `@Bosscher1992`, where `Bosscher1992` is an entry in the `md/ref.bib`. There are other forms for citation translating to `\citet` or `\citep` in LaTeX, see [Pandoc documentation](https://pandoc.org/chunkedhtml-demo/8.20-citation-syntax.html).
+
+### Filters
+
+- `hide.lua` hides blocks that are marked with `:::hide`. This is used to hide code blocks.
+
+## Debugging output
+
+To debug the conversion from Markdown to LaTeX it is sometimes useful to look at Pandoc's abstract syntax tree directly. Pandoc can show this when using `-t native`. This can also run with `make debug`.
+

@@ -1,0 +1,22 @@
+{
+  "task": [
+    {
+      "description": null,
+      "creates": [
+        "md/fig/production-curves.svg"
+      ],
+      "requires": [],
+      "runner": "julia",
+      "stdout": null,
+      "stdin": null,
+      "script": "#| classes: [\"task\"]\n#| creates:\n#| - md/fig/production-curves.svg\n#| collect: figures\n\nmodule Script\nusing CairoMakie\nusing CarboKitten\nusing CarboKitten.Visualization: production_curve!\n\n#| id: bs92-input\nconst FACIES = [\n    BS92.Facies(\n         maximum_growth_rate=500u\"m/Myr\"/4,\n         extinction_coefficient=0.8u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\"),\n    BS92.Facies(\n         maximum_growth_rate=400u\"m/Myr\"/4,\n         extinction_coefficient=0.1u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\"),\n    BS92.Facies(\n         maximum_growth_rate=100u\"m/Myr\"/4,\n         extinction_coefficient=0.005u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\")]\n\nconst INPUT = BS92.Input(\n    tag = \"example model BS92\",\n    box = CarboKitten.Box{Coast}(grid_size=(100, 1), phys_scale=150.0u\"m\"),\n    time = TimeProperties(\n        \u0394t = 200.0u\"yr\",\n        steps = 5000,\n        write_interval = 1),\n    sea_level = t -> 4.0u\"m\" * sin(2\u03c0 * t / 0.2u\"Myr\"),\n    initial_topography = (x, y) -> - x / 300.0,\n    subsidence_rate = 50.0u\"m/Myr\",\n    insolation = 400.0u\"W/m^2\",\n    facies = FACIES)\n\nfunction main()\n  fig = Figure()\n  ax = Axis(fig[1, 1])\n  production_curve!(ax, INPUT)\n  save(\"md/fig/production-curves.svg\", fig)\nend\n\nend\n\nScript.main()",
+      "path": null
+    },
+    {
+      "name": "figures",
+      "requires": [
+        "md/fig/production-curves.svg"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "files": [
+    {
+      "deps": [
+        "md/paper.md"
+      ],
+      "hexdigest": "b6bc7ec8d36111ab8126cb230085ab5d40477e77a2b327e8567b334ccb2e080b",
+      "modified": "2025-02-17T20:42:47.898260",
+      "path": ".entangled/tasks.json",
+      "size": 1709
+    },
+    {
+      "deps": null,
+      "hexdigest": "06448c3122b339fd5b1a39c88616cbc5cf6a4a5d1abccfdb5d8ecc997455b97b",
+      "modified": "2025-02-17T20:42:42.172276",
+      "path": "md/paper.md",
+      "size": 4346
+    }
+  ],
+  "source": [],
+  "target": [],
+  "version": "2.1.10"
+}
