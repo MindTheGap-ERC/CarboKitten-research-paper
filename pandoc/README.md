@@ -1,0 +1,2 @@
+- [Documentation on Pandoc Lua filters](https://pandoc.org/lua-filters.html)
+- [Lua Reference Manual](https://www.lua.org/manual/5.4/)
