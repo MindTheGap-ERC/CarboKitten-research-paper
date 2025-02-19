@@ -2,19 +2,21 @@
   "files": [
     {
       "deps": [
+        "md/paper.md",
+        "md/paper.md",
         "md/paper.md"
       ],
-      "hexdigest": "b6bc7ec8d36111ab8126cb230085ab5d40477e77a2b327e8567b334ccb2e080b",
-      "modified": "2025-02-17T20:42:47.898260",
+      "hexdigest": "6a76efbd9eb79d515bcc9a1488556ed104e8ccec6d161988090077f8ce037315",
+      "modified": "2025-02-19T10:11:43.578652",
       "path": ".entangled/tasks.json",
-      "size": 1709
+      "size": 4347
     },
     {
       "deps": null,
-      "hexdigest": "06448c3122b339fd5b1a39c88616cbc5cf6a4a5d1abccfdb5d8ecc997455b97b",
-      "modified": "2025-02-17T20:42:42.172276",
+      "hexdigest": "ec43aa42e348b7bf2161ed4666f03562b3bfdb38bee1a19dcfb2eb0cc1b5f621",
+      "modified": "2025-02-19T10:11:42.439647",
       "path": "md/paper.md",
-      "size": 4346
+      "size": 11167
     }
   ],
   "source": [],

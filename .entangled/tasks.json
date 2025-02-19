@@ -9,13 +9,39 @@
       "runner": "julia",
       "stdout": null,
       "stdin": null,
-      "script": "#| classes: [\"task\"]\n#| creates:\n#| - md/fig/production-curves.svg\n#| collect: figures\n\nmodule Script\nusing CairoMakie\nusing CarboKitten\nusing CarboKitten.Visualization: production_curve!\n\n#| id: bs92-input\nconst FACIES = [\n    BS92.Facies(\n         maximum_growth_rate=500u\"m/Myr\"/4,\n         extinction_coefficient=0.8u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\"),\n    BS92.Facies(\n         maximum_growth_rate=400u\"m/Myr\"/4,\n         extinction_coefficient=0.1u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\"),\n    BS92.Facies(\n         maximum_growth_rate=100u\"m/Myr\"/4,\n         extinction_coefficient=0.005u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\")]\n\nconst INPUT = BS92.Input(\n    tag = \"example model BS92\",\n    box = CarboKitten.Box{Coast}(grid_size=(100, 1), phys_scale=150.0u\"m\"),\n    time = TimeProperties(\n        \u0394t = 200.0u\"yr\",\n        steps = 5000,\n        write_interval = 1),\n    sea_level = t -> 4.0u\"m\" * sin(2\u03c0 * t / 0.2u\"Myr\"),\n    initial_topography = (x, y) -> - x / 300.0,\n    subsidence_rate = 50.0u\"m/Myr\",\n    insolation = 400.0u\"W/m^2\",\n    facies = FACIES)\n\nfunction main()\n  fig = Figure()\n  ax = Axis(fig[1, 1])\n  production_curve!(ax, INPUT)\n  save(\"md/fig/production-curves.svg\", fig)\nend\n\nend\n\nScript.main()",
+      "script": "#| classes: [\"task\"]\n#| creates: [\"md/fig/production-curves.svg\"]\n#| collect: figures\n\nmodule Script\nusing CairoMakie\nusing CarboKitten\nusing CarboKitten.Visualization: production_curve!\n\n#| id: bs92-input\nconst FACIES = [\n    BS92.Facies(\n         maximum_growth_rate=500u\"m/Myr\"/4,\n         extinction_coefficient=0.8u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\"),\n    BS92.Facies(\n         maximum_growth_rate=400u\"m/Myr\"/4,\n         extinction_coefficient=0.1u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\"),\n    BS92.Facies(\n         maximum_growth_rate=100u\"m/Myr\"/4,\n         extinction_coefficient=0.005u\"m^-1\",\n         saturation_intensity=60u\"W/m^2\")]\n\nconst INPUT = BS92.Input(\n    tag = \"example model BS92\",\n    box = CarboKitten.Box{Coast}(grid_size=(100, 1), phys_scale=150.0u\"m\"),\n    time = TimeProperties(\n        \u0394t = 200.0u\"yr\",\n        steps = 5000,\n        write_interval = 1),\n    sea_level = t -> 4.0u\"m\" * sin(2\u03c0 * t / 0.2u\"Myr\"),\n    initial_topography = (x, y) -> - x / 300.0,\n    subsidence_rate = 50.0u\"m/Myr\",\n    insolation = 400.0u\"W/m^2\",\n    facies = FACIES)\n\nfunction main()\n  fig = Figure()\n  ax = Axis(fig[1, 1])\n  production_curve!(ax, INPUT)\n  save(\"md/fig/production-curves.svg\", fig)\nend\n\nend\n\nScript.main()",
+      "path": null
+    },
+    {
+      "description": null,
+      "creates": [
+        "md/fig/ca-first-steps.svg"
+      ],
+      "requires": [],
+      "runner": "julia",
+      "stdout": null,
+      "stdin": null,
+      "script": "#| classes: [\"task\"]\n#| creates: [\"md/fig/ca-first-steps.svg\"]\n#| collect: figures\n\nmodule Script\nusing CarboKitten\nusing CarboKitten.Components: CellularAutomaton as CA\nusing CairoMakie\n\nfunction main()\n  input = CA.Input(\n      box = CarboKitten.Box{Periodic{2}}(\n        grid_size=(50, 50), phys_scale=1.0u\"m\"),\n      facies = fill(CA.Facies(), 3)\n  )\n\n  state = CA.initial_state(input)\n  step! = CA.step!(input)\n  \n  fig = Figure(size=(1000, 500))\n  axes_indices = Iterators.flatten(eachrow(CartesianIndices((2, 4))))\n  xaxis, yaxis = box_axes(input.box)\n  for (i, idx) in enumerate(axes_indices)\n    ax = Axis(fig[Tuple(idx)...], aspect=AxisAspect(1), title=\"step $(i)\")\n    if idx[1] == 2\n      ax.xlabel = \"x [m]\"\n    end\n    if idx[2] == 1\n      ax.ylabel = \"y [m]\"\n    end\n    heatmap!(ax, xaxis/u\"m\", yaxis/u\"m\", state.ca)\n    step!(state)\n  end\n  save(\"md/fig/ca-first-steps.svg\", fig)\nend\n\nend\n\nScript.main()",
+      "path": null
+    },
+    {
+      "description": null,
+      "creates": [
+        "md/fig/ca-long-term.svg"
+      ],
+      "requires": [],
+      "runner": "julia",
+      "stdout": null,
+      "stdin": null,
+      "script": "#| classes: [\"task\"]\n#| creates: [\"md/fig/ca-long-term.svg\"]\n#| collect: figures\nmodule Script\nusing CarboKitten\nusing CarboKitten.Components: CellularAutomaton as CA\nusing CairoMakie\n\nfunction main()\n  input = CA.Input(\n      box = CarboKitten.Box{Periodic{2}}(\n        grid_size=(50, 50), phys_scale=1.0u\"m\"),\n      facies = fill(CA.Facies(), 3)\n  )\n\n  state = CA.initial_state(input)\n  step! = CA.step!(input)\n\n  for _ in 1:1000\n    step!(state)\n  end\n  \n  fig = Figure(size=(1000, 500))\n  axes_indices = Iterators.flatten(eachrow(CartesianIndices((2, 4))))\n  xaxis, yaxis = box_axes(input.box)\n  i = 1000\n  for row in 1:2\n    for col in 1:4\n      ax = Axis(fig[row, col], aspect=AxisAspect(1), title=\"step $(i)\")\n      \n      if row == 2\n        ax.xlabel = \"x [m]\"\n      end\n      if col == 1\n        ax.ylabel = \"y [m]\"\n      end\n\n      heatmap!(ax, xaxis/u\"m\", yaxis/u\"m\", state.ca)\n      step!(state)\n      i += 1\n    end\n    for _ in 1:996\n      step!(state)\n      i += 1\n    end\n  end\n  save(\"md/fig/ca-long-term.svg\", fig)\nend\n\nend\n\nScript.main()",
       "path": null
     },
     {
       "name": "figures",
       "requires": [
-        "md/fig/production-curves.svg"
+        "md/fig/production-curves.svg",
+        "md/fig/ca-first-steps.svg",
+        "md/fig/ca-long-term.svg"
       ]
     }
   ]

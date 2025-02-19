@@ -1,8 +1,12 @@
 .PHONY: all debug
- 
-pandoc_args += --citeproc --bibliography md/ref.bib
+
+pandoc_args += -fmarkdown+latex_macros
 pandoc_args += --lua-filter pandoc/hide.lua
-pandoc_latex_args += -s -t latex -H latex/preamble.tex
+pandoc_args += --lua-filter pandoc/fignos.lua
+pandoc_args += --lua-filter pandoc/figref.lua
+pandoc_args += --citeproc --bibliography md/ref.bib
+pandoc_latex_args += -s -t latex
+# pandoc_args += -H latex/preamble.tex
 figures_md = $(wildcard md/fig/*)
 figures = $(figures_md:md/%=build/%)
 
