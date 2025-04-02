@@ -5,6 +5,8 @@ author: Johan Hidding, Emilia Jarochowska, Xianji Liu
 ---
 
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
+\renewcommand{\[}{\begin{equation}}
+\renewcommand{\]}{\end{equation}}
 
 :::abstract
 ## Abstract
@@ -259,22 +261,26 @@ $$C_f = P_f + D_f.$$
 
 We assume a local sediment flux,
 
-$$\vec{q}_f = - \nu_f C_f \vec{\nabla} \eta,$$
+$$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-where $\nu_f$ is a facies dependent diffusion rate. The mass balance is then,
+where $d_f$ is a facies dependent diffusivity, and $v(w)$ is a chosen additional velocity as a function of water depth. We use $v(w)$ to model wave induced sediment transport. The mass balance is then,
 
-$$\begin{aligned}
-\term{transport} &= -\sum_f \vec{\nabla} \cdot \vec{q}_f\\
-                 &= \vec{\nabla} \cdot \left[\nu_f C_f \vec{\nabla} \eta\right].
-\end{aligned}$$
+$$\term{transport} = -\sum_f \vec{\nabla} \cdot \vec{q}_f$$
 
-This is an advection equation for $C_f$ but also a diffusion equation in terms of $\eta$.
+This gives us a diffusion equation in $\eta$, but we can also view it as an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
-Other carbonate models like @Warrlich2000 take a very different approach, where matter is transported from unstable slopes to the nearest down slope stable region. This method is motivated by critical angle theory [@Kenter1990].
+$$
+\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C +
+(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C,
+$${#eq:transport}
 
-The problem with this method of transport is that production across an unstable region all is deposited on a small strip where slopes are below the critical angle. To resolve this, smaller time steps need to be taken, which hurts performance.
+where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver.
 
-One aspect of critical angle theory that we do use, is that we modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$.
+Other carbonate models [e.g. @Warrlich2000] take a very different approach, where matter is transported from unstable slopes to the nearest down-slope stable region. This method is motivated by critical angle theory [@Kenter1990].
+
+The problem with these critical angle based methods of transport is that production across an unstable region all is deposited on a small strip where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. Also, critical angle transport methods induce unstable behaviour. To resolve this, smaller time steps need to be taken, which hurts performance.
+
+One aspect of critical angle theory that we do use, is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$.
 
 ### Composed model
 
@@ -315,6 +321,185 @@ The user interfaces CarboKitten by writing a Julia script that defines  the rele
 CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines.
 
 ## Examples of use
+
+### Variable sea level
+
+### Wave induced transport
+We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long time-scales we're working with, we limit ourselves to highly simplified models of wave induced transport. We model the emergence of an atoll, starting with a conic topography, periodic boundaries and a sediment transport vector with a constant depth profile,
+
+$$v_f = A_f \exp (- w k) \tanh (w k),$$
+
+where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $A_f$ the facies dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
+
+![Depth profile](fig/wave-transport-magnitude.svg){width=100%}
+
+Figure: Depth profile of velocity and shear. The velocity profile was taylored to have a maximum of $10 \textrm{m}/\textrm{yr}$ at a depth of $20 \textrm{m}$. Where the shear is non-zero, there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
+
+:::hide
+```julia
+#| id: velocity-profile
+v_prof(v_max, max_depth, w) = 
+  	let k = sqrt(0.5) / max_depth,
+		    A = 3.331 * v_max,
+		    α = tanh(k * w),
+		    β = exp(-k * w)
+		    (A * α * β, -A * k * β * (1 - α - α^2))
+	  end
+```
+
+```julia
+#| classes: ["task"]
+#| creates: md/fig/wave-transport-magnitude.svg
+#| collect: figures
+
+module Script
+
+using CairoMakie
+using Unitful
+
+<<velocity-profile>>
+
+function main()
+    w = LinRange(0, 100.0, 1000)u"m"
+	f = v_prof.(10.0u"m/yr", 20.0u"m", w)
+
+	v = first.(f)
+	s = last.(f)
+	
+	fig = Figure()
+	ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
+	ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
+	lines!(ax1, v / u"m/yr", w / u"m")
+	lines!(ax2, s / u"1/yr", w / u"m")
+	save("md/fig/wave-transport-magnitude.svg", fig)
+end
+
+end
+
+Script.main()
+```
+:::
+
+:::hide
+```julia
+#| classes: ["task"]
+#| creates: data/atoll.h5
+#| collect: atoll
+using CarboKitten
+
+module Atoll
+
+using CarboKitten
+using GeometryBasics
+
+<<velocity-profile>>
+
+wave_velocity(v_max) = w -> let (v, s) = v_prof(v_max, 10.0u"m", w)
+		(Vec2(v, 0.0u"m/Myr"), Vec2(s, 0.0u"1/Myr"))
+	end
+
+initial_topography(x, y) = 
+    - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
+
+const FACIES = [
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=500u"m/Myr",
+        extinction_coefficient=0.8u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=10.0u"m/yr",
+		wave_velocity=wave_velocity(-0.5u"m/yr")),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=400u"m/Myr",
+        extinction_coefficient=0.1u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=10.0u"m/yr",
+		wave_velocity=wave_velocity(-1.0u"m/yr")),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=100u"m/Myr",
+        extinction_coefficient=0.005u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=10.0u"m/yr",
+		wave_velocity=wave_velocity(-1.0u"m/yr"))
+]
+
+const BOX = Box{Periodic{2}}(
+    grid_size=(100, 100), phys_scale=150.0u"m")
+
+const INPUT = ALCAP.Input(
+    tag="atoll",
+    box=BOX,
+    time=TimeProperties(
+        Δt=0.0002u"Myr",
+        steps=4000,
+        write_interval=1),
+    ca_interval=1,
+    initial_topography=initial_topography,
+    sea_level=t -> 5.0u"m" * sin(2π * t / 123456.0u"yr"),
+    subsidence_rate=50.0u"m/Myr",
+    disintegration_rate=50.0u"m/Myr",
+    insolation=400.0u"W/m^2",
+    sediment_buffer_size=50,
+    depositional_resolution=0.5u"m",
+    transport_solver=Val{:forward_euler},
+    # transport_solver=forward_euler, # runge_kutta_4(typeof(1.0u"m"), BOX),
+    # transport_substeps=10,
+    facies=FACIES)
+
+end
+
+CarboKitten.init()
+CarboKitten.run_model(Model{ALCAP}, Atoll.INPUT, "data/atoll.h5")
+```
+
+```julia
+#| classes: ["task"]
+#| requires: data/atoll.h5
+#| creates: md/fig/atoll-profile.png
+#| collect: figures
+
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile
+using HDF5
+using CarboKitten.Export: read_slice, read_header
+
+h5open("data/atoll.h5") do fid
+    header = read_header(fid)
+    data = read_slice(fid, :, 50)
+    fig = sediment_profile(header, data)
+    save("md/fig/atoll-profile.png", fig)
+end
+```
+
+```julia
+#| classes: ["task"]
+#| requires: data/atoll.h5
+#| creates: md/fig/atoll-map.png
+#| collect: figures
+using HDF5
+using CairoMakie
+using CarboKitten.Export: read_header
+
+h5open("data/atoll.h5") do fid
+	h = read_header(fid)
+	s = fid["sediment_height"][:, :, end] * u"m"
+	t = h.initial_topography .+ s .- (h.axes.t[end] * h.subsidence_rate)
+
+	fig = Figure()
+	ax = Axis(fig[1, 1])
+	hm = heatmap!(ax, h.axes.x, h.axes.y, t / u"m", colorrange=(-20, 10), colormap=:curl)
+	Colorbar(fig[1, 2], hm)
+
+	save("md/fig/atoll-map.png", fig)
+end
+```
+:::
+
 
 ## Validation
 

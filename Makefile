@@ -1,7 +1,8 @@
-.PHONY: all debug
+.PHONY: all debug clean daemon
 
 pandoc_args += -fmarkdown+latex_macros
 pandoc_args += --lua-filter pandoc/hide.lua
+pandoc_args += --lua-filter pandoc/eqnos.lua
 pandoc_args += --lua-filter pandoc/fignos.lua
 pandoc_args += --lua-filter pandoc/figref.lua
 pandoc_args += --citeproc --bibliography md/ref.bib
@@ -32,4 +33,7 @@ build/fig/%: md/fig/%
 clean:
 	@echo "Cleaning build directory"
 	@rm -rf build
+
+daemon:
+	@julia --project=. --startup-file=no -e 'using DaemonMode; serve()'
 
