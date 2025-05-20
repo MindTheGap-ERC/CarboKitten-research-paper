@@ -84,6 +84,18 @@ Citations follow a syntax like `@Bosscher1992`, where `Bosscher1992` is an entry
 
 - `hide.lua` hides blocks that are marked with `:::hide`. This is used to hide code blocks.
 
+- `fignos.lua` and `figref.lua` number the figures and enable referencing those figures in the text. The label should be given at the end of the caption, which should be given as a paragraph following the image, starting with `Figure: `. Example:
+
+```md
+An example of this profile is shown in Figure @fig:wave-transport-magnitude.
+
+![Depth profile](fig/wave-transport-magnitude.svg){width=100%}
+
+Figure: Depth profile of velocity and shear. The velocity profile was taylored to have a maximum of $10 \textrm{m}/\textrm{yr}$ at a depth of $20 \textrm{m}$. Where the shear is non-zero, there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
+```
+
+- `eqnos.lua` numbers equation and handles references to equations.
+
 ## Debugging output
 
 To debug the conversion from Markdown to LaTeX it is sometimes useful to look at Pandoc's abstract syntax tree directly. Pandoc can show this when using `-t native`. This can also run with `make debug`.

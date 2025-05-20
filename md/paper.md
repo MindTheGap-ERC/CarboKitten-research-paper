@@ -401,6 +401,8 @@ wave_velocity(v_max) = w -> let (v, s) = v_prof(v_max, 10.0u"m", w)
 initial_topography(x, y) = 
     - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
 
+const INTERTIDAL_ZONE = 10.0u"m"
+
 const FACIES = [
     ALCAP.Facies(
         viability_range=(4, 10),
@@ -409,6 +411,7 @@ const FACIES = [
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=10.0u"m/yr",
+        production_offset=INTERTIDAL_ZONE,
 		wave_velocity=wave_velocity(-0.5u"m/yr")),
     ALCAP.Facies(
         viability_range=(4, 10),
@@ -417,6 +420,7 @@ const FACIES = [
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=10.0u"m/yr",
+        production_offset=INTERTIDAL_ZONE,
 		wave_velocity=wave_velocity(-1.0u"m/yr")),
     ALCAP.Facies(
         viability_range=(4, 10),
@@ -425,6 +429,7 @@ const FACIES = [
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=10.0u"m/yr",
+        production_offset=INTERTIDAL_ZONE,
 		wave_velocity=wave_velocity(-1.0u"m/yr"))
 ]
 
@@ -491,14 +496,22 @@ h5open("data/atoll.h5") do fid
 	t = h.initial_topography .+ s .- (h.axes.t[end] * h.subsidence_rate)
 
 	fig = Figure()
-	ax = Axis(fig[1, 1])
-	hm = heatmap!(ax, h.axes.x, h.axes.y, t / u"m", colorrange=(-20, 10), colormap=:curl)
+	ax = Axis(fig[1, 1], limits=((3.0, 12.0), (3.0, 12.0)))
+	hm = heatmap!(ax, h.axes.x, h.axes.y, t / u"m", colorrange=(-10, -4), colormap=Reverse(:RdBu_8))
 	Colorbar(fig[1, 2], hm)
 
 	save("md/fig/atoll-map.png", fig)
 end
 ```
 :::
+
+![Atoll profile](fig/atoll-profile.png){width=100%}
+
+Figure: Profile view of atoll simulation.
+
+![Atoll topography](fig/atoll-map.png){width=100%}
+
+Figure: Topographic map of atoll simulation.
 
 
 ## Validation
