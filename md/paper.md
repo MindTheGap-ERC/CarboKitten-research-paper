@@ -1,18 +1,36 @@
 ---
 title: CarboKitten.jl
-subtitle: an open source toolkit for carbonate stratigraphy modeling
-author: Johan Hidding, Emilia Jarochowska, Xianji Liu
+subtitle: an open source toolkit for carbonate stratigraphic modeling
+author: Johan Hidding, Emilia Jarochowska, Xianyi Liu, Peter Burgess, Hanno Spreeuw
 ---
 
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
 \renewcommand{\[}{\begin{equation}}
 \renewcommand{\]}{\end{equation}}
 
-:::abstract
+::: abstract
 ## Abstract
 :::
 
 ## Introduction
+
+Stratigraphic forward modelling is well established as a means of examining our understanding of the formation of stratal architectures (@burgess_numerical_2001, @schlager_record_2009, @ding_quantitative_2019, @jean_borgomano_quantitative_2020, @liu_formation_2022), prediction, correlation and imputation of architectures from incomplete data (@Warrlich2008), and testing hypotheses on the structure of the geological record (e.g., @kemp_stratigraphic_2018, @masiero_numerical_2020, @liu_estimating_2021) and the preservation of proxies (@curtis_natural_2025), fossils (@holland_quality_2000, @hannisdal_phenotypic_2006, @hohmann_identification_2024), or forcing mechanisms (@kemp_investigating_2016, @kemp_metre-scale_2019, @burgess_big_2019). Owing to their economic interest, most such models are proprietary to exploration companies and their availability to researchers is limited. Some older models developed by researchers share the fate of many other research software packages and their maintenance ceases, e.g. when a project ends (@Warrlich2000). It is not always possible to resuscitate such models, especially if documentation or license are lacking or code has not been shared (e.g., @demicco_cycopath_1998, @barrett_reef_2017). As a result, the choice of stratigraphic forward models available to researchers at the moment is narrow and shifted towards siliciclastic (@hutton_sedflux_2008, @sylvester_stratigraphy_2024) or specifically fluvial depositional systems (@wild_sedsim_2019, @falivene_three-dimensional_2019), to the point that researchers may resort to these models to create simulations of carbonate sections (@zimmt_recognizing_2021).
+
+Modeling carbonate depositional systems requires not only accounting for water and atmospheric processes, but also for the biological character of sediment production and dispersal. Ecological processes, such as facilitation, competition and dispersal, may on one hand confound the relationships between sediment composition and water depth (e.g. @granjeon_concepts_1999, @dyer_quantifying_2018, @weij_limited_2019) and, on the other hand, lead to creation of complex facies patterns under stable sea level conditions (@drummond_self-organizing_1999, @purkis_spatial_2016, @xi_stratigraphic_2022). Complex models accounting for it have been mostly developed for exploration, e.g. `Carbonate 3D` (@warrlich_quantifying_2002, @Warrlich2008), `DIONISOS` (@granjeon_concepts_1999) and `Carbonate GPM` (@hill_modeling_2009). Of research-driven models operating in more than one dimension, two include a wider range of depositional environment with carbonate production modules: `SedSimple` (@tetzlaff_stratigraphic_2023) and `Badlands` (@salles_badlands_2016), including its Python interface `pyBadlands` (@salles_pybadlands_2018), but due to their general focus these models do not account for the spatial heterogeneity driven by biological processes. Finally, `CarboCAT` (@Burgess2013) is a research-driven 2D model dedicated to stratigraphic forward modeling of carbonate platforms, which includes a cellular automaton that approximates the spatial heterogeneity formed through ecological interactions between carbonate-producing organisms. `CarboCAT` has been used in multiple studies (e.g. @masiero_numerical_2020, @xi_stratigraphic_2022, @hohmann_identification_2024), but having been written in Matlab, it was not accessible to contributions from the entire scientific community. Based on the successful applications of `CarboCAT`, we set out to develop a new generation model with the following specifications:
+
+1.  it should be Open Source and it should be easy for researchers to understand the algorithm, which is a prerequisite to being able to contribute to it or modify it to one's needs,
+
+2.  it should allow for spatial heterogeneity of carbonate facies,
+
+3.  it should include a sediment transport algorithm operating on different carbonate facies and produces realistic results without decreasing the model's performance substantially,
+
+4.  it should allow exporting and plotting multiple types of data users may need, including slices through the model grid, age-depth models, sediment accumulation curves, and stratigraphic columns,
+
+5.  it should be performant, easy to parallelize, and platform-independent,
+
+6.  it should be well documented and easy to use at a level accessible to a geosciences student.
+
+The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present `CarboKitten.jl`, an efficient and accessible Open Source model for stratigraphic forward simulations of tropical carbonate platforms.
 
 ## Model
 
@@ -20,25 +38,25 @@ author: Johan Hidding, Emilia Jarochowska, Xianji Liu
 
 Subsidence rate
 
-: Quantified as a rate $\sigma$ in units of $\textrm{m/Myr}$. The growth of sediment is only sustainable in scenarios where there is a steady subsidence. In our models we use a default value of $50 \textrm{m/Myr}$ (or $0.5 \textrm{mm/kyr}$).
+:   Quantified as a rate $\sigma$ in units of $\textrm{m/Myr}$. The growth of sediment is only sustainable in scenarios where there is a steady subsidence. In our models we use a default value of $50 \textrm{m/Myr}$ (or $0.5 \textrm{mm/kyr}$).
 
 Initial topography
 
-: The model starts at an initial topography $\eta_0(x) = \eta(x, t_0)$, consisting of impenetrable bedrock.
+:   The model starts at an initial topography $\eta_0(x) = \eta(x, t_0)$, consisting of impenetrable bedrock.
 
 Topography
 
-: The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below).
+:   The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below).
 
 Relative sea level
 
-: The relative sea level $R(t)$ is usually a function of time, given as an input parameter of the model.
+:   The relative sea level $R(t)$ is usually a function of time, given as an input parameter of the model.
 
 Water depth
 
-: The water depth is computed from the current topography, relative sea level and subsidence rate,
+:   The water depth is computed from the current topography, relative sea level and subsidence rate,
 
-  $$w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.$$
+$$w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.$$
 
 ### Carbonate Production
 
@@ -61,23 +79,21 @@ Following @Burgess2013, we extend the BS92 model by introducing multiple facies 
 $$P(w) = \sum_f P_f(w)$$
 
 | Factory | $g_m$ $[\textrm{m}/\textrm{Myr}]$ | $I_k$ $[\textrm{W}/\textrm{m}^2]$ | $k$ $[\textrm{m}^{-1}]$ |
-|---------|-------|-------|-----|
+|----|----|----|----|
 | Tropical | 500.0 | 60.0 | 0.8 |
 | Mounds | 400.0 | 60.0 | 0.1 |
 | Cool water | 100.0 | 60.0 | 0.005 |
 
-Table: Parameters for the production model of the three default carbonate factories. {#tbl:factories}
+: Parameters for the production model of the three default carbonate factories. {#tbl:factories}
 
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the tropical (T), mounds (M) and cool water (C) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
-![Production curves for three default carbonate factories](fig/production-curves.svg){#fig:factories width=100%}
+![Production curves for three default carbonate factories](fig/production-curves.svg){#fig:factories width="100%"}
 
 FIXME: Add legend to figure showing which curve is Tropical, Mounds and Cool water factory.
 
-
-
-:::hide
-```julia
+::: hide
+``` julia
 #| id: bs92-input
 const FACIES = [
     BS92.Facies(
@@ -107,7 +123,7 @@ const INPUT = BS92.Input(
     facies = FACIES)
 ```
 
-```julia
+``` julia
 #| classes: ["task"]
 #| creates: ["md/fig/production-curves.svg"]
 #| collect: figures
@@ -144,8 +160,8 @@ Since a dead cell may qualify to become alive for different carbonate factories 
 
 In the default configuration we emulate three species, corresponding to the Tropical, Mound and Cool water species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
 
-:::hide
-```julia
+::: hide
+``` julia
 #| classes: ["task"]
 #| creates: ["md/fig/ca-first-steps.svg"]
 #| collect: figures
@@ -187,7 +203,7 @@ end
 Script.main()
 ```
 
-```julia
+``` julia
 #| classes: ["task"]
 #| creates: ["md/fig/ca-long-term.svg"]
 #| collect: figures
@@ -243,17 +259,17 @@ Script.main()
 ```
 :::
 
-![CA](fig/ca-long-term.svg){width=100%}
+![CA](fig/ca-long-term.svg){width="100%"}
 
 Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
- 
+
 ### Transport
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales.
 
 In the following, we may decompose the equation for sediment production as follows,
 
-$$\frac{\partial \eta}{\partial t} = \term{production} + \term{disintegration} + \term{transport}$$
+$$\frac{\partial \eta}{\partial t} = \left(\frac{\partial \eta}{\partial t}\right)_{\textrm{production}} + \left(\frac{\partial \eta}{\partial t}\right)_{\textrm{disintegration}} + \left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}}$$
 
 We consider all sediment transport to happen in an **active layer** close to the ocean floor. This layer has a certain concentration of sediment that travels along a path of steepest descent. We say that this material is **entrained**. We set the concentration of entrained material $C_f$ to be the sum of the production rate and the disintegration rate:
 
@@ -265,7 +281,7 @@ $$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
 where $d_f$ is a facies dependent diffusivity, and $v(w)$ is a chosen additional velocity as a function of water depth. We use $v(w)$ to model wave induced sediment transport. The mass balance is then,
 
-$$\term{transport} = -\sum_f \vec{\nabla} \cdot \vec{q}_f$$
+$$\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}} = -\sum_f \vec{\nabla} \cdot \vec{q}_f$$
 
 This gives us a diffusion equation in $\eta$, but we can also view it as an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
@@ -286,11 +302,11 @@ One aspect of critical angle theory that we do use, is that we can modulate the 
 
 Putting everything together, we evaluate the model as follows each iteration:
 
-1. Advance the cellular automaton.
-2. Compute the production $P_f$.
-3. Disintegrate sediment $D_f$.
-4. Transport entrained sediment $C_f$.
-5. Deposit entrained sediment.
+1.  Advance the cellular automaton.
+2.  Compute the production $P_f$.
+3.  Disintegrate sediment $D_f$.
+4.  Transport entrained sediment $C_f$.
+5.  Deposit entrained sediment.
 
 Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
 
@@ -308,7 +324,7 @@ While the sediment buffer is allocated as a single 4-dimensional array (depth, f
 
 We choose to have the head of our sediment stack always be at the first row. When sediment out-grows the buffer, the deepest layers are dropped from memory. The head can contain an incomplete amount of sediment, while all rows below the head are either full or empty. When sediment is pushed to the stack and the head row overflows, all rows are copied down one row and the surplus is assigned to the now empty head row. The inverse happens when removing (popping) material from the stack. This process is illustrated below in Figure @fig:sediment-buffer.
 
-![Sediment buffer diagram](fig/sediment-buffer.svg){width=100%}
+![Sediment buffer diagram](fig/sediment-buffer.svg){width="100%"}
 
 Figure: Above we see a buffer. First we push a parcel of size $3/4$, then we pop an amount of $1/2$. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
 
@@ -316,7 +332,7 @@ Our implementation is such that each cell in the buffer is contiguous in memory.
 
 ### User interface
 
-The user interfaces CarboKitten by writing a Julia script that defines  the relevant model parameters and  runs the chosen model. Effectively, very little Julia needs to be known to take an example input and modify parameters. Output is written to HDF5 files for post-processing and visualization.
+The user interfaces CarboKitten by writing a Julia script that defines the relevant model parameters and runs the chosen model. Effectively, very little Julia needs to be known to take an example input and modify parameters. Output is written to HDF5 files for post-processing and visualization.
 
 CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines.
 
@@ -325,18 +341,19 @@ CarboKitten ships with routines for visualisation and data extraction into CSV f
 ### Variable sea level
 
 ### Wave induced transport
+
 We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long time-scales we're working with, we limit ourselves to highly simplified models of wave induced transport. We model the emergence of an atoll, starting with a conic topography, periodic boundaries and a sediment transport vector with a constant depth profile,
 
 $$v_f = A_f \exp (- w k) \tanh (w k),$$
 
 where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $A_f$ the facies dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
-![Depth profile](fig/wave-transport-magnitude.svg){width=100%}
+![Depth profile](fig/wave-transport-magnitude.svg){width="100%"}
 
 Figure: Depth profile of velocity and shear. The velocity profile was taylored to have a maximum of $10 \textrm{m}/\textrm{yr}$ at a depth of $20 \textrm{m}$. Where the shear is non-zero, there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
 
-:::hide
-```julia
+::: hide
+``` julia
 #| id: velocity-profile
 v_prof(v_max, max_depth, w) = 
     let k = sqrt(0.5) / max_depth,
@@ -347,7 +364,7 @@ v_prof(v_max, max_depth, w) =
     end
 ```
 
-```julia
+``` julia
 #| classes: ["task"]
 #| creates: md/fig/wave-transport-magnitude.svg
 #| collect: figures
@@ -380,8 +397,8 @@ Script.main()
 ```
 :::
 
-:::hide
-```julia
+::: hide
+``` julia
 #| file: runs/atoll.jl
 #| classes: ["task"]
 #| creates: data/atoll.h5
@@ -462,7 +479,7 @@ CarboKitten.init()
 CarboKitten.run_model(Model{ALCAP}, Atoll.INPUT, "data/atoll.h5")
 ```
 
-```julia
+``` julia
 #| file: runs/atoll-profile-plot.jl
 #| classes: ["task"]
 #| requires: data/atoll.h5
@@ -482,7 +499,7 @@ h5open("data/atoll.h5") do fid
 end
 ```
 
-```julia
+``` julia
 #| file: runs/atoll-map-plot.jl
 #| classes: ["task"]
 #| requires: data/atoll.h5
@@ -523,4 +540,3 @@ Figure: Topographic map of atoll simulation.
 #### No production
 
 ## Conclusion
-
