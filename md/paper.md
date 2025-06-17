@@ -339,12 +339,12 @@ Figure: Depth profile of velocity and shear. The velocity profile was taylored t
 ```julia
 #| id: velocity-profile
 v_prof(v_max, max_depth, w) = 
-  	let k = sqrt(0.5) / max_depth,
-		    A = 3.331 * v_max,
-		    α = tanh(k * w),
-		    β = exp(-k * w)
-		    (A * α * β, -A * k * β * (1 - α - α^2))
-	  end
+    let k = sqrt(0.5) / max_depth,
+        A = 3.331 * v_max,
+        α = tanh(k * w),
+        β = exp(-k * w)
+        (A * α * β, -A * k * β * (1 - α - α^2))
+    end
 ```
 
 ```julia
@@ -361,17 +361,17 @@ using Unitful
 
 function main()
     w = LinRange(0, 100.0, 1000)u"m"
-	f = v_prof.(10.0u"m/yr", 20.0u"m", w)
+    f = v_prof.(10.0u"m/yr", 20.0u"m", w)
 
-	v = first.(f)
-	s = last.(f)
-	
-	fig = Figure()
-	ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
-	ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
-	lines!(ax1, v / u"m/yr", w / u"m")
-	lines!(ax2, s / u"1/yr", w / u"m")
-	save("md/fig/wave-transport-magnitude.svg", fig)
+    v = first.(f)
+    s = last.(f)
+    
+    fig = Figure()
+    ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
+    ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
+    lines!(ax1, v / u"m/yr", w / u"m")
+    lines!(ax2, s / u"1/yr", w / u"m")
+    save("md/fig/wave-transport-magnitude.svg", fig)
 end
 
 end
@@ -382,6 +382,7 @@ Script.main()
 
 :::hide
 ```julia
+#| file: runs/atoll.jl
 #| classes: ["task"]
 #| creates: data/atoll.h5
 #| collect: atoll
@@ -395,8 +396,8 @@ using GeometryBasics
 <<velocity-profile>>
 
 wave_velocity(v_max) = w -> let (v, s) = v_prof(v_max, 10.0u"m", w)
-		(Vec2(v, 0.0u"m/Myr"), Vec2(s, 0.0u"1/Myr"))
-	end
+        (Vec2(v, 0.0u"m/Myr"), Vec2(s, 0.0u"1/Myr"))
+    end
 
 initial_topography(x, y) = 
     - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
@@ -411,8 +412,7 @@ const FACIES = [
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=10.0u"m/yr",
-        production_offset=INTERTIDAL_ZONE,
-		wave_velocity=wave_velocity(-0.5u"m/yr")),
+        wave_velocity=wave_velocity(-0.5u"m/yr")),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
@@ -420,8 +420,7 @@ const FACIES = [
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=10.0u"m/yr",
-        production_offset=INTERTIDAL_ZONE,
-		wave_velocity=wave_velocity(-1.0u"m/yr")),
+        wave_velocity=wave_velocity(-2.0u"m/yr")),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
@@ -429,20 +428,22 @@ const FACIES = [
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=10.0u"m/yr",
-        production_offset=INTERTIDAL_ZONE,
-		wave_velocity=wave_velocity(-1.0u"m/yr"))
+        wave_velocity=wave_velocity(-2.0u"m/yr"))
 ]
 
 const BOX = Box{Periodic{2}}(
-    grid_size=(100, 100), phys_scale=150.0u"m")
+    grid_size=(300, 300), phys_scale=50.0u"m")
 
 const INPUT = ALCAP.Input(
     tag="atoll",
     box=BOX,
     time=TimeProperties(
         Δt=0.0002u"Myr",
-        steps=4000,
-        write_interval=1),
+        steps=4000),
+    output = Dict(
+        :topography => OutputSpec(write_interval=400),
+        :profile => OutputSpec(slice=(:, 150)),
+        :offcenter => OutputSpec(slice=(:, 225))),
     ca_interval=1,
     initial_topography=initial_topography,
     sea_level=t -> 5.0u"m" * sin(2π * t / 123456.0u"yr"),
@@ -452,8 +453,7 @@ const INPUT = ALCAP.Input(
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
     transport_solver=Val{:forward_euler},
-    # transport_solver=forward_euler, # runge_kutta_4(typeof(1.0u"m"), BOX),
-    # transport_substeps=10,
+    intertidal_zone=INTERTIDAL_ZONE,
     facies=FACIES)
 
 end
@@ -463,6 +463,7 @@ CarboKitten.run_model(Model{ALCAP}, Atoll.INPUT, "data/atoll.h5")
 ```
 
 ```julia
+#| file: runs/atoll-profile-plot.jl
 #| classes: ["task"]
 #| requires: data/atoll.h5
 #| creates: md/fig/atoll-profile.png
@@ -475,13 +476,14 @@ using CarboKitten.Export: read_slice, read_header
 
 h5open("data/atoll.h5") do fid
     header = read_header(fid)
-    data = read_slice(fid, :, 50)
+    data = read_slice(fid["profile"])
     fig = sediment_profile(header, data)
     save("md/fig/atoll-profile.png", fig)
 end
 ```
 
 ```julia
+#| file: runs/atoll-map-plot.jl
 #| classes: ["task"]
 #| requires: data/atoll.h5
 #| creates: md/fig/atoll-map.png
@@ -491,16 +493,16 @@ using CairoMakie
 using CarboKitten.Export: read_header
 
 h5open("data/atoll.h5") do fid
-	h = read_header(fid)
-	s = fid["sediment_height"][:, :, end] * u"m"
-	t = h.initial_topography .+ s .- (h.axes.t[end] * h.subsidence_rate)
+    h = read_header(fid)
+    s = fid["topography"]["sediment_thickness"][:, :, end] * u"m"
+    t = h.initial_topography .+ s .- (h.axes.t[end] * h.subsidence_rate)
 
-	fig = Figure()
-	ax = Axis(fig[1, 1], limits=((3.0, 12.0), (3.0, 12.0)))
-	hm = heatmap!(ax, h.axes.x, h.axes.y, t / u"m", colorrange=(-10, -4), colormap=Reverse(:RdBu_8))
-	Colorbar(fig[1, 2], hm)
+    fig = Figure()
+    ax = Axis(fig[1, 1], limits=((3.0, 12.0), (3.0, 12.0)), aspect=DataAspect())
+    hm = heatmap!(ax, h.axes.x, h.axes.y, t / u"m", colorrange=(-10, 10), colormap=Reverse(:RdBu_8))
+    Colorbar(fig[1, 2], hm)
 
-	save("md/fig/atoll-map.png", fig)
+    save("md/fig/atoll-map.png", fig)
 end
 ```
 :::
