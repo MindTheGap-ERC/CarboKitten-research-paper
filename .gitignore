@@ -1,5 +1,7 @@
 build
 data
 .entangled
+runs
+.brei_history
 
 .Rproj.user
