@@ -372,7 +372,7 @@ const FACIES = [
     ALCAP.Facies(
         viability_range = (4, 10),
         activation_range = (6, 10),
-        maximum_growth_rate=500u"m/Myr",
+        maximum_growth_rate=200u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=50.0u"m/yr"),
@@ -399,7 +399,7 @@ const INPUT = ALCAP.Input(
         Δt=0.1u"kyr",
         steps=10270),
     output=Dict(
-        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
+        :profile => OutputSpec(slice=(:, 25), write_interval=2)),
     ca_interval=1,
     initial_topography=(x, y) -> -x / 300.0,
     sea_level=t -> miller_sea_level(t - 5320.92*u"kyr"), # this magic number is the oldest date in Lisiecki et al. 2005
@@ -417,6 +417,28 @@ CarboKitten.run_model(Model{ALCAP}, VariableSL.INPUT, "data/variableSL.h5")
 ```
 :::
 
+``` julia
+#| file: runs/variable_sl-plot.jl
+#| requires: data/variableSL.h5
+#| creates: md/fig/ALCAPS_profile.png
+#| collect: figures
+
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile
+using HDF5
+using CarboKitten.Export: read_slice, read_header
+
+h5open("data/variableSL.h5") do fid
+    header = read_header(fid)
+    data = read_slice(fid["profile"])
+    fig = sediment_profile(header, data)
+    save("md/fig/ALCAPS_profile.png", fig)
+end
+```
+
+![ALCAPS with variable SL](fig/ALCAPS_profile.png){width=100%}
+
+Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).
 
 ### Wave induced transport
 
