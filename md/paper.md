@@ -372,7 +372,7 @@ const FACIES = [
     ALCAP.Facies(
         viability_range = (4, 10),
         activation_range = (6, 10),
-        maximum_growth_rate=200u"m/Myr",
+        maximum_growth_rate=300u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=50.0u"m/yr"),
@@ -396,13 +396,14 @@ const INPUT = ALCAP.Input(
     tag="$TAG",
     box=Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
     time=TimeProperties(
-        Δt=0.1u"kyr",
-        steps=10270),
+        t0 = -5320.92u"kyr",
+        Δt=0.2u"kyr",
+        steps=25931),
     output=Dict(
         :profile => OutputSpec(slice=(:, 25), write_interval=2)),
     ca_interval=1,
     initial_topography=(x, y) -> -x / 300.0,
-    sea_level=t -> miller_sea_level(t - 5320.92*u"kyr"), # this magic number is the oldest date in Lisiecki et al. 2005
+    sea_level=t -> miller_sea_level(t),
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
     insolation=400.0u"W/m^2",
