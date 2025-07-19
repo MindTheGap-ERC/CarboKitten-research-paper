@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.11.4"
+julia_version = "1.11.5"
 manifest_format = "2.0"
 project_hash = "8d017a2ca1f9cf78d16e86797f11a61dbe0494d2"
 
@@ -125,9 +125,11 @@ version = "1.18.4+0"
 
 [[deps.CarboKitten]]
 deps = ["CSV", "CategoricalArrays", "DataFrames", "DelimitedFiles", "GeometryBasics", "HDF5", "LinearAlgebra", "Logging", "ModuleMixins", "Pkg", "ProgressLogging", "Random", "StaticArrays", "TOML", "TerminalLoggers", "Unitful"]
-path = "../CarboKitten"
+git-tree-sha1 = "3ff2b6edebf3e970c27f2e24983e6d3d0eb1ca25"
+repo-rev = "develop"
+repo-url = "https://github.com/MindTheGap-ERC/CarboKitten.jl"
 uuid = "690c6d5c-626a-429f-a06b-981a1dae1c19"
-version = "0.3.0"
+version = "0.5.2"
 weakdeps = ["Makie", "Statistics"]
 
     [deps.CarboKitten.extensions]
@@ -1036,7 +1038,7 @@ version = "3.2.4+0"
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
-version = "0.8.1+4"
+version = "0.8.5+0"
 
 [[deps.OpenMPI_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Hwloc_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "MPIPreferences", "TOML", "Zlib_jll"]
