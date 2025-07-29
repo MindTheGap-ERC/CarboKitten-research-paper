@@ -321,10 +321,7 @@ The problem with these critical angle based methods of transport is that product
 ```julia
 #| id: variable_SL
 #| file: runs/variable_sl.jl
-#| creates: data/variableSL.h5
-
-
-
+#| creates: md/fig/variable-sl.png
 module VariableSL
 
 using CarboKitten
@@ -371,14 +368,14 @@ const FACIES = [
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
+        maximum_growth_rate=200u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=50.0u"m/yr"),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
-        maximum_growth_rate=400u"m/Myr",
+        maximum_growth_rate=500u"m/Myr",
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=25.0u"m/yr"),
@@ -412,7 +409,8 @@ const INPUT = ALCAP.Input(
     end
 
     function plot(result::MemoryOutput)
-	    sediment_profile(result.header, result.data_slices[:profile])
+	    fig = sediment_profile(result.header, result.data_slices[:profile])
+        save("md/fig/variable-sl.png", fig)
 end
 
 end
@@ -420,31 +418,11 @@ end
 result = VariableSL.main()
 VariableSL.plot(result)
 
-# CarboKitten.init()
-# CarboKitten.run_model(Model{ALCAP}, VariableSL.INPUT, "data/variableSL.h5")
 ```
 :::
 
-``` julia
-#| file: runs/variable_sl-plot.jl
-#| requires: data/variableSL.h5
-#| creates: md/fig/ALCAPS_profile.png
-#| collect: figures
 
-using CairoMakie
-using CarboKitten.Visualization: sediment_profile
-using HDF5
-using CarboKitten.Export: read_slice, read_header
-
-h5open("data/variableSL.h5") do fid
-    header = read_header(fid)
-    data = read_slice(fid["profile"])
-    fig = sediment_profile(header, data)
-    save("md/fig/ALCAPS_profile.png", fig)
-end
-```
-
-![ALCAPS with variable SL](fig/ALCAPS_profile.png){width=100%}
+![ALCAPS with variable SL](fig/variable-sl.png){width=100%}
 
 Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).
 
@@ -515,6 +493,75 @@ Our transport model is based on the elementary assumption that sediment flux is 
 
 ```julia
 #| file: runs/test-diffusivity.jl
+using CarboKitten
+using CarboKitten.Components: WaterDepth
+using CarboKitten.Components.Common
+using ModuleMixins
+
+@compose module CustomProduction
+@mixin Tag, ActiveLayer
+
+@kwdef struct Input <: AbstractInput
+    production    # a function of (facies, wd)
+end
+
+function initial_state(input::AbstractInput)
+    sediment_height = zeros(Height, input.box.grid_size...)
+    sediment_buffer = zeros(Float64, input.sediment_buffer_size, n_facies(input), input.box.grid_size...)
+    active_layer = zeros(Amount, n_facies(input), input.box.grid_size...)
+
+    state = State(
+        step=0, sediment_height=sediment_height,
+        sediment_buffer=sediment_buffer,
+        active_layer = active_layer)
+
+    return state
+end
+
+function step!(input::Input)
+    disintegrate! = ActiveLayer.disintegrator(input)
+    transport! = ActiveLayer.transporter(input)
+    local_water_depth = water_depth(input)
+    x, y = box_axes(input.box)
+    na = [CartesianIndex()]
+    produce(_, wd) = input.production.(x[:,na], y[na,:], wd)[na,:,:]
+    pf = precipitation_factor(input)
+
+    function (state::State)
+        if mod(state.step, input.ca_interval) == 0
+            step_ca!(state)
+        end
+
+        wd = local_water_depth(state)
+        p = produce(state, wd)
+        d = disintegrate!(state)
+
+        state.active_layer .+= p
+        state.active_layer .+= d
+        transport!(state)
+
+        deposit = pf .* state.active_layer
+        push_sediment!(state.sediment_buffer, deposit ./ input.depositional_resolution .|> NoUnits)
+        state.active_layer .-= deposit
+        state.sediment_height .+= sum(deposit; dims=1)[1,:,:]
+        state.step += 1
+
+        return Frame(
+            production = p,
+            disintegration = d,
+            deposition = deposit)
+    end
+end
+
+
+end
+
+module TestDiffusivity
+
+function main()
+end
+
+end
 ```
 
 ### Disintegration rate

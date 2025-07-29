@@ -1,10 +1,7 @@
 # ~/~ begin <<md/paper.md#variable_SL>>[init]
 #| id: variable_SL
 #| file: runs/variable_sl.jl
-#| creates: data/variableSL.h5
-
-
-
+#| creates: md/fig/variable-sl.png
 module VariableSL
 
 using CarboKitten
@@ -51,14 +48,14 @@ const FACIES = [
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
+        maximum_growth_rate=200u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=50.0u"m/yr"),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
-        maximum_growth_rate=400u"m/Myr",
+        maximum_growth_rate=500u"m/Myr",
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=25.0u"m/yr"),
@@ -92,14 +89,12 @@ const INPUT = ALCAP.Input(
     end
 
     function plot(result::MemoryOutput)
-	    sediment_profile(result.header, result.data_slices[:profile])
+	    fig = sediment_profile(result.header, result.data_slices[:profile])
+        save("md/fig/variable-sl.png", fig)
 end
 
 end
 
 result = VariableSL.main()
 VariableSL.plot(result)
-
-# CarboKitten.init()
-# CarboKitten.run_model(Model{ALCAP}, VariableSL.INPUT, "data/variableSL.h5")
 # ~/~ end
