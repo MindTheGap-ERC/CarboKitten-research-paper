@@ -3,64 +3,83 @@
 #| file: runs/variable_sl.jl
 #| creates: data/variableSL.h5
 
-using CarboKitten
+
 
 module VariableSL
 
-using ..ALCAP: ALCAP
-using CarboKitten.Boxes: Box, Coast
-using CarboKitten.Config: TimeProperties
-using CarboKitten.Components.H5Writer: OutputSpec
+using CarboKitten
+using DelimitedFiles: readdlm
 using Unitful
-using CarboKitten.DataSets: miller_2020
 using DataFrames
 using Interpolations
+using CategoricalArrays
+using CarboKitten.DataSets: artifact_dir
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile
 
-miller_df = miller_2020()
-miller_df = filter(r -> r.reference == "Lisiecki et al. 2005", miller_df)
-sort!(miller_df, [:time])
-miller_sea_level = linear_interpolation(miller_df.time, miller_df.sealevel);
+function miller_2020()
+    dir = artifact_dir()
+    filename = joinpath(dir, "Miller2020", "Cenozoic_sea_level_reconstruction.tab")
 
-const PATH = "data/"
+    data, header = readdlm(filename, '\t', header=true)
+    return DataFrame(
+        time=-data[:,4] * u"kyr",
+        sealevel=data[:,7] * u"m",
+        refkey=categorical(data[:,2]),
+        reference=categorical(data[:,3]))
+end
 
-const TAG = "variable_sea_level"
+function sea_level()
+    df = miller_2020()
+    lisiecki_df = df[df.refkey .== "846 Lisiecki", :]
+    sort!(lisiecki_df, [:time])
+
+    return linear_interpolation(
+        lisiecki_df.time,
+        lisiecki_df.sealevel)
+end
+
+const TIME_PROPERTIES = TimeProperties(
+    t0 = -2.0u"Myr",
+    Δt = 200.0u"yr",
+    steps = 5000
+)
+
+const TAG = "lisiecki-sea-level"
 
 const FACIES = [
     ALCAP.Facies(
-        viability_range = (4, 10),
-        activation_range = (6, 10),
-        maximum_growth_rate=300u"m/Myr",
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=500u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=50.0u"m/yr"),
     ALCAP.Facies(
-        viability_range = (4, 10),
-        activation_range = (6, 10),
+        viability_range=(4, 10),
+        activation_range=(6, 10),
         maximum_growth_rate=400u"m/Myr",
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=25.0u"m/yr"),
     ALCAP.Facies(
-        viability_range = (4, 10),
-        activation_range = (6, 10),
+        viability_range=(4, 10),
+        activation_range=(6, 10),
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=12.5u"m/yr")
+        diffusion_coefficient=35.0u"m/yr")
 ]
 
 const INPUT = ALCAP.Input(
     tag="$TAG",
-    box=Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
-    time=TimeProperties(
-        t0 = -5320.92u"kyr",
-        Δt=0.2u"kyr",
-        steps=25931),
-    output=Dict(
-        :profile => OutputSpec(slice=(:, 25), write_interval=2)),
+    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    time=TIME_PROPERTIES,
     ca_interval=1,
-    initial_topography=(x, y) -> -x / 300.0,
-    sea_level=t -> miller_sea_level(t),
+    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
+    sea_level=sea_level(),
+        output=Dict(
+        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
     insolation=400.0u"W/m^2",
@@ -68,8 +87,19 @@ const INPUT = ALCAP.Input(
     depositional_resolution=0.5u"m",
     facies=FACIES)
 
+    function main()
+        run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+    end
+
+    function plot(result::MemoryOutput)
+	    sediment_profile(result.header, result.data_slices[:profile])
 end
 
-CarboKitten.init()
-CarboKitten.run_model(Model{ALCAP}, VariableSL.INPUT, "data/variableSL.h5")
+end
+
+result = VariableSL.main()
+VariableSL.plot(result)
+
+# CarboKitten.init()
+# CarboKitten.run_model(Model{ALCAP}, VariableSL.INPUT, "data/variableSL.h5")
 # ~/~ end
