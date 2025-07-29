@@ -151,6 +151,128 @@ Script.main()
 ```
 :::
 
+## Input variables
+
+### Sea level 
+
+Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step, with which the model is run. 
+
+The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $δ^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios.
+
+::: hide
+```julia
+#| id: variable_SL
+#| file: runs/variable_sl.jl
+#| creates: md/fig/variable-sl.png
+module VariableSL
+
+using CarboKitten
+using DelimitedFiles: readdlm
+using Unitful
+using DataFrames
+using Interpolations
+using CategoricalArrays
+using CarboKitten.DataSets: artifact_dir
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile
+
+function miller_2020()
+    dir = artifact_dir()
+    filename = joinpath(dir, "Miller2020", "Cenozoic_sea_level_reconstruction.tab")
+
+    data, header = readdlm(filename, '\t', header=true)
+    return DataFrame(
+        time=-data[:,4] * u"kyr",
+        sealevel=data[:,7] * u"m",
+        refkey=categorical(data[:,2]),
+        reference=categorical(data[:,3]))
+end
+
+function sea_level()
+    df = miller_2020()
+    lisiecki_df = df[df.refkey .== "846 Lisiecki", :]
+    sort!(lisiecki_df, [:time])
+
+    return linear_interpolation(
+        lisiecki_df.time,
+        lisiecki_df.sealevel)
+end
+
+const TIME_PROPERTIES = TimeProperties(
+    t0 = -2.0u"Myr",
+    Δt = 200.0u"yr",
+    steps = 5000
+)
+
+const TAG = "lisiecki-sea-level"
+
+const FACIES = [
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=200u"m/Myr",
+        extinction_coefficient=0.8u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=50.0u"m/yr"),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=500u"m/Myr",
+        extinction_coefficient=0.1u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=25.0u"m/yr"),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=100u"m/Myr",
+        extinction_coefficient=0.005u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=35.0u"m/yr")
+]
+
+const INPUT = ALCAP.Input(
+    tag="$TAG",
+    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    time=TIME_PROPERTIES,
+    ca_interval=1,
+    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
+    sea_level=sea_level(),
+        output=Dict(
+        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
+    subsidence_rate=50.0u"m/Myr",
+    disintegration_rate=50.0u"m/Myr",
+    insolation=400.0u"W/m^2",
+    sediment_buffer_size=50,
+    depositional_resolution=0.5u"m",
+    facies=FACIES)
+
+    function main()
+        run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+    end
+
+    function plot(result::MemoryOutput)
+	    fig = sediment_profile(result.header, result.data_slices[:profile])
+        save("md/fig/variable-sl.png", fig)
+end
+
+end
+
+result = VariableSL.main()
+VariableSL.plot(result)
+
+```
+:::
+
+![ALCAPS with variable SL](fig/variable-sl.png){width=100%}
+
+Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).
+
+### Insolation
+
+By default, we use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $μE m^{−2}⋅s^{−1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. 
+
+
+
 ## Cellular Automaton
 
 The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in their package CarboCAT.
@@ -314,117 +436,6 @@ where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of
 Other carbonate models [e.g. @Warrlich2000] take a very different approach, where matter is transported from unstable slopes to the nearest down-slope stable region. This method is motivated by critical angle theory [@Kenter1990].
 
 The problem with these critical angle based methods of transport is that production across an unstable region all is deposited on a small strip where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. 
-
-### Input variables
-
-::: hide
-```julia
-#| id: variable_SL
-#| file: runs/variable_sl.jl
-#| creates: md/fig/variable-sl.png
-module VariableSL
-
-using CarboKitten
-using DelimitedFiles: readdlm
-using Unitful
-using DataFrames
-using Interpolations
-using CategoricalArrays
-using CarboKitten.DataSets: artifact_dir
-using CairoMakie
-using CarboKitten.Visualization: sediment_profile
-
-function miller_2020()
-    dir = artifact_dir()
-    filename = joinpath(dir, "Miller2020", "Cenozoic_sea_level_reconstruction.tab")
-
-    data, header = readdlm(filename, '\t', header=true)
-    return DataFrame(
-        time=-data[:,4] * u"kyr",
-        sealevel=data[:,7] * u"m",
-        refkey=categorical(data[:,2]),
-        reference=categorical(data[:,3]))
-end
-
-function sea_level()
-    df = miller_2020()
-    lisiecki_df = df[df.refkey .== "846 Lisiecki", :]
-    sort!(lisiecki_df, [:time])
-
-    return linear_interpolation(
-        lisiecki_df.time,
-        lisiecki_df.sealevel)
-end
-
-const TIME_PROPERTIES = TimeProperties(
-    t0 = -2.0u"Myr",
-    Δt = 200.0u"yr",
-    steps = 5000
-)
-
-const TAG = "lisiecki-sea-level"
-
-const FACIES = [
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr"),
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=25.0u"m/yr"),
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=35.0u"m/yr")
-]
-
-const INPUT = ALCAP.Input(
-    tag="$TAG",
-    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
-    time=TIME_PROPERTIES,
-    ca_interval=1,
-    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
-    sea_level=sea_level(),
-        output=Dict(
-        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
-    subsidence_rate=50.0u"m/Myr",
-    disintegration_rate=50.0u"m/Myr",
-    insolation=400.0u"W/m^2",
-    sediment_buffer_size=50,
-    depositional_resolution=0.5u"m",
-    facies=FACIES)
-
-    function main()
-        run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
-    end
-
-    function plot(result::MemoryOutput)
-	    fig = sediment_profile(result.header, result.data_slices[:profile])
-        save("md/fig/variable-sl.png", fig)
-end
-
-end
-
-result = VariableSL.main()
-VariableSL.plot(result)
-
-```
-:::
-
-
-![ALCAPS with variable SL](fig/variable-sl.png){width=100%}
-
-Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).
 
 One aspect of critical angle theory that we do use, is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and we don't need to convert back and forth between gridded values and a particle representation.
 
