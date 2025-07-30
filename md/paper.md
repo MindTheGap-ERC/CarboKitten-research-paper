@@ -259,7 +259,6 @@ end
 
 result = VariableSL.main()
 VariableSL.plot(result)
-
 ```
 :::
 
@@ -296,7 +295,7 @@ for (t in 1:length(times)) {
     ecc = param_la04[t,2], 
     varpi = (param_la04[t,3] - 180) * pi / 180
   )
-  
+
   insolation[[t]] <- Insol(
     orbit[[t]], 
     long = pi / 2, 
@@ -309,7 +308,96 @@ for (t in 1:length(times)) {
 insolation = inso_values <- unlist(insolation)
 write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
 ```
+The insolation file can be read into CarboKitten file defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
 
+``` julia
+#| file: runs/insolation_run.jl
+
+module Insolation
+
+using CarboKitten
+using DelimitedFiles: readdlm
+using Unitful
+using Interpolations
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile
+
+function import_insolation(file::String)
+    dir = "data"
+    filename = joinpath(dir, file)
+    insolation = readdlm(filename, '\t', header=false, skipstart=1)
+    vec(insolation) .|> Float64
+end
+
+const TIME_PROPERTIES = TimeProperties(
+    t0 = 0u"Myr",
+    Δt = 200.0u"yr",
+    steps = length(import_insolation("insolation.csv"))-1
+)
+
+function get_insolation(times::Vector, insolation::Vector)
+	linear_interpolation(times,insolation)
+end
+
+const TAG = "insolation-future"
+
+const FACIES = [
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=200u"m/Myr",
+        extinction_coefficient=0.8u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=50.0u"m/yr"),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=500u"m/Myr",
+        extinction_coefficient=0.1u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=25.0u"m/yr"),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=100u"m/Myr",
+        extinction_coefficient=0.005u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=35.0u"m/yr")
+]
+
+const time_vector = collect(time_axis(TIME_PROPERTIES)) / u"yr" .|> NoUnits
+const insolation_vector = import_insolation("insolation.csv")
+
+const INPUT = ALCAP.Input(
+    tag="$TAG",
+    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    time=TIME_PROPERTIES,
+    ca_interval=1,
+    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
+    sea_level = _-> 0.0*u"m",
+        output=Dict(
+        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
+    subsidence_rate=50.0u"m/Myr",
+    disintegration_rate=50.0u"m/Myr",
+    insolation= get_insolation(time_vector, insolation_vector) .* u"W/m^2",
+    sediment_buffer_size=50,
+    depositional_resolution=0.5u"m",
+    facies=FACIES)
+
+    function main()
+        run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+    end
+
+    function plot(result::MemoryOutput)
+	    fig = sediment_profile(result.header, result.data_slices[:profile])
+        save("md/fig/variable-insolation.png", fig)
+end
+
+end
+
+result = Insolation.main()
+Insolation.plot(result)
+```
 
 ## Cellular Automaton
 
