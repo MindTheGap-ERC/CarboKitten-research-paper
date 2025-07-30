@@ -269,8 +269,46 @@ Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).
 
 ### Insolation
 
-By default, we use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $μE m^{−2}⋅s^{−1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. 
+We use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $μE m^{−2}⋅s^{−1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
 
+Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten.jl is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$.
+
+``` r
+#| file: runs/extract_insolation.R
+
+if (!require("palinsol")) {
+    install.packages("palinsol", repos = "https://cran.r-project.org")
+}
+
+library(palinsol)
+time_start <- 5e5  
+time_end <- 0      
+time_step <- 2e2  
+times <- seq(time_end, time_start, time_step)
+param_la04 = t(sapply(times, function(t) astro(t, solution = la04, degree = TRUE)))
+orbit <- list()
+insolation <- list()
+lat_degree = 25
+
+for (t in 1:length(times)) {
+  orbit[[t]] <- list(
+    eps = param_la04[t,1] * pi / 180, 
+    ecc = param_la04[t,2], 
+    varpi = (param_la04[t,3] - 180) * pi / 180
+  )
+  
+  insolation[[t]] <- Insol(
+    orbit[[t]], 
+    long = pi / 2, 
+    lat = lat_degree * pi / 180, 
+    S0 = 1361, 
+    H = NULL
+  )
+}
+
+insolation = inso_values <- unlist(insolation)
+write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
+```
 
 
 ## Cellular Automaton
@@ -613,7 +651,6 @@ CarboKitten ships with routines for visualisation and data extraction into CSV f
 
 # Examples of use
 
-## Variable sea level
 
 ## Wave induced transport
 
