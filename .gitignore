@@ -1,5 +1,5 @@
 build
-data
+data/*.h5
 .entangled
 .brei_history
 
