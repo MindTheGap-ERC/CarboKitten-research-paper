@@ -380,6 +380,7 @@ Our transport model is based on the elementary assumption that sediment flux is 
 
 ### Diffusivity
 
+:::hide
 ```julia
 #| file: runs/test-diffusivity.jl
 using CarboKitten
@@ -523,6 +524,7 @@ end
 
 TestDiffusivity.main()
 ```
+:::
 
 ### Disintegration rate
 
@@ -530,9 +532,11 @@ It seems that a disintegration rate is a good choice of parameter if we consider
 
 ### Cementation time
 
+:::hide
 ```julia
 #| file: runs/test-cementation.jl
 ```
+:::
 
 # Software design
 

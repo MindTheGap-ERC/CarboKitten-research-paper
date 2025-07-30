@@ -116,7 +116,7 @@ function main()
     production(x, y, w) = abs(x - centre) < width ?
         100.0u"m/Myr" * time.Δt :
         0.0u"m"
-        
+
     input = M.Input(
         box=box,
         time=time,
