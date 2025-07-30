@@ -2,6 +2,7 @@
 title: CarboKitten.jl
 subtitle: an open source toolkit for carbonate stratigraphic modeling
 author: Johan Hidding, Emilia Jarochowska, Xianyi Liu, Peter Burgess, Hanno Spreeuw
+numbersections: true
 ---
 
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
@@ -9,10 +10,10 @@ author: Johan Hidding, Emilia Jarochowska, Xianyi Liu, Peter Burgess, Hanno Spre
 \renewcommand{\]}{\end{equation}}
 
 ::: abstract
-## Abstract
+# Abstract
 :::
 
-## Introduction
+# Introduction
 
 Stratigraphic forward modelling is well established as a means of examining our understanding of the formation of stratal architectures (@burgess_numerical_2001, @schlager_record_2009, @ding_quantitative_2019, @jean_borgomano_quantitative_2020, @liu_formation_2022), prediction, correlation and imputation of architectures from incomplete data (@Warrlich2008), and testing hypotheses on the structure of the geological record (e.g., @kemp_stratigraphic_2018, @masiero_numerical_2020, @liu_estimating_2021) and the preservation of proxies (@curtis_natural_2025), fossils (@holland_quality_2000, @hannisdal_phenotypic_2006, @hohmann_identification_2024), or forcing mechanisms (@kemp_investigating_2016, @kemp_metre-scale_2019, @burgess_big_2019). Owing to their economic interest, most such models are proprietary to exploration companies and their availability to researchers is limited. Some older models developed by researchers share the fate of many other research software packages and their maintenance ceases, e.g. when a project ends (@Warrlich2000). It is not always possible to resuscitate such models, especially if documentation or license are lacking or code has not been shared (e.g., @demicco_cycopath_1998, @barrett_reef_2017). As a result, the choice of stratigraphic forward models available to researchers at the moment is narrow and shifted towards siliciclastic (@hutton_sedflux_2008, @sylvester_stratigraphy_2024) or specifically fluvial depositional systems (@wild_sedsim_2019, @falivene_three-dimensional_2019), to the point that researchers may resort to these models to create simulations of carbonate sections (@zimmt_recognizing_2021).
 
@@ -32,9 +33,12 @@ Modeling carbonate depositional systems requires not only accounting for water a
 
 The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present `CarboKitten.jl`, an efficient and accessible Open Source model for stratigraphic forward simulations of tropical carbonate platforms.
 
-## Model
+# Model
 
-### Quantities
+CarboKitten combines the carbonate production model by @Bosscher1992, the cellular automaton from @Burgess2013, and a custom finite difference transport model inspired on an approach by @Paola1992. We describe each of these components in detail in the following sections.
+
+## Quantities
+Since the model describes the accumulation of sediment under a range of variable conditions, a short discussion of different measures in the vertical column is in order.
 
 Subsidence rate
 
@@ -58,7 +62,7 @@ Water depth
 
 $$w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.$$
 
-### Carbonate Production
+## Carbonate Production
 
 The general form of our production model follows that of @Bosscher1992 (BS92). This model finds the sediment accumulation curve by integrating an ODE that outside of the model parameters only depends on the initial topography.
 
@@ -88,7 +92,7 @@ $$P(w) = \sum_f P_f(w)$$
 
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the tropical (T), mounds (M) and cool water (C) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
-![Production curves for three default carbonate factories](fig/production-curves.svg){#fig:factories width="100%"}
+![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="100%"}
 
 FIXME: Add legend to figure showing which curve is Tropical, Mounds and Cool water factory.
 
@@ -114,8 +118,7 @@ const INPUT = BS92.Input(
     box = CarboKitten.Box{Coast}(grid_size=(100, 1), phys_scale=150.0u"m"),
     time = TimeProperties(
         Δt = 200.0u"yr",
-        steps = 5000,
-        write_interval = 1),
+        steps = 5000),
     sea_level = t -> 4.0u"m" * sin(2π * t / 0.2u"Myr"),
     initial_topography = (x, y) -> - x / 300.0,
     subsidence_rate = 50.0u"m/Myr",
@@ -125,7 +128,7 @@ const INPUT = BS92.Input(
 
 ``` julia
 #| classes: ["task"]
-#| creates: ["md/fig/production-curves.svg"]
+#| creates: ["md/fig/production-curves.pdf"]
 #| collect: figures
 
 module Script
@@ -139,7 +142,7 @@ function main()
   fig = Figure()
   ax = Axis(fig[1, 1])
   production_curve!(ax, INPUT)
-  save("md/fig/production-curves.svg", fig)
+  save("md/fig/production-curves.pdf", fig)
 end
 
 end
@@ -148,7 +151,7 @@ Script.main()
 ```
 :::
 
-### Cellular Automaton
+## Cellular Automaton
 
 The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in their package CarboCAT.
 
@@ -163,7 +166,7 @@ In the default configuration we emulate three species, corresponding to the Trop
 ::: hide
 ``` julia
 #| classes: ["task"]
-#| creates: ["md/fig/ca-first-steps.svg"]
+#| creates: ["md/fig/ca-first-steps.pdf"]
 #| collect: figures
 
 module Script
@@ -195,7 +198,7 @@ function main()
     heatmap!(ax, xaxis/u"m", yaxis/u"m", state.ca)
     step!(state)
   end
-  save("md/fig/ca-first-steps.svg", fig)
+  save("md/fig/ca-first-steps.pdf", fig)
 end
 
 end
@@ -205,7 +208,7 @@ Script.main()
 
 ``` julia
 #| classes: ["task"]
-#| creates: ["md/fig/ca-long-term.svg"]
+#| creates: ["md/fig/ca-long-term.png"]
 #| collect: figures
 module Script
 using CarboKitten
@@ -250,7 +253,7 @@ function main()
       i += 1
     end
   end
-  save("md/fig/ca-long-term.svg", fig)
+  save("md/fig/ca-long-term.pdf", fig)
 end
 
 end
@@ -259,46 +262,23 @@ Script.main()
 ```
 :::
 
-![CA](fig/ca-long-term.svg){width="100%"}
+![CA](fig/ca-long-term.pdf){width="100%"}
 
 Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
-### Transport
+## Transport
 
-Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales.
+Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-In the following, we may decompose the equation for sediment production as follows,
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as cementation, see Figure @fig:active-layer-diagram.
 
-$$\frac{\partial \eta}{\partial t} = \left(\frac{\partial \eta}{\partial t}\right)_{\textrm{production}} + \left(\frac{\partial \eta}{\partial t}\right)_{\textrm{disintegration}} + \left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}}$$
+![Diagram showing concepts of production, cementation and disintegration](fig/active-layer-diagram.pdf)
 
-We consider all sediment transport to happen in an **active layer** close to the ocean floor. This layer has a certain concentration of sediment that travels along a path of steepest descent. We say that this material is **entrained**. We set the concentration of entrained material $C_f$ to be the sum of the production rate and the disintegration rate:
+Figure: Diagram showing concepts of production, cementation and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a cementation half-life time) is cemented onto the sea floor. {#fig:active-layer-diagram}
 
-$$C_f = P_f + D_f.$$
+The actual transport is computed using a finite difference approach that is further discussed in Section @sec:transport.
 
-We assume a local sediment flux,
-
-$$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
-
-where $d_f$ is a facies dependent diffusivity, and $v(w)$ is a chosen additional velocity as a function of water depth. We use $v(w)$ to model wave induced sediment transport. The mass balance is then,
-
-$$\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}} = -\sum_f \vec{\nabla} \cdot \vec{q}_f$$
-
-This gives us a diffusion equation in $\eta$, but we can also view it as an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
-
-$$
-\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C +
-(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C,
-$${#eq:transport}
-
-where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver.
-
-Other carbonate models [e.g. @Warrlich2000] take a very different approach, where matter is transported from unstable slopes to the nearest down-slope stable region. This method is motivated by critical angle theory [@Kenter1990].
-
-The problem with these critical angle based methods of transport is that production across an unstable region all is deposited on a small strip where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. Also, critical angle transport methods induce unstable behaviour. To resolve this, smaller time steps need to be taken, which hurts performance.
-
-One aspect of critical angle theory that we do use, is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$.
-
-### Composed model
+## Composed model
 
 Putting everything together, we evaluate the model as follows each iteration:
 
@@ -310,37 +290,34 @@ Putting everything together, we evaluate the model as follows each iteration:
 
 Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
 
-## Software design
+# Transport {#sec:transport}
+Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is given as a function of space.
 
-### Box topology
+Following @Paola1992, We assume a local sediment flux,
 
-FIXME: give examples of runs with coast and island topologies.
+$$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-### The sediment buffer
+where $d_f$ is a facies dependent diffusivity, and $v(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v(w)$ to model wave induced sediment transport. The mass balance is then,
 
-In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We'd like to emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis, but is no longer an active component in the model. This means that the model output can be much more precise than the depositional resolution of the buffer.
+$$\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}} = -\sum_f \vec{\nabla} \cdot \vec{q}_f$$
 
-While the sediment buffer is allocated as a single 4-dimensional array (depth, facies, $x$, $y$), it is best to explain its functioning from the perspective of a single cell in our model. We are left with two dimensions: depth (rows) and facies (columns).
+This gives us a diffusion equation in $\eta$, but we can also view it as an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
-We choose to have the head of our sediment stack always be at the first row. When sediment out-grows the buffer, the deepest layers are dropped from memory. The head can contain an incomplete amount of sediment, while all rows below the head are either full or empty. When sediment is pushed to the stack and the head row overflows, all rows are copied down one row and the surplus is assigned to the now empty head row. The inverse happens when removing (popping) material from the stack. This process is illustrated below in Figure @fig:sediment-buffer.
+$$
+\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C +
+(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C,
+$${#eq:transport}
 
-![Sediment buffer diagram](fig/sediment-buffer.svg){width="100%"}
+where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and 4th order Runge-Kuta are supported).
 
-Figure: Above we see a buffer. First we push a parcel of size $3/4$, then we pop an amount of $1/2$. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
+## Other approaches
+Other carbonate models [e.g. @Warrlich2000] take a very different approach, where matter is transported from unstable slopes to the nearest down-slope stable region. This method is motivated by critical angle theory [@Kenter1990].
 
-Our implementation is such that each cell in the buffer is contiguous in memory. Thus, copying rows of unstrided memory should be very efficient, although the performance remains to be tested (FIXME).
+The problem with these critical angle based methods of transport is that production across an unstable region all is deposited on a small strip where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. 
 
-### User interface
+One aspect of critical angle theory that we do use, is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and we don't need to convert back and forth between gridded values and a particle representation.
 
-The user interfaces CarboKitten by writing a Julia script that defines the relevant model parameters and runs the chosen model. Effectively, very little Julia needs to be known to take an example input and modify parameters. Output is written to HDF5 files for post-processing and visualization.
-
-CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines.
-
-## Examples of use
-
-### Variable sea level
-
-### Wave induced transport
+## Wave transport
 
 We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long time-scales we're working with, we limit ourselves to highly simplified models of wave induced transport. We model the emergence of an atoll, starting with a conic topography, periodic boundaries and a sediment transport vector with a constant depth profile,
 
@@ -348,7 +325,7 @@ $$v_f = A_f \exp (- w k) \tanh (w k),$$
 
 where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $A_f$ the facies dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
-![Depth profile](fig/wave-transport-magnitude.svg){width="100%"}
+![Depth profile](fig/wave-transport-magnitude.pdf){width="100%"}
 
 Figure: Depth profile of velocity and shear. The velocity profile was taylored to have a maximum of $10 \textrm{m}/\textrm{yr}$ at a depth of $20 \textrm{m}$. Where the shear is non-zero, there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
 
@@ -366,7 +343,7 @@ v_prof(v_max, max_depth, w) =
 
 ``` julia
 #| classes: ["task"]
-#| creates: md/fig/wave-transport-magnitude.svg
+#| creates: md/fig/wave-transport-magnitude.pdf
 #| collect: figures
 
 module Script
@@ -388,7 +365,7 @@ function main()
     ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
     lines!(ax1, v / u"m/yr", w / u"m")
     lines!(ax2, s / u"1/yr", w / u"m")
-    save("md/fig/wave-transport-magnitude.svg", fig)
+    save("md/fig/wave-transport-magnitude.pdf", fig)
 end
 
 end
@@ -396,6 +373,203 @@ end
 Script.main()
 ```
 :::
+
+## Parameter choices
+
+Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and cementation time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if we like the behaviour.
+
+### Diffusivity
+
+:::hide
+```julia
+#| file: runs/test-diffusivity.jl
+using CarboKitten
+using CarboKitten.Components:
+    TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth, 
+    Tag, ActiveLayer, H5Writer
+using CarboKitten.Components.Common
+using ModuleMixins
+
+@compose module CustomProduction
+@mixin Tag, ActiveLayer, H5Writer
+
+@kwdef struct Input <: AbstractInput
+    production    # a function of (x, y, wd)
+end
+
+function initial_state(input::AbstractInput)
+    sediment_height = zeros(Height, input.box.grid_size...)
+    sediment_buffer = zeros(Float64, input.sediment_buffer_size, n_facies(input), input.box.grid_size...)
+    active_layer = zeros(Amount, n_facies(input), input.box.grid_size...)
+
+    state = State(
+        step=0, sediment_height=sediment_height,
+        sediment_buffer=sediment_buffer,
+        active_layer = active_layer)
+
+    return state
+end
+
+function step!(input::Input)
+    disintegrate! = ActiveLayer.disintegrator(input)
+    transport! = ActiveLayer.transporter(input)
+    local_water_depth = water_depth(input)
+    x, y = box_axes(input.box)
+    na = [CartesianIndex()]
+    produce(_, wd) = input.production.(x[:,na], y[na,:], wd)[na,:,:]
+    pf = precipitation_factor(input)
+
+    function (state::State)
+        wd = local_water_depth(state)
+        p = produce(state, wd)
+        d = disintegrate!(state)
+
+        state.active_layer .+= p
+        state.active_layer .+= d
+        transport!(state)
+
+        deposit = pf .* state.active_layer
+        push_sediment!(state.sediment_buffer, deposit ./ input.depositional_resolution .|> NoUnits)
+        state.active_layer .-= deposit
+        state.sediment_height .+= sum(deposit; dims=1)[1,:,:]
+        state.step += 1
+
+        return Frame(
+            production = p,
+            disintegration = d,
+            deposition = deposit)
+    end
+end
+
+end
+
+module ParameterScan
+
+function cartesian_product(pars::Dict{Key,Vector}) where {Key}
+    if isempty(pars)
+        return [ Dict{Key, Any}() ]
+    end
+
+    pars = copy(pars)
+    result = []
+
+    k, vs = first(pairs(pars))
+
+    for item in cartesian_product(delete!(pars, k))
+        for v in vs
+            push!(result, merge(item, Dict(k => v)))
+        end
+    end
+
+    return result
+end
+
+kwsplat(f) = d -> f(;d...)
+
+end
+
+module TestDiffusivity
+
+using CarboKitten
+using ..CustomProduction: CustomProduction as M
+
+const Time = typeof(1.0u"Myr")
+
+function run_model(;dt, diffusivity, disintegration_rate)
+end
+
+function main()
+    facies = [
+        M.Facies(
+            # maximum_growth_rate=500u"m/Myr",
+            # extinction_coefficient=0.8u"m^-1",
+            # saturation_intensity=60u"W/m^2",
+            diffusion_coefficient=10.0u"m/yr")
+    ]
+
+    box = Box{Periodic{2}}(
+        grid_size=(500, 1), phys_scale=30.0u"m")
+
+    time = TimeProperties(
+        Δt=0.0002u"Myr",
+        steps=5000)
+
+    width = 0.5u"km"
+    centre = box.grid_size[1] * box.phys_scale / 2.0
+    production(x, y, w) = abs(x - centre) < width ?
+        100.0u"m/Myr" * time.Δt :
+        0.0u"m"
+
+    input = M.Input(
+        box=box,
+        time=time,
+        output = Dict(
+            :all => OutputSpec(write_interval=1)),
+        initial_topography=(_, _) -> -100.0u"m",
+        sea_level=t -> 0.0u"m",
+        subsidence_rate=0.0u"m/Myr",
+        disintegration_rate=50.0u"m/Myr",
+        # insolation=400.0u"W/m^2",
+        sediment_buffer_size=50,
+        depositional_resolution=0.5u"m",
+        transport_solver=Val{:forward_euler},
+        facies=facies,
+
+        production=production)
+
+    result = run_model(Model{M}, input, MemoryOutput(input))
+end
+
+end
+
+TestDiffusivity.main()
+```
+:::
+
+### Disintegration rate
+
+It seems that a disintegration rate is a good choice of parameter if we consider the concentration of sediment and the fraction of old versus new sediment in there. However, dynamically speaking, if we consider the process of diffusing or eroding topographic features, it has more meaning to talk about a disintegration depth. Looking at the shape of features we see changes with the time step.
+
+### Cementation time
+
+:::hide
+```julia
+#| file: runs/test-cementation.jl
+```
+:::
+
+# Software design
+
+## Box topology
+
+FIXME: give examples of runs with coast and island topologies.
+
+## The sediment buffer
+
+In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We'd like to emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis, but is no longer an active component in the model. This means that the model output can be much more precise than the depositional resolution of the buffer.
+
+While the sediment buffer is allocated as a single 4-dimensional array (depth, facies, $x$, $y$), it is best to explain its functioning from the perspective of a single cell in our model. We are left with two dimensions: depth (rows) and facies (columns).
+
+We choose to have the head of our sediment stack always be at the first row. When sediment out-grows the buffer, the deepest layers are dropped from memory. The head can contain an incomplete amount of sediment, while all rows below the head are either full or empty. When sediment is pushed to the stack and the head row overflows, all rows are copied down one row and the surplus is assigned to the now empty head row. The inverse happens when removing (popping) material from the stack. This process is illustrated below in Figure @fig:sediment-buffer.
+
+![Sediment buffer diagram](fig/sediment-buffer.pdf){width="100%"}
+
+Figure: Above we see a buffer. First we push a parcel of size $3/4$, then we pop an amount of $1/2$. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
+
+Our implementation is such that each cell in the buffer is contiguous in memory. Thus, copying rows of unstrided memory should be very efficient, although the performance remains to be tested (FIXME).
+
+## User interface
+
+The user interfaces CarboKitten by writing a Julia script that defines the relevant model parameters and runs the chosen model. Effectively, very little Julia needs to be known to take an example input and modify parameters. Output is written to HDF5 files for post-processing and visualization.
+
+CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines.
+
+# Examples of use
+
+## Variable sea level
+
+## Wave induced transport
+
 
 ::: hide
 ``` julia
@@ -533,10 +707,10 @@ Figure: Profile view of atoll simulation.
 Figure: Topographic map of atoll simulation.
 
 
-## Validation
+# Validation
 
-### Transport model
+## Transport model
 
-#### No production
+## No production
 
-## Conclusion
+# Conclusion
