@@ -92,7 +92,7 @@ $$P(w) = \sum_f P_f(w)$$
 
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the tropical (T), mounds (M) and cool water (C) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
-![Production curves for three default carbonate factories](fig/production-curves.svg){#fig:factories width="100%"}
+![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="100%"}
 
 FIXME: Add legend to figure showing which curve is Tropical, Mounds and Cool water factory.
 
@@ -128,7 +128,7 @@ const INPUT = BS92.Input(
 
 ``` julia
 #| classes: ["task"]
-#| creates: ["md/fig/production-curves.svg"]
+#| creates: ["md/fig/production-curves.pdf"]
 #| collect: figures
 
 module Script
@@ -142,7 +142,7 @@ function main()
   fig = Figure()
   ax = Axis(fig[1, 1])
   production_curve!(ax, INPUT)
-  save("md/fig/production-curves.svg", fig)
+  save("md/fig/production-curves.pdf", fig)
 end
 
 end
@@ -166,7 +166,7 @@ In the default configuration we emulate three species, corresponding to the Trop
 ::: hide
 ``` julia
 #| classes: ["task"]
-#| creates: ["md/fig/ca-first-steps.svg"]
+#| creates: ["md/fig/ca-first-steps.pdf"]
 #| collect: figures
 
 module Script
@@ -198,7 +198,7 @@ function main()
     heatmap!(ax, xaxis/u"m", yaxis/u"m", state.ca)
     step!(state)
   end
-  save("md/fig/ca-first-steps.svg", fig)
+  save("md/fig/ca-first-steps.pdf", fig)
 end
 
 end
@@ -253,7 +253,7 @@ function main()
       i += 1
     end
   end
-  save("md/fig/ca-long-term.png", fig)
+  save("md/fig/ca-long-term.pdf", fig)
 end
 
 end
@@ -262,7 +262,7 @@ Script.main()
 ```
 :::
 
-![CA](fig/ca-long-term.png){width="100%"}
+![CA](fig/ca-long-term.pdf){width="100%"}
 
 Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
@@ -272,7 +272,7 @@ Our transport model is borrowed from other similar approaches in siliclastic (ri
 
 We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as cementation, see Figure @fig:active-layer-diagram.
 
-![Diagram showing concepts of production, cementation and disintegration](fig/active-layer-diagram.plain.svg)
+![Diagram showing concepts of production, cementation and disintegration](fig/active-layer-diagram.pdf)
 
 Figure: Diagram showing concepts of production, cementation and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a cementation half-life time) is cemented onto the sea floor. {#fig:active-layer-diagram}
 
@@ -325,7 +325,7 @@ $$v_f = A_f \exp (- w k) \tanh (w k),$$
 
 where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $A_f$ the facies dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
-![Depth profile](fig/wave-transport-magnitude.svg){width="100%"}
+![Depth profile](fig/wave-transport-magnitude.pdf){width="100%"}
 
 Figure: Depth profile of velocity and shear. The velocity profile was taylored to have a maximum of $10 \textrm{m}/\textrm{yr}$ at a depth of $20 \textrm{m}$. Where the shear is non-zero, there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
 
@@ -343,7 +343,7 @@ v_prof(v_max, max_depth, w) =
 
 ``` julia
 #| classes: ["task"]
-#| creates: md/fig/wave-transport-magnitude.svg
+#| creates: md/fig/wave-transport-magnitude.pdf
 #| collect: figures
 
 module Script
@@ -365,7 +365,7 @@ function main()
     ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
     lines!(ax1, v / u"m/yr", w / u"m")
     lines!(ax2, s / u"1/yr", w / u"m")
-    save("md/fig/wave-transport-magnitude.svg", fig)
+    save("md/fig/wave-transport-magnitude.pdf", fig)
 end
 
 end
@@ -548,7 +548,7 @@ While the sediment buffer is allocated as a single 4-dimensional array (depth, f
 
 We choose to have the head of our sediment stack always be at the first row. When sediment out-grows the buffer, the deepest layers are dropped from memory. The head can contain an incomplete amount of sediment, while all rows below the head are either full or empty. When sediment is pushed to the stack and the head row overflows, all rows are copied down one row and the surplus is assigned to the now empty head row. The inverse happens when removing (popping) material from the stack. This process is illustrated below in Figure @fig:sediment-buffer.
 
-![Sediment buffer diagram](fig/sediment-buffer.svg){width="100%"}
+![Sediment buffer diagram](fig/sediment-buffer.pdf){width="100%"}
 
 Figure: Above we see a buffer. First we push a parcel of size $3/4$, then we pop an amount of $1/2$. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
 
