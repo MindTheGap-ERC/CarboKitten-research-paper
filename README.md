@@ -46,6 +46,18 @@ dnf install texlive-scheme-medium latexmk texlive-selnolig texlive-svg
 pip install entangled-cli
 ```
 
+Or use the attached `pyproject.toml` with `uv`:
+
+```bash
+uv sync
+```
+
+which allows you to run `entangled` and `brei` through `uv`, for example:
+
+```bash
+uv run entangled tangle
+```
+
 ### GNU Make
 
 Used to combine everything.
