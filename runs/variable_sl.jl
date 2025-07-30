@@ -79,7 +79,7 @@ const INPUT = ALCAP.Input(
         :profile => OutputSpec(slice=(:, 25), write_interval=1)),
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
-    insolation=400.0u"W/m^2",
+    insolation=500.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
     facies=FACIES)

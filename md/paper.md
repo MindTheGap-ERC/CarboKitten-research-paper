@@ -241,7 +241,7 @@ const INPUT = ALCAP.Input(
         :profile => OutputSpec(slice=(:, 25), write_interval=1)),
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
-    insolation=400.0u"W/m^2",
+    insolation=500.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
     facies=FACIES)
@@ -270,7 +270,7 @@ Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).
 
 We use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $μE m^{−2}⋅s^{−1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
 
-Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten.jl is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$.
+Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten.jl is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
 ``` r
 #| file: runs/extract_insolation.R
@@ -280,10 +280,10 @@ if (!require("palinsol")) {
 }
 
 library(palinsol)
-time_start <- 5e5  
-time_end <- 0      
-time_step <- 2e2  
-times <- seq(time_end, time_start, time_step)
+time_end <- 500000    
+time_start <- 0   
+time_step <- 200 
+times <- seq(time_start, time_end, time_step)
 param_la04 = t(sapply(times, function(t) astro(t, solution = la04, degree = TRUE)))
 orbit <- list()
 insolation <- list()
@@ -310,6 +310,7 @@ write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
 ```
 The insolation file can be read into CarboKitten file defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
 
+::: hide
 ``` julia
 #| file: runs/insolation_run.jl
 
@@ -321,6 +322,7 @@ using Unitful
 using Interpolations
 using CairoMakie
 using CarboKitten.Visualization: sediment_profile
+using Statistics
 
 function import_insolation(file::String)
     dir = "data"
@@ -336,7 +338,8 @@ const TIME_PROPERTIES = TimeProperties(
 )
 
 function get_insolation(times::Vector, insolation::Vector)
-	linear_interpolation(times,insolation)
+	interpolator = linear_interpolation(times, insolation)
+    return t -> interpolator(ustrip(u"yr", t)) * u"W/m^2"
 end
 
 const TAG = "insolation-future"
@@ -368,18 +371,26 @@ const FACIES = [
 const time_vector = collect(time_axis(TIME_PROPERTIES)) / u"yr" .|> NoUnits
 const insolation_vector = import_insolation("insolation.csv")
 
+function get_sea_level(times::Vector, insolation::Vector)
+    insolation_anomaly = (insolation .- mean(insolation)) ./ mean(insolation)
+    sea_level_anomaly = -(100 .* (insolation_anomaly)) .^ 2
+    sea_level_values = -100.0 .+ sea_level_anomaly
+    interpolator = linear_interpolation(times, sea_level_values)
+    return t -> interpolator(ustrip(u"yr", t)) * u"m"
+end
+
 const INPUT = ALCAP.Input(
     tag="$TAG",
     box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
     time=TIME_PROPERTIES,
     ca_interval=1,
     initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
-    sea_level = _-> 0.0*u"m",
+    sea_level = get_sea_level(time_vector, insolation_vector),
         output=Dict(
         :profile => OutputSpec(slice=(:, 25), write_interval=1)),
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
-    insolation= get_insolation(time_vector, insolation_vector) .* u"W/m^2",
+    insolation= get_insolation(time_vector, insolation_vector),
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
     facies=FACIES)
@@ -398,6 +409,11 @@ end
 result = Insolation.main()
 Insolation.plot(result)
 ```
+:::
+
+![ALCAPS with variable SL and insolation](fig/variable-insolation.png){width=100%}
+
+Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values.
 
 ## Cellular Automaton
 

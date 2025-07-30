@@ -6,10 +6,10 @@ if (!require("palinsol")) {
 }
 
 library(palinsol)
-time_start <- 5e5  
-time_end <- 0      
-time_step <- 2e2  
-times <- seq(time_end, time_start, time_step)
+time_end <- 500000    
+time_start <- 0   
+time_step <- 200 
+times <- seq(time_start, time_end, time_step)
 param_la04 = t(sapply(times, function(t) astro(t, solution = la04, degree = TRUE)))
 orbit <- list()
 insolation <- list()
