@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.11.5"
+julia_version = "1.11.6"
 manifest_format = "2.0"
-project_hash = "8d017a2ca1f9cf78d16e86797f11a61dbe0494d2"
+project_hash = "317530c2be558a864a99ba3cc68d628a98824426"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -125,8 +125,8 @@ version = "1.18.4+0"
 
 [[deps.CarboKitten]]
 deps = ["CSV", "CategoricalArrays", "DataFrames", "DelimitedFiles", "GeometryBasics", "HDF5", "LinearAlgebra", "Logging", "ModuleMixins", "Pkg", "ProgressLogging", "Random", "StaticArrays", "TOML", "TerminalLoggers", "Unitful"]
-git-tree-sha1 = "3ff2b6edebf3e970c27f2e24983e6d3d0eb1ca25"
-repo-rev = "develop"
+git-tree-sha1 = "f50a816be9a6bb1a616136b37e340bce72501684"
+repo-rev = "main"
 repo-url = "https://github.com/MindTheGap-ERC/CarboKitten.jl"
 uuid = "690c6d5c-626a-429f-a06b-981a1dae1c19"
 version = "0.5.2"
