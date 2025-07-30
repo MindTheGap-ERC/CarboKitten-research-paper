@@ -276,7 +276,7 @@ We consider all sediment transport to happen in an **active layer** close to the
 
 Figure: Diagram showing concepts of production, cementation and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a cementation half-life time) is cemented onto the sea floor. {#fig:active-layer-diagram}
 
-The actual transport is computed computed using a finite difference approach that is further discussed in Section @sec:transport.
+The actual transport is computed using a finite difference approach that is further discussed in Section @sec:transport.
 
 ## Composed model
 
