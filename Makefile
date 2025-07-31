@@ -5,8 +5,9 @@ pandoc_args += --lua-filter pandoc/hide.lua
 pandoc_args += --lua-filter pandoc/eqnos.lua
 pandoc_args += --lua-filter pandoc/fignos.lua
 pandoc_args += --lua-filter pandoc/figref.lua
-pandoc_args += --citeproc --bibliography md/ref.bib
-pandoc_latex_args += -s -t latex
+pandoc_args += --natbib
+# pandoc_args += --citeproc --bibliography md/ref.bib
+pandoc_latex_args += -s --template latex/template.tex -t latex
 # pandoc_args += -H latex/preamble.tex
 figures_md = $(wildcard md/fig/*)
 figures = $(figures_md:md/%=build/%)
@@ -20,8 +21,13 @@ build/paper.tex: md/paper.md
 	@echo "Running pandoc"
 	@mkdir -p $(@D)
 	@pandoc $(pandoc_args) $(pandoc_latex_args) -o $@ $^
- 
-build/paper.pdf: build/paper.tex latex/latexmkrc $(figures)
+
+build/ref.bib: md/ref.bib
+	@echo "Copying ref.bib"
+	@mkdir -p $(@D)
+	@cp $< $@
+
+build/paper.pdf: build/paper.tex build/ref.bib latex/latexmkrc $(figures)
 	@echo "Running LaTeX"
 	@cd build; latexmk -r ../latex/latexmkrc
 

@@ -3,6 +3,9 @@ title: CarboKitten.jl
 subtitle: an open source toolkit for carbonate stratigraphic modeling
 author: Johan Hidding, Emilia Jarochowska, Xianyi Liu, Peter Burgess, Hanno Spreeuw
 numbersections: true
+runningauthor: Hidding et al.
+runningtitle: CarboKitten.jl
+bibliography: ref
 ---
 
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
@@ -843,3 +846,6 @@ Figure: Topographic map of atoll simulation.
 # Validation Case
 
 # Conclusion
+
+CarboKitten rocks!
+
