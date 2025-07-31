@@ -319,7 +319,7 @@ One aspect of critical angle theory that we do use, is that we can modulate the 
 
 ## Wave transport
 
-We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long time-scales we're working with, we limit ourselves to highly simplified models of wave induced transport. We model the emergence of an atoll, starting with a conic topography, periodic boundaries and a sediment transport vector with a constant depth profile,
+We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long time-scales we're working with, we limit ourselves to highly simplified models of wave induced transport. We model the emergence of an atoll, starting with a conic topography, periodic boundaries and $v_f$, a sediment transport vector with a constant depth profile,
 
 $$v_f = A_f \exp (- w k) \tanh (w k),$$
 
