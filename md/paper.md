@@ -720,7 +720,8 @@ using CarboKitten
 using DelimitedFiles
 using DataFrames
 using Interpolations
-const PATH = "data"
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile
 
 const TAG = "alcap-validation"
 const FILEPATH = "data/Morley_2021.txt"
@@ -730,7 +731,7 @@ function sea_level(filepath::String)
     sealevel_data_df = DataFrame(sealevel_data, vec(header))
     sealevel_data_df = filter(row -> 8.0 <= row.Time <= 15.5, sealevel_data_df) # cycles IV-V
     sort!(sealevel_data_df, [:Time], rev=true)
-    Time = sealevel_data_df.Time .* 1.0u"Myr"
+    Time = sealevel_data_df.Time .* -1.0u"Myr"
     Sealevel = sealevel_data_df.Sealevel .* 1.0u"m"
     sl_interpolated = LinearInterpolation(
         Time, Sealevel)
@@ -764,15 +765,15 @@ const FACIES = [
 
 const INPUT = ALCAP.Input(
     tag="$TAG",
-    box=Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
     time=TimeProperties(
-        t0 = -15.5u"Myr",
+        t0 = -15.48u"Myr",
         Δt=200u"yr",
-        steps=37500),
+        steps=36755),
     output=Dict(
-        :profile => OutputSpec(slice=(:, 25), write_interval=10)),
+        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
     ca_interval=10,
-    initial_topography = (x, y) -> (sqrt((x - 50)^2 + (y - 25)^2) < 20 ? 5.0 : 0.0), #this is meant to be a flat-topped dome
+    initial_topography = (x, y) -> max(0.0u"m", 5.0u"m" * exp(-((x - 50u"m")^2 + (y - 25u"m")^2) / (20u"m")^2)), # this is meant to be a flat-topped dome
     sea_level=sea_level(FILEPATH),
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
