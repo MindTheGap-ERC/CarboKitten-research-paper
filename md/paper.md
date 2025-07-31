@@ -378,16 +378,114 @@ Script.main()
 
 Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and cementation time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if we like the behaviour.
 
-### Diffusivity
+### Disintegration versus cementation
+Both the disintegration rate and the cementation time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high sementation time over a high disintegration rate can help in transporting only freshly produced sediments.
+
+Note that without modelling the cementation rate (immediately dumping all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
+
+![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf)
+
+Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of 100 m/Myr for a 4 km wide patch in the middle of the box, and chose a runtime of 1 Myr with a time step of 100 yr (the sharp edges in the production profile induce fast transport, requiring small time steps).
+Panels $(a)$ and $(b)$ have small cementation time, while panels $(c)$ and $(d)$ have a large cementation time. On the columns, $(a)$ and $(c)$ have a small disintegration rate, while $(b)$ and $(d)$ have a large disintegration rate. Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
 
 :::hide
 ```julia
-#| file: runs/test-diffusivity.jl
+#| file: runs/ParameterScan.jl
+module ParameterScan
+
+function cartesian_product(; pars...)
+    ks = keys(pars)
+    vs = Iterators.product(values(pars)...)
+    collect(ks .=> v for v in vs)
+end
+
+kwsplat(f) = d -> f(;d...)
+
+end
+```
+
+```julia
+#| file: runs/TransportPlots.jl
+module TransportPlots
+
 using CarboKitten
+using CairoMakie
+using Unitful
+using Printf
+
+function plot_topography(result)
+    fig = Figure()
+    ax = Axis(fig[1, 1])
+    plot_topography!(ax, result)
+    fig
+end
+
+function plot_topography!(ax, result)
+    diffusivity::typeof(1.0u"m/yr") = result.header.attributes[:diffusivity]
+    disintegration_rate::typeof(1.0u"m/Myr") = result.header.attributes[:disintegration_rate]
+
+    dt = result.header.Δt
+
+    ax.xlabel = "x [km]"
+    ax.ylabel = "h [m]"
+
+    h0 = result.header.initial_topography[:,1]
+    x_axis = result.header.axes.x |> in_units_of(u"km")
+    slice = result.data_volumes[:all][:, 1]
+    t_axis = result.header.axes.t[1:slice.write_interval:end] |> in_units_of(u"Myr")
+    time_steps = div(result.header.time_steps, slice.write_interval)
+
+    ixs = [div(time_steps, 10) + 1, div(time_steps, 2) + 1, time_steps]
+    for ix in ixs
+        h = (h0 .+ slice.sediment_thickness[:, ix]) |> in_units_of(u"m")
+        lines!(ax, x_axis, h, label=@sprintf("%.1f", t_axis[ix]))
+    end
+end
+
+function plot_matrix(plot!, results, row_names, col_names; fig_pars...)
+    fig = Figure(;fig_pars...)
+    nrows, ncols = size(results)
+    @assert nrows == length(row_names)
+    @assert ncols == length(col_names)
+
+    for (i, c) in enumerate(col_names)
+        Label(fig[i, 0], c, rotation = pi/2, tellheight=false, tellwidth=true)
+    end
+    for (i, r) in enumerate(row_names)
+        Label(fig[0, i], r, tellheight=true, tellwidth=false)
+    end
+    axes = [Axis(fig[reverse(Tuple(i))...], title="($('`'+l))")
+        for (l,i) in enumerate(eachindex(IndexCartesian(), results))]
+
+    for i in eachindex(IndexCartesian(), results)
+        ax = axes[i]
+        if i != CartesianIndex(1, 1)
+            linkyaxes!(axes[1, 1], ax)
+        end
+        plot!(ax, results[i])
+        if i[2] != ncols
+            ax.xlabel = ""
+        end
+        if i[1] != 1
+            ax.ylabel = ""
+        end
+    end
+
+    Legend(fig[:, nrows+1], axes[1, 1], "time steps [Myr]")
+
+    return fig
+end
+
+end
+```
+
+```julia
+#| file: runs/CustomProductionModel.jl
+using CarboKitten
+using CarboKitten.Components.Common
 using CarboKitten.Components:
     TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth, 
     Tag, ActiveLayer, H5Writer
-using CarboKitten.Components.Common
 using ModuleMixins
 
 @compose module CustomProduction
@@ -417,7 +515,7 @@ function step!(input::Input)
     x, y = box_axes(input.box)
     na = [CartesianIndex()]
     produce(_, wd) = input.production.(x[:,na], y[na,:], wd)[na,:,:]
-    pf = precipitation_factor(input)
+    pf = cementation_factor(input)
 
     function (state::State)
         wd = local_water_depth(state)
@@ -442,87 +540,122 @@ function step!(input::Input)
 end
 
 end
+```
 
-module ParameterScan
+```julia
+#| file: runs/TransportTest.jl
+module TransportTest
 
-function cartesian_product(pars::Dict{Key,Vector}) where {Key}
-    if isempty(pars)
-        return [ Dict{Key, Any}() ]
-    end
-
-    pars = copy(pars)
-    result = []
-
-    k, vs = first(pairs(pars))
-
-    for item in cartesian_product(delete!(pars, k))
-        for v in vs
-            push!(result, merge(item, Dict(k => v)))
-        end
-    end
-
-    return result
-end
-
-kwsplat(f) = d -> f(;d...)
-
-end
-
-module TestDiffusivity
+include("CustomProductionModel.jl")
 
 using CarboKitten
-using ..CustomProduction: CustomProduction as M
+using CairoMakie
+using CarboKitten: Box
+using CarboKitten.OutputData: set_attribute
+using .CustomProduction: CustomProduction as M
 
 const Time = typeof(1.0u"Myr")
 
-function run_model(;dt, diffusivity, disintegration_rate)
-end
-
-function main()
+function run_with(;dt, diffusivity, disintegration_rate, cementation_time, patch_width = 2.0u"km")
     facies = [
         M.Facies(
-            # maximum_growth_rate=500u"m/Myr",
-            # extinction_coefficient=0.8u"m^-1",
-            # saturation_intensity=60u"W/m^2",
-            diffusion_coefficient=10.0u"m/yr")
+            diffusion_coefficient=diffusivity)  # 10u"m/yr"
     ]
 
     box = Box{Periodic{2}}(
         grid_size=(500, 1), phys_scale=30.0u"m")
 
+    t_end = 1.0u"Myr"
     time = TimeProperties(
-        Δt=0.0002u"Myr",
-        steps=5000)
+        Δt = dt,
+        steps = (t_end / dt) |> round |> Int)
 
-    width = 0.5u"km"
+    @info "Running at Δt = $(time.Δt) and steps = $(time.steps)"
+    @info "Production in a single step: $(100.0u"m/Myr" * time.Δt)"
+
+
     centre = box.grid_size[1] * box.phys_scale / 2.0
-    production(x, y, w) = abs(x - centre) < width ?
+    production(x, y, w) = abs(x - centre) < patch_width ?
         100.0u"m/Myr" * time.Δt :
         0.0u"m"
+
+    write_interval = div(time.steps, 100)
 
     input = M.Input(
         box=box,
         time=time,
         output = Dict(
-            :all => OutputSpec(write_interval=1)),
+            :all => OutputSpec(write_interval=write_interval)),
         initial_topography=(_, _) -> -100.0u"m",
         sea_level=t -> 0.0u"m",
         subsidence_rate=0.0u"m/Myr",
-        disintegration_rate=50.0u"m/Myr",
-        # insolation=400.0u"W/m^2",
+        disintegration_rate=disintegration_rate,
         sediment_buffer_size=50,
         depositional_resolution=0.5u"m",
+        cementation_time=cementation_time,
         transport_solver=Val{:forward_euler},
         facies=facies,
 
         production=production)
 
     result = run_model(Model{M}, input, MemoryOutput(input))
+    set_attribute(result, :diffusivity, diffusivity)
+    set_attribute(result, :disintegration_rate, disintegration_rate)
+    return result
+end
+
+end
+```
+
+```julia
+#| file: runs/disintegration-vs-cementation.jl
+#| classes: ["task"]
+#| creates:
+#|   - md/fig/disintegration-vs-cementation.pdf
+#| requires:
+#|   - runs/TransportTest.jl
+#|   - runs/TransportPlots.jl
+#| collect: figures
+module DisintegrationVsCementation
+
+include("TransportPlots.jl")
+include("ParameterScan.jl")
+include("TransportTest.jl")
+
+using CarboKitten
+using CairoMakie
+using .ParameterScan: cartesian_product
+using .TransportTest: run_with
+using .TransportPlots: plot_matrix, plot_topography!
+
+function main()
+    CarboKitten.init()
+
+    pars = (
+        diffusivity = [ 10.0 ] * u"m/yr",
+        disintegration_rate = [ 10.0, 500.0 ] * u"m/Myr",
+        dt = [ 100.0 ] * u"yr",
+        cementation_time = [ 100.0, 1000.0 ] * u"yr" )
+    cp = cartesian_product(;pars...)
+
+    result = Array{Union{Missing, MemoryOutput}}(missing, size(cp)...)
+    Threads.@threads for i in eachindex(cp)
+        result[i] = run_with(;cp[i]...)
+    end
+
+    fig = plot_matrix(result[1,:,1,:], 
+            ["dr = $(d.val) m/Myr" for d in pars.disintegration_rate],
+            ["ct = $(d.val) yr" for d in pars.cementation_time];
+            fontsize = 10) do ax, result
+        plot_topography!(ax, result)
+    end
+
+    save("md/fig/disintegration-vs-cementation.pdf", fig)
 end
 
 end
 
-TestDiffusivity.main()
+DisintegrationVsCementation.main()
 ```
 :::
 
@@ -707,10 +840,6 @@ Figure: Profile view of atoll simulation.
 Figure: Topographic map of atoll simulation.
 
 
-# Validation
-
-## Transport model
-
-## No production
+# Validation Case
 
 # Conclusion
