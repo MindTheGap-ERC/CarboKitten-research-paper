@@ -35,5 +35,5 @@ clean:
 	@rm -rf build
 
 daemon:
-	@julia --project=. --startup-file=no -e 'using DaemonMode; serve()'
+	@julia --project=. -t 8 --startup-file=no -e 'using DaemonMode; serve()'
 
