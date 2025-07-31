@@ -10,7 +10,7 @@ using DelimitedFiles
 using DataFrames
 using Interpolations
 using CairoMakie
-using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Visualization: wheeler_diagram
 
 const TAG = "alcap-validation"
 const FILEPATH = "data/Morley_2021.txt"
@@ -27,6 +27,17 @@ function sea_level(filepath::String)
     return sl_interpolated
 end
 
+function dome_topography(x, y)
+    radius = sqrt(30.0 / π) * u"km"
+    center_x, center_y = 25u"km", 25u"km"
+    dist = sqrt((x - center_x)^2 + (y - center_y)^2)
+    if dist <= radius
+        20.0u"m"
+    else
+        slope = (dist - radius) / (1.0u"km")
+        max(0.0u"m" - 100.0u"m", 20.0u"m" - 10.0u"m" * slope)
+    end
+end
 
 const FACIES = [
     ALCAP.Facies(
@@ -54,15 +65,16 @@ const FACIES = [
 
 const INPUT = ALCAP.Input(
     tag="$TAG",
-    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    box=CarboKitten.Box{Coast}(grid_size=(100, 100), phys_scale=0.5u"km"),
     time=TimeProperties(
         t0 = -15.48u"Myr",
         Δt=200u"yr",
-        steps=36755),
+        steps=36600),
     output=Dict(
-        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
+        :topography => OutputSpec(write_interval = 200),
+        :profile => OutputSpec(slice=(:, 25), write_interval=50)),
     ca_interval=10,
-    initial_topography = (x, y) -> max(0.0u"m", 5.0u"m" * exp(-((x - 50u"m")^2 + (y - 25u"m")^2) / (20u"m")^2)), # this is meant to be a flat-topped dome
+    initial_topography = dome_topography,
     sea_level=sea_level(FILEPATH),
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
@@ -72,16 +84,16 @@ const INPUT = ALCAP.Input(
     facies=FACIES)
 
 function main()
-    run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+    run_model(Model{ALCAP}, INPUT, "data/validation.h5")
 end
 
 function plot(result::MemoryOutput)
-	fig = sediment_profile(result.header, result.data_slices[:profile])
+	fig = wheeler_diagram(result.header, result.data_slices[:profile], show_unconformities = false)
     save("md/fig/validation_Miocene.png", fig)
 end
 
 end
 
 result = Validation.main()
-Validation.plot(result)
+
 # ~/~ end
