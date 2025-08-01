@@ -265,7 +265,7 @@ Script.main()
 ```
 :::
 
-![CA](fig/ca-long-term.pdf){width="100%" .wide}
+![CA](fig/ca-long-term.pdf){.wide}
 
 Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
@@ -328,7 +328,7 @@ $$v_f = A_f \exp (- w k) \tanh (w k),$$
 
 where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $A_f$ the facies dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
-![Depth profile](fig/wave-transport-magnitude.pdf){width="100%"}
+![Depth profile](fig/wave-transport-magnitude.pdf)
 
 Figure: Depth profile of velocity and shear. The velocity profile was taylored to have a maximum of $10 \textrm{m}/\textrm{yr}$ at a depth of $20 \textrm{m}$. Where the shear is non-zero, there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
 
@@ -386,7 +386,7 @@ Both the disintegration rate and the cementation time modulate how long sediment
 
 Note that without modelling the cementation rate (immediately dumping all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
 
-![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf)
+![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf){.wide}
 
 Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of 100 m/Myr for a 4 km wide patch in the middle of the box, and chose a runtime of 1 Myr with a time step of 100 yr (the sharp edges in the production profile induce fast transport, requiring small time steps).
 Panels $(a)$ and $(b)$ have small cementation time, while panels $(c)$ and $(d)$ have a large cementation time. On the columns, $(a)$ and $(c)$ have a small disintegration rate, while $(b)$ and $(d)$ have a large disintegration rate. Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
@@ -688,7 +688,7 @@ While the sediment buffer is allocated as a single 4-dimensional array (depth, f
 
 We choose to have the head of our sediment stack always be at the first row. When sediment out-grows the buffer, the deepest layers are dropped from memory. The head can contain an incomplete amount of sediment, while all rows below the head are either full or empty. When sediment is pushed to the stack and the head row overflows, all rows are copied down one row and the surplus is assigned to the now empty head row. The inverse happens when removing (popping) material from the stack. This process is illustrated below in Figure @fig:sediment-buffer.
 
-![Sediment buffer diagram](fig/sediment-buffer.pdf){width="100%"}
+![Sediment buffer diagram](fig/sediment-buffer.pdf)
 
 Figure: Above we see a buffer. First we push a parcel of size $3/4$, then we pop an amount of $1/2$. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
 
@@ -834,11 +834,11 @@ end
 ```
 :::
 
-![Atoll profile](fig/atoll-profile.png){width=100%}
+![Atoll profile](fig/atoll-profile.png){.wide}
 
 Figure: Profile view of atoll simulation.
 
-![Atoll topography](fig/atoll-map.png){width=100%}
+![Atoll topography](fig/atoll-map.png)
 
 Figure: Topographic map of atoll simulation.
 
