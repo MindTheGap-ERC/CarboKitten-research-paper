@@ -29,7 +29,12 @@ build/ref.bib: md/ref.bib
 	@mkdir -p $(@D)
 	@cp $< $@
 
-build/paper.pdf: build/paper.tex build/ref.bib latex/latexmkrc $(figures)
+build/copernicus.bst: latex/copernicus/copernicus.bst
+	@echo "Copying copernicus.bst"
+	@mkdir -p $(@D)
+	@cp $< $@
+
+build/paper.pdf: build/paper.tex build/ref.bib build/copernicus.bst latex/latexmkrc $(figures)
 	@echo "Running LaTeX"
 	@cd build; latexmk -r ../latex/latexmkrc
 
