@@ -95,7 +95,7 @@ $$P(w) = \sum_f P_f(w)$$
 
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the tropical (T), mounds (M) and cool water (C) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
-![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="100%"}
+![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
 
 FIXME: Add legend to figure showing which curve is Tropical, Mounds and Cool water factory.
 
@@ -265,7 +265,7 @@ Script.main()
 ```
 :::
 
-![CA](fig/ca-long-term.pdf){width="100%"}
+![CA](fig/ca-long-term.pdf){width="100%" .wide}
 
 Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
