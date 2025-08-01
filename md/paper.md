@@ -157,7 +157,7 @@ Script.main()
 
 Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step, with which the model is run. 
 
-The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $δ^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios.
+The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $δ^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model 2 Ma and build the platform until 134.54 ka, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
 
 ::: hide
 ```julia
@@ -191,6 +191,7 @@ end
 function sea_level()
     df = miller_2020()
     lisiecki_df = df[df.refkey .== "846 Lisiecki", :]
+    lisiecki_df = filter(row -> -2.0u"Myr" <= row.time, lisiecki_df)
     sort!(lisiecki_df, [:time])
 
     return linear_interpolation(
@@ -199,9 +200,9 @@ function sea_level()
 end
 
 const TIME_PROPERTIES = TimeProperties(
-    t0 = -2.0u"Myr",
+    t0 = -1999.7u"kyr",
     Δt = 200.0u"yr",
-    steps = 5000
+    steps = 9325
 )
 
 const TAG = "lisiecki-sea-level"
@@ -237,28 +238,29 @@ const INPUT = ALCAP.Input(
     ca_interval=1,
     initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
     sea_level=sea_level(),
-        output=Dict(
-        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
-    subsidence_rate=50.0u"m/Myr",
+    output=Dict(
+        :profile => OutputSpec(slice = (:, 25), write_interval = 1)),
+    subsidence_rate=5.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
     insolation=500.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
     facies=FACIES)
 
-    function main()
-        run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
-    end
+function main()
+    run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+end
 
-    function plot(result::MemoryOutput)
-	    fig = sediment_profile(result.header, result.data_slices[:profile])
-        save("md/fig/variable-sl.png", fig)
+function plot(result::MemoryOutput)
+    fig = sediment_profile(result.header, result.data_slices[:profile])
+    save("md/fig/variable-sl.png", fig)
 end
 
 end
 
 result = VariableSL.main()
 VariableSL.plot(result)
+
 ```
 :::
 
