@@ -35,6 +35,7 @@ function Table(el)
 
     return pandoc.RawBlock("latex", "\\begin{table}\n" ..
         "\\caption{" .. caption_tex .. "}\n" ..
+        "\\label{" .. el.identifier .. "}\n" ..
         "\\begin{tabular}{" .. col_spec .. "}\n" ..
         "\\tophline\n" ..
         join(header, " & ") .. "\\\\\n" ..
