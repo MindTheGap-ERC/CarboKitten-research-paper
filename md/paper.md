@@ -6,6 +6,7 @@ numbersections: true
 runningauthor: Hidding et al.
 runningtitle: CarboKitten.jl
 bibliography: ref
+biblio-style: copernicus
 ---
 
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}

@@ -5,6 +5,7 @@ pandoc_args += --lua-filter pandoc/hide.lua
 pandoc_args += --lua-filter pandoc/eqnos.lua
 pandoc_args += --lua-filter pandoc/fignos.lua
 pandoc_args += --lua-filter pandoc/figref.lua
+pandoc_args += --lua-filter pandoc/plain_tables.lua
 pandoc_args += --lua-filter pandoc/wide_figures.lua
 pandoc_args += --natbib
 # pandoc_args += --citeproc --bibliography md/ref.bib
@@ -28,7 +29,12 @@ build/ref.bib: md/ref.bib
 	@mkdir -p $(@D)
 	@cp $< $@
 
-build/paper.pdf: build/paper.tex build/ref.bib latex/latexmkrc $(figures)
+build/copernicus.bst: latex/copernicus/copernicus.bst
+	@echo "Copying copernicus.bst"
+	@mkdir -p $(@D)
+	@cp $< $@
+
+build/paper.pdf: build/paper.tex build/ref.bib build/copernicus.bst latex/latexmkrc $(figures)
 	@echo "Running LaTeX"
 	@cd build; latexmk -r ../latex/latexmkrc
 
