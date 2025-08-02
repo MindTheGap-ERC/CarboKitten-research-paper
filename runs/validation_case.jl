@@ -10,10 +10,12 @@ using DelimitedFiles
 using DataFrames
 using Interpolations
 using CairoMakie
-using CarboKitten.Visualization: wheeler_diagram
+using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Export: read_slice
 
 const TAG = "alcap-validation"
 const FILEPATH = "data/Morley_2021.txt"
+const OUTPUT_FILE = "data/validation.h5"
 
 function sea_level(filepath::String)
     sealevel_data, header = readdlm(filepath,header=true)
@@ -28,7 +30,7 @@ function sea_level(filepath::String)
 end
 
 function dome_topography(x, y)
-    radius = sqrt(30.0 / π) * u"km"
+    radius = sqrt(60.0 / π) * u"km"
     center_x, center_y = 25u"km", 25u"km"
     dist = sqrt((x - center_x)^2 + (y - center_y)^2)
     if dist <= radius
@@ -76,7 +78,7 @@ const INPUT = ALCAP.Input(
     ca_interval=10,
     initial_topography = dome_topography,
     sea_level=sea_level(FILEPATH),
-    subsidence_rate=50.0u"m/Myr",
+    subsidence_rate=25.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
@@ -84,11 +86,12 @@ const INPUT = ALCAP.Input(
     facies=FACIES)
 
 function main()
-    run_model(Model{ALCAP}, INPUT, "data/validation.h5")
+    run_model(Model{ALCAP}, INPUT, "$OUTPUT_FILE")
 end
 
-function plot(result::MemoryOutput)
-	fig = wheeler_diagram(result.header, result.data_slices[:profile], show_unconformities = false)
+function plot()
+    header, data = read_slice("$OUTPUT_FILE", :profile)
+	fig = sediment_profile(header, data, show_unconformities = false)
     save("md/fig/validation_Miocene.png", fig)
 end
 
