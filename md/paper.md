@@ -294,6 +294,53 @@ Putting everything together, we evaluate the model as follows each iteration:
 
 Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
 
+## Visualisations
+
+CarboKitten generates data in accessible HDF5 format, thus output can be visualised with most common tools. Nevertheless, we provide some routines based on Makie [@DanischKrumbiegel2021] for creating crosssections, Wheeler diagrams and topographic overviews. Some of the most common plot types have been collected into a summary plot, which is shown in Figure @fig:summary-plot.
+
+![Summary plot](fig/summary-plot.png){.wide}
+
+Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic crosssection, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time (Wheeler diagram), (e) dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. FIXME(add labels to figure panes). {#fig:summary-plot}
+
+:::hide
+```julia
+#| file: runs/standard_example_run.jl
+#| classes: ["task"]
+#| creates: data/alcap-example.h5
+module StandardExample
+using CarboKitten
+using CarboKitten.Models: ALCAP as M
+
+function main()
+    CarboKitten.init()
+    run_model(Model{M}, M.Example.INPUT, "data/alcap-example.h5")
+end
+end
+
+StandardExample.main()
+```
+
+```julia
+#| file: runs/standard_example_plot.jl
+#| classes: ["task"]
+#| requires: data/alcap-example.h5
+#| creates: md/fig/summary-plot.png
+#| collect: figures
+module StandardExamplePlot
+using CairoMakie
+using CarboKitten.Visualization: summary_plot
+
+function main()
+    fig = summary_plot("data/alcap-example.h5")
+    save("md/fig/summary-plot.png", fig)
+end
+end
+
+StandardExamplePlot.main()
+```
+:::
+
+
 # Transport {#sec:transport}
 Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is given as a function of space.
 
