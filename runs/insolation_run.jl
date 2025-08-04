@@ -52,7 +52,7 @@ const FACIES = [
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=35.0u"m/yr")
+        diffusion_coefficient=12.5u"m/yr")
 ]
 
 const time_vector = collect(time_axis(TIME_PROPERTIES)) / u"yr" .|> NoUnits
