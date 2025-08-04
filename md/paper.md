@@ -331,7 +331,7 @@ Our approach is illustrated with an example of an atoll, starting with a conic t
 
 $$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
 
-where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(−kw)$ to account for Stokes drift:
+where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(-kw)$ to account for Stokes drift:
 
 $$v_f = A_f \exp (- k w) \tanh (k w),$$
 
