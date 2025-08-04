@@ -325,7 +325,7 @@ A different approach has been used in the early model `CARBPLAT` by @bosscher_ca
 
 ## Wave-induced transport
 
-We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long timescales we are working with, we limit ourselves to highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $10^{2}$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
+We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $10^{2}$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
 
 Our approach is illustrated with an example of an atoll, starting with a conic topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
 
