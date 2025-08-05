@@ -268,9 +268,9 @@ VariableSL.plot(result)
 ```
 :::
 
-![ALCAPS with variable SL](fig/variable-sl.png){width=100%}
+![variable-sl](fig/variable-sl.png){.wide}
 
-Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).
+Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).{#fig:variable-sl}
 
 ### Insolation
 
@@ -278,6 +278,7 @@ We use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $μE
 
 Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten.jl is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
+::: hide 
 ``` r
 #| file: runs/extract_insolation.R
 
@@ -314,6 +315,7 @@ for (t in 1:length(times)) {
 insolation = inso_values <- unlist(insolation)
 write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
 ```
+::: 
 The insolation file can be read into CarboKitten file defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
 
 ::: hide
@@ -417,9 +419,9 @@ Insolation.plot(result)
 ```
 :::
 
-![ALCAPS with variable SL and insolation](fig/variable-insolation.png){width=100%}
+![variable-insolation](fig/variable-insolation.png){.wide}
 
-Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values.
+Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values.{#fig:variable-insolation}
 
 ## Cellular Automaton
 
@@ -546,7 +548,7 @@ We consider all sediment transport to happen in an **active layer** close to the
 
 Figure: Diagram showing concepts of production, cementation and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a cementation half-life time) is cemented onto the sea floor. {#fig:active-layer-diagram}
 
-The actual transport is computed using a finite difference approach that is further discussed in Section @sec:transport.
+The actual transport is computed using a finite difference approach that is further discussed in Section \ref{transport}.
 
 ## Composed model
 
@@ -607,7 +609,7 @@ StandardExamplePlot.main()
 :::
 
 
-# Transport {#sec:transport}
+# Transport \label{transport}
 Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is given as a function of space.
 
 Following @Paola1992, we assume a local sediment flux,
@@ -1023,7 +1025,6 @@ The user interfaces CarboKitten by writing a Julia script that defines the relev
 CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines.
 
 # Examples of use
-
 
 ## Wave induced transport
 
