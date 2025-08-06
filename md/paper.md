@@ -155,6 +155,145 @@ Script.main()
 ```
 :::
 
+## Cellular Automaton
+
+The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in their package CarboCAT.
+
+The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
+
+For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive.
+
+Since a dead cell may qualify to become alive for different carbonate factories at the same time, birth priority is rotated every iteration.
+
+In the default configuration we emulate three species, corresponding to the Tropical, Mound and Cool water species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
+
+::: hide
+``` julia
+#| classes: ["task"]
+#| creates: ["md/fig/ca-first-steps.pdf"]
+#| collect: figures
+
+module Script
+using CarboKitten
+using CarboKitten.Components: CellularAutomaton as CA
+using CairoMakie
+
+function main()
+  input = CA.Input(
+      box = CarboKitten.Box{Periodic{2}}(
+        grid_size=(50, 50), phys_scale=1.0u"m"),
+      facies = fill(CA.Facies(), 3)
+  )
+
+  state = CA.initial_state(input)
+  step! = CA.step!(input)
+  
+  fig = Figure(size=(1000, 500))
+  axes_indices = Iterators.flatten(eachrow(CartesianIndices((2, 4))))
+  xaxis, yaxis = box_axes(input.box)
+  for (i, idx) in enumerate(axes_indices)
+    ax = Axis(fig[Tuple(idx)...], aspect=AxisAspect(1), title="step $(i)")
+    if idx[1] == 2
+      ax.xlabel = "x [m]"
+    end
+    if idx[2] == 1
+      ax.ylabel = "y [m]"
+    end
+    heatmap!(ax, xaxis/u"m", yaxis/u"m", state.ca)
+    step!(state)
+  end
+  save("md/fig/ca-first-steps.pdf", fig)
+end
+
+end
+
+Script.main()
+```
+
+``` julia
+#| classes: ["task"]
+#| creates: ["md/fig/ca-long-term.png"]
+#| collect: figures
+module Script
+using CarboKitten
+using CarboKitten.Components: CellularAutomaton as CA
+using CairoMakie
+
+function main()
+  input = CA.Input(
+      box = CarboKitten.Box{Periodic{2}}(
+        grid_size=(50, 50), phys_scale=1.0u"m"),
+      facies = fill(CA.Facies(), 3)
+  )
+
+  state = CA.initial_state(input)
+  step! = CA.step!(input)
+
+  for _ in 1:1000
+    step!(state)
+  end
+  
+  fig = Figure(size=(1000, 500))
+  axes_indices = Iterators.flatten(eachrow(CartesianIndices((2, 4))))
+  xaxis, yaxis = box_axes(input.box)
+  i = 1000
+  for row in 1:2
+    for col in 1:4
+      ax = Axis(fig[row, col], aspect=AxisAspect(1), title="step $(i)")
+      
+      if row == 2
+        ax.xlabel = "x [m]"
+      end
+      if col == 1
+        ax.ylabel = "y [m]"
+      end
+
+      heatmap!(ax, xaxis/u"m", yaxis/u"m", state.ca)
+      step!(state)
+      i += 1
+    end
+    for _ in 1:996
+      step!(state)
+      i += 1
+    end
+  end
+  save("md/fig/ca-long-term.pdf", fig)
+end
+
+end
+
+Script.main()
+```
+:::
+
+![CA](fig/ca-long-term.pdf){.wide}
+
+Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
+
+## Transport
+
+Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
+
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as cementation, see Figure @fig:active-layer-diagram.
+
+![Diagram showing concepts of production, cementation and disintegration](fig/active-layer-diagram.pdf)
+
+Figure: Diagram showing concepts of production, cementation and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a cementation half-life time) is cemented onto the sea floor. {#fig:active-layer-diagram}
+
+The actual transport is computed using a finite difference approach that is further discussed in Section \ref{transport}.
+
+## Composed model
+
+Putting everything together, we evaluate the model as follows each iteration:
+
+1.  Advance the cellular automaton.
+2.  Compute the production $P_f$.
+3.  Disintegrate sediment $D_f$.
+4.  Transport entrained sediment $C_f$.
+5.  Deposit entrained sediment.
+
+Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
+
 ## Input variables
 
 ### Sea level 
@@ -422,145 +561,6 @@ Insolation.plot(result)
 ![variable-insolation](fig/variable-insolation.png){.wide}
 
 Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values.{#fig:variable-insolation}
-
-## Cellular Automaton
-
-The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in their package CarboCAT.
-
-The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
-
-For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive.
-
-Since a dead cell may qualify to become alive for different carbonate factories at the same time, birth priority is rotated every iteration.
-
-In the default configuration we emulate three species, corresponding to the Tropical, Mound and Cool water species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
-
-::: hide
-``` julia
-#| classes: ["task"]
-#| creates: ["md/fig/ca-first-steps.pdf"]
-#| collect: figures
-
-module Script
-using CarboKitten
-using CarboKitten.Components: CellularAutomaton as CA
-using CairoMakie
-
-function main()
-  input = CA.Input(
-      box = CarboKitten.Box{Periodic{2}}(
-        grid_size=(50, 50), phys_scale=1.0u"m"),
-      facies = fill(CA.Facies(), 3)
-  )
-
-  state = CA.initial_state(input)
-  step! = CA.step!(input)
-  
-  fig = Figure(size=(1000, 500))
-  axes_indices = Iterators.flatten(eachrow(CartesianIndices((2, 4))))
-  xaxis, yaxis = box_axes(input.box)
-  for (i, idx) in enumerate(axes_indices)
-    ax = Axis(fig[Tuple(idx)...], aspect=AxisAspect(1), title="step $(i)")
-    if idx[1] == 2
-      ax.xlabel = "x [m]"
-    end
-    if idx[2] == 1
-      ax.ylabel = "y [m]"
-    end
-    heatmap!(ax, xaxis/u"m", yaxis/u"m", state.ca)
-    step!(state)
-  end
-  save("md/fig/ca-first-steps.pdf", fig)
-end
-
-end
-
-Script.main()
-```
-
-``` julia
-#| classes: ["task"]
-#| creates: ["md/fig/ca-long-term.png"]
-#| collect: figures
-module Script
-using CarboKitten
-using CarboKitten.Components: CellularAutomaton as CA
-using CairoMakie
-
-function main()
-  input = CA.Input(
-      box = CarboKitten.Box{Periodic{2}}(
-        grid_size=(50, 50), phys_scale=1.0u"m"),
-      facies = fill(CA.Facies(), 3)
-  )
-
-  state = CA.initial_state(input)
-  step! = CA.step!(input)
-
-  for _ in 1:1000
-    step!(state)
-  end
-  
-  fig = Figure(size=(1000, 500))
-  axes_indices = Iterators.flatten(eachrow(CartesianIndices((2, 4))))
-  xaxis, yaxis = box_axes(input.box)
-  i = 1000
-  for row in 1:2
-    for col in 1:4
-      ax = Axis(fig[row, col], aspect=AxisAspect(1), title="step $(i)")
-      
-      if row == 2
-        ax.xlabel = "x [m]"
-      end
-      if col == 1
-        ax.ylabel = "y [m]"
-      end
-
-      heatmap!(ax, xaxis/u"m", yaxis/u"m", state.ca)
-      step!(state)
-      i += 1
-    end
-    for _ in 1:996
-      step!(state)
-      i += 1
-    end
-  end
-  save("md/fig/ca-long-term.pdf", fig)
-end
-
-end
-
-Script.main()
-```
-:::
-
-![CA](fig/ca-long-term.pdf){.wide}
-
-Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
-
-## Transport
-
-Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
-
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as cementation, see Figure @fig:active-layer-diagram.
-
-![Diagram showing concepts of production, cementation and disintegration](fig/active-layer-diagram.pdf)
-
-Figure: Diagram showing concepts of production, cementation and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a cementation half-life time) is cemented onto the sea floor. {#fig:active-layer-diagram}
-
-The actual transport is computed using a finite difference approach that is further discussed in Section \ref{transport}.
-
-## Composed model
-
-Putting everything together, we evaluate the model as follows each iteration:
-
-1.  Advance the cellular automaton.
-2.  Compute the production $P_f$.
-3.  Disintegrate sediment $D_f$.
-4.  Transport entrained sediment $C_f$.
-5.  Deposit entrained sediment.
-
-Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
 
 ## Visualisations
 
