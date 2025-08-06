@@ -38,7 +38,7 @@ biblio-style: copernicus
 \renewcommand{\]}{\end{equation}}
 
 ::: abstract
-# Abstract
+Abstract of this paper.
 :::
 
 # Introduction
