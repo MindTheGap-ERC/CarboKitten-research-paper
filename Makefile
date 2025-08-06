@@ -1,4 +1,4 @@
-.PHONY: all debug clean daemon
+.PHONY: all debug clean daemon manuscript
 
 pandoc_args += -fmarkdown+latex_macros
 pandoc_args += --lua-filter pandoc/hide.lua
@@ -16,6 +16,8 @@ figures = $(figures_md:md/%=build/%)
 
 all: build/paper.pdf
 
+manuscript: build/manuscript.pdf
+
 debug: md/paper.md
 	@pandoc $(pandoc_args) -s -t native $<
 
@@ -23,6 +25,11 @@ build/paper.tex: md/paper.md
 	@echo "Running pandoc"
 	@mkdir -p $(@D)
 	@pandoc $(pandoc_args) $(pandoc_latex_args) -o $@ $^
+
+build/manuscript.tex: md/paper.md
+	@echo "Running pandoc"
+	@mkdir -p $(@D)
+	@pandoc $(pandoc_args) -V manuscript $(pandoc_latex_args) -o $@ $^
 
 build/ref.bib: md/ref.bib
 	@echo "Copying ref.bib"
@@ -36,7 +43,11 @@ build/copernicus.bst: latex/copernicus/copernicus.bst
 
 build/paper.pdf: build/paper.tex build/ref.bib build/copernicus.bst latex/latexmkrc $(figures)
 	@echo "Running LaTeX"
-	@cd build; latexmk -r ../latex/latexmkrc
+	@cd build; latexmk -r ../latex/latexmkrc paper.tex
+
+build/manuscript.pdf: build/manuscript.tex build/ref.bib build/copernicus.bst latex/latexmkrc $(figures)
+	@echo "Running LaTeX"
+	@cd build; latexmk -r ../latex/latexmkrc manuscript.tex
 
 build/fig/%: md/fig/%
 	@echo "Copying figure $@"
