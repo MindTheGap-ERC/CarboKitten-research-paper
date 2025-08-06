@@ -1,7 +1,31 @@
 ---
 title: CarboKitten.jl
 subtitle: an open source toolkit for carbonate stratigraphic modeling
-author: Johan Hidding, Emilia Jarochowska, Xianyi Liu, Peter Burgess, Hanno Spreeuw
+author:
+    - given_name: Johan
+      surname: Hidding
+      email: j.hidding@esciencecenter.nl
+      affiliation: 1
+    - given_name: Emilia
+      surname: Jarochowska
+      # email: e.b.jarochowska@uu.nl
+      affiliation: 2
+    - given_name: Xianyi
+      surname: Liu
+      # email: x.liu6@uu.nl
+      affiliation: 2
+    - given_name: Peter
+      surname: Burgess
+      # email: peter.burgess@liverpool.ac.uk
+      affiliation: 3
+    - given_name: Hanno
+      surname: Spreeuw
+      # email: h.spreeuw@esciencecenter.nl
+      affiliation: 1
+affiliation:
+    - Netherlands eScience Center
+    - Utrecht University, dep. of Geosciences
+    - University of Liverpool, School of Env. Sciences
 numbersections: true
 runningauthor: Hidding et al.
 runningtitle: CarboKitten.jl
