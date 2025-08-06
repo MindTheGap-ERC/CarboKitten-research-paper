@@ -122,7 +122,7 @@ Most of these need to be fixed in `latex/template.tex`.
 
 - [x] Authors with afilliation
 - [x] Abstract
-- [ ] Publication dates block:
+- [x] Publication dates block:
 
   ```latex
   \received{}
@@ -132,8 +132,8 @@ Most of these need to be fixed in `latex/template.tex`.
   \published{}
   ```
 
-- [ ] `\firstpage{1}` marker
-- [ ] `\introduction` and `\conclusions` section markers
+- [x] `\firstpage{1}` marker
+- [x] `\introduction` and `\conclusions` section markers
 - [ ] `\codeavailability{}` section 
 - [ ] `\authorcontribution{TEXT} %% this section is mandatory`
 - [ ] `\competinginterests{TEXT} %% this section is mandatory even if you declare that no competing interests are present`

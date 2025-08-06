@@ -379,7 +379,13 @@ $for(affiliation/pairs)$
 $endfor$
 $endif$
 
-\date{$date$}
+$if(dates)$
+\received{$dates.received$}
+\pubdiscuss{$dates.pubdiscuss$} %% only important for two-stage journals
+\revised{$dates.revised$}
+\accepted{$dates.accepted$}
+\published{$dates.published$}
+$endif$
 
 $if(runningauthor)$
 \runningauthor{$runningauthor$}
@@ -397,6 +403,8 @@ $if(title)$
 $if(beamer)$
 \frame{\titlepage}
 $else$
+
+\firstpage{1}
 \maketitle
 $endif$
 $if(abstract)$
