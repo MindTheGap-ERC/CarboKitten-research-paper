@@ -1,4 +1,4 @@
-.PHONY: all debug clean daemon manuscript
+.PHONY: all debug clean daemon manuscript copy-figures
 
 pandoc_args += -fmarkdown+latex_macros
 pandoc_args += --lua-filter pandoc/hide.lua
@@ -22,6 +22,8 @@ manuscript: build/manuscript.pdf
 
 debug: md/paper.md
 	@pandoc $(pandoc_args) -s -t native $<
+
+copy-figures: $(figures)
 
 build/paper.tex: md/paper.md
 	@echo "Running pandoc"
