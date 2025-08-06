@@ -10,10 +10,11 @@ $endif$
 %
 
 % Copernicus document class
-% \documentclass[gmd, manuscript]{copernicus}
+$if(manuscript)$
+\documentclass[gmd, manuscript]{copernicus}
+$else$
 \documentclass[gmd]{copernicus}
-
-% Removed Beamer crap
+$endif$
 
 \usepackage{amsmath,amssymb}
 $if(linestretch)$
