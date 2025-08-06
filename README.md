@@ -120,8 +120,8 @@ We use a modified version of the standard Pandoc template for LaTeX output. The 
 
 Most of these need to be fixed in `latex/template.tex`.
 
-- [ ] Authors with afilliation
-- [ ] Abstract
+- [x] Authors with afilliation
+- [x] Abstract
 - [ ] Publication dates block:
 
   ```latex
