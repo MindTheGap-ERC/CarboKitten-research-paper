@@ -433,7 +433,7 @@ VariableSL.plot(result)
 
 ![variable-sl](fig/variable-sl.png){.wide}
 
-Figure: Platform generated using the sea level curve of Lisiecki et al. (2005).{#fig:variable-sl}
+Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). {#fig:variable-sl}
 
 ### Insolation
 
@@ -584,7 +584,7 @@ Insolation.plot(result)
 
 ![variable-insolation](fig/variable-insolation.png){.wide}
 
-Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values.{#fig:variable-insolation}
+Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. {#fig:variable-insolation}
 
 ## Visualisations
 
