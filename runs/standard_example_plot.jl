@@ -11,7 +11,8 @@ using CarboKitten.Visualization: summary_plot
 function add_panel_labels!(fig::Figure; 
                           labels::Vector{String}, 
                           fontsize::Int64,
-                          offset::Tuple{Int64, Int64})
+                          offset1::Tuple{Int64, Int64},
+                          offset2::Tuple{Int64, Int64})
     
     panel_positions = [
         (1, 1), # a 
@@ -23,14 +24,22 @@ function add_panel_labels!(fig::Figure;
     ]
     
     for (i, (row, col)) in enumerate(panel_positions)
-        if i <= length(labels)   
+        if i <= 3   
             Label(fig[row, col], labels[i], 
                   tellwidth=false, 
                   tellheight=false,
                   halign=:left,
                   valign=:top,
-                  padding=(offset[1], offset[1], -offset[2], offset[1]),
+                  padding=(offset1[1], offset1[1], -offset1[2], offset1[1]),
                   fontsize=fontsize)
+        else 
+            Label(fig[row, col], labels[i], 
+                    tellwidth=false, 
+                    tellheight=false,
+                    halign=:left,
+                    valign=:top,
+                    padding=(offset2[1], offset2[1], -offset2[2], offset2[1]),
+                    fontsize=fontsize)
         end
     end
     
@@ -40,7 +49,7 @@ end
 
 function main()
     fig = summary_plot("data/alcap-example.h5")
-    add_panel_labels!(fig, labels = ["a", "b", "c", "d", "e"], fontsize = 18, offset = (5,-3))
+    add_panel_labels!(fig, labels = ["a", "b", "c", "d", "e", "f"], fontsize = 22, offset1 = (-25,-5), offset2 = (-25,10))
     save("md/fig/summary-plot.png", fig)
 end
 end
