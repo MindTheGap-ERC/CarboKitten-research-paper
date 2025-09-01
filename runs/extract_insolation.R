@@ -21,7 +21,7 @@ for (t in 1:length(times)) {
     ecc = param_la04[t,2], 
     varpi = (param_la04[t,3] - 180) * pi / 180
   )
-  
+
   insolation[[t]] <- Insol(
     orbit[[t]], 
     long = pi / 2, 

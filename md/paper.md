@@ -398,7 +398,7 @@ const FACIES = [
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=35.0u"m/yr")
+        diffusion_coefficient=12.5u"m/yr")
 ]
 
 const INPUT = ALCAP.Input(
@@ -539,7 +539,7 @@ const FACIES = [
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=35.0u"m/yr")
+        diffusion_coefficient=12.5u"m/yr")
 ]
 
 const time_vector = collect(time_axis(TIME_PROPERTIES)) / u"yr" .|> NoUnits
@@ -1028,6 +1028,32 @@ It seems that a disintegration rate is a good choice of parameter if we consider
 # Software design
 
 ## Box topology
+
+```julia
+#| file: runs/topologies.jl
+module TopologyRuns
+
+using CarboKitten
+using CarboKitten.Models: ALCAP as M
+
+function main()
+    facies = [
+        M.Facies(),
+        M.Facies(),
+        M.Facies()
+    ]
+
+    coast_input = M.Input(
+        time = TimeProperties(),
+        box = Box{Coast}(grid_size=(50, 50), phys_scale=150.0u"m"),
+        facies = facies
+    )
+end
+
+end
+
+TopologyRuns.main()
+```
 
 FIXME: give examples of runs with coast and island topologies.
 
