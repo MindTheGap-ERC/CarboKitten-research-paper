@@ -1022,7 +1022,7 @@ Our implementation is such that each cell in the buffer is contiguous in memory.
 
 The user interfaces CarboKitten by writing a Julia script that defines the relevant model parameters and runs the chosen model. Effectively, very little Julia needs to be known to take an example input and modify parameters. Output is written to HDF5 files for post-processing and visualization.
 
-CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines.
+CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines that rely on other programming languages. Data extracted includes sediment accumulation curves, age-depth models, water depth, and stratigraphic columns with facies code, allowing to test a wide range of hypotheses. These include, but are not limited to, testing hypotheses on orderedness of strata @burgess_ordered_2016, preservation orbital forcing @kemp_investigating_2016, proxy records @curtis_natural_2025, or preservation of biotic information such as patterns of origination and extinction, biostratigraphic precision, and evolutionary change @hohmann_stratpal_r_2025 @hohmann_identification_2024 @holland_variation_2002.
 
 # Examples of use
 
