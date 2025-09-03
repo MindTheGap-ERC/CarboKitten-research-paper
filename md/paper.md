@@ -62,7 +62,7 @@ Modeling carbonate depositional systems requires not only accounting for water a
 
 6.  it should be well documented and easy to use at a level accessible to a geosciences student.
 
-The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present `CarboKitten.jl`, an efficient and accessible Open Source model for stratigraphic forward simulations of tropical carbonate platforms.
+The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present CarboKitten, an efficient and accessible Open Source model for stratigraphic forward simulations of tropical carbonate platforms.
 
 # Model
 
@@ -124,9 +124,6 @@ $$P(w) = \sum_f P_f(w)$$
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the tropical (T), mounds (M) and cool water (C) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
 ![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
-
-It may be confusing that the extinction coefficient $k$ is, in `CarboKitten.jl`, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths. 
-
 
 FIXME: Add legend to figure showing which curve is Tropical, Mounds and Cool water factory.
 
@@ -304,7 +301,7 @@ Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid o
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **cementation**, see Figure @fig:active-layer-diagram. Cementation refers to the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily.
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **cementation**, see Figure @fig:active-layer-diagram. In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily.
 
 ![Diagram showing concepts of production, cementation and disintegration](fig/active-layer-diagram.pdf)
 
@@ -443,9 +440,11 @@ Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). 
 
 ### Insolation
 
-We use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $\mu E m^{-2} \cdot s^{-1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
+The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths. 
 
-Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten.jl is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
+As default, we use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $\mu E m^{-2} \cdot s^{-1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
+
+Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
 ::: hide 
 ``` r
@@ -738,7 +737,7 @@ Our transport model is based on the elementary assumption that sediment flux is 
 ### Disintegration versus cementation
 Both the disintegration rate and the cementation time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high cementation time (thus a slow cementation) over a high disintegration rate can help in transporting only freshly produced sediments.
 
-Note that without modelling the cementation rate (immediately entraining all of the active layer on every iteration) results in models that depend heavily on a chosen time step. <! -- We probably want to avoid the word "dumping" but also I didn't understand: the cementation limits what gets entrained, not directly what gets dumped? - EJ -->
+Note that not setting the cementation rate (which would amount to immediately cementing all of the active layer on every iteration) results in models that depend heavily on a chosen time step. 
 
 ![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf){.wide}
 
