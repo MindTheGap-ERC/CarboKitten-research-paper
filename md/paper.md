@@ -1282,9 +1282,9 @@ TopologyPlot.main()
 
 :::
 
-CarboKitten needs to work with different choices for box topology, i.e. how the boundaries of a model box connect to each other. For example, when we simulate a small strip of coast-line it is best to have one axis (in this case the $x$-axis) reflect onto itself, while the other axis is periodic, leaving fewer edge effects.
+CarboKitten needs to work with different choices for box topology, i.e. how the boundaries of a model box connect to each other. For example, when we simulate a small strip of coastline it is best to have one axis (in this case the $x$-axis) reflect onto itself, while the other axis is periodic, leaving fewer edge effects.
 
-In another case, where we want to simulate an entire island, or even an archipellago, it is more convenient to use fully periodic coordinates. We illustrate these choices in Figure @fig:box-topologies.
+In another case, where we want to simulate an entire island, or even an archipelago, it is more convenient to use fully periodic coordinates. We illustrate these choices in Figure @fig:box-topologies.
 
 ![Different topologies, 3d view and boundaries](fig/topologies.png){.wide}
 
