@@ -62,7 +62,7 @@ Modeling carbonate depositional systems requires not only accounting for water a
 
 6.  it should be well documented and easy to use at a level accessible to a geosciences student.
 
-The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present `CarboKitten.jl`, an efficient and accessible Open Source model for stratigraphic forward simulations of tropical carbonate platforms.
+The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present CarboKitten, an efficient and accessible Open Source model for stratigraphic forward simulations of tropical carbonate platforms.
 
 # Model
 
@@ -73,11 +73,11 @@ Since the model describes the accumulation of sediment under a range of variable
 
 Subsidence rate
 
-:   Quantified as a rate $\sigma$ in units of $\textrm{m/Myr}$. The growth of sediment is only sustainable in scenarios where there is a steady subsidence. In our models we use a default value of $50 \textrm{m/Myr}$ (or $0.5 \textrm{mm/kyr}$).
+:   Quantified as a rate $\sigma$ in units of $\textrm{m/Myr}$. The growth of sediment is only sustainable in scenarios where there is a steady subsidence. In our models we use a default value of $50 \textrm{m/Myr}$ (or $0.5 \textrm{mm/kyr}$). This parameter can be set by the users.
 
 Initial topography
 
-:   The model starts at an initial topography $\eta_0(x) = \eta(x, t_0)$, consisting of impenetrable bedrock.
+:   The model starts at an initial topography $\eta_0(x) = \eta(x, t_0)$, consisting of impenetrable bedrock. A more complex topography can be provided as an input array, e.g. by running a previous model and extracting the height of sediment.
 
 Topography
 
@@ -301,7 +301,7 @@ Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid o
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as cementation, see Figure @fig:active-layer-diagram.
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **cementation**, see Figure @fig:active-layer-diagram. In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily.
 
 ![Diagram showing concepts of production, cementation and disintegration](fig/active-layer-diagram.pdf)
 
@@ -440,9 +440,11 @@ Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). 
 
 ### Insolation
 
-We use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $\mu E m^{-2} \cdot s^{-1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
+The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths. 
 
-Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten.jl is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
+As default, we use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $\mu E m^{-2} \cdot s^{-1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
+
+Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
 ::: hide 
 ``` r
@@ -482,7 +484,7 @@ insolation = inso_values <- unlist(insolation)
 write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
 ```
 ::: 
-The insolation file can be read into CarboKitten file defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
+The insolation file can be read into a CarboKitten script defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
 
 ::: hide
 ``` julia
@@ -591,7 +593,7 @@ Figure: Platform generated using the daily mean insolation during June solstice 
 
 ## Visualisations
 
-CarboKitten generates data in accessible HDF5 format, thus output can be visualised with most common tools. Nevertheless, we provide some routines based on Makie [@DanischKrumbiegel2021] for creating crosssections, Wheeler diagrams and topographic overviews. Some of the most common plot types have been collected into a summary plot, which is shown in Figure @fig:summary-plot.
+CarboKitten generates data in the accessible, binary HDF5 format, thus output can be visualised with most common tools, e.g. imported into R or a Jupyter notebook. Nevertheless, we provide some routines based on Makie [@DanischKrumbiegel2021] for creating crosssections, Wheeler diagrams and topographic overviews. Some of the most common plot types have been collected into a summary plot, which is shown in Figure @fig:summary-plot.
 
 ![Summary plot](fig/summary-plot.png){.wide}
 
@@ -703,13 +705,13 @@ The problem with this critical angle-based method of transport is that productio
 
 One aspect of critical angle theory that we do use is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and we don't need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
 
-A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including FIXME(add reference) ) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In this study an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms (e.g., @schlager_submarine_1986, @Kenter1990, @adams_basic_2000). This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
+A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including @adams_basic_2000) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In this study an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms (e.g., @schlager_submarine_1986, @Kenter1990, @adams_basic_2000). This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
 
 ## Wave-induced transport
 
 We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
 
-Our approach is illustrated with an example of an atoll, starting with a conic topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
+Our approach is illustrated with an example of an atoll, starting with a conical topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
 
 $$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
 
@@ -770,17 +772,17 @@ Script.main()
 
 ## Parameter choices
 
-Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and cementation time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if we like the behaviour.
+Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and cementation time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
 
 ### Disintegration versus cementation
-Both the disintegration rate and the cementation time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high sementation time over a high disintegration rate can help in transporting only freshly produced sediments.
+Both the disintegration rate and the cementation time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high cementation time (thus a slow cementation) over a high disintegration rate can help in transporting only freshly produced sediments.
 
-Note that without modelling the cementation rate (immediately dumping all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
+Note that not setting the cementation rate (which would amount to immediately cementing all of the active layer on every iteration) results in models that depend heavily on a chosen time step. 
 
 ![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf){.wide}
 
 Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of 100 m/Myr for a 4 km wide patch in the middle of the box, and chose a runtime of 1 Myr with a time step of 100 yr (the sharp edges in the production profile induce fast transport, requiring small time steps).
-Panels $(a)$ and $(b)$ have small cementation time, while panels $(c)$ and $(d)$ have a large cementation time. On the columns, $(a)$ and $(c)$ have a small disintegration rate, while $(b)$ and $(d)$ have a large disintegration rate. Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
+Panels $(a)$ and $(b)$ have a short cementation time `ct` (100 yr), while panels $(c)$ and $(d)$ have a long cementation time (1000 yr). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` (10 m/Myr), while $(b)$ and $(d)$ have a high disintegration rate (500 m/Myr). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
 
 :::hide
 ```julia
@@ -1055,7 +1057,7 @@ DisintegrationVsCementation.main()
 
 ### Disintegration rate
 
-It seems that a disintegration rate is a good choice of parameter if we consider the concentration of sediment and the fraction of old versus new sediment in there. However, dynamically speaking, if we consider the process of diffusing or eroding topographic features, it has more meaning to talk about a disintegration depth. Looking at the shape of features we see changes with the time step.
+Expressing disintegration in terms of rates is a good parametrization choice if we consider the concentration of sediment and the fraction of old versus new sediment in it. However, dynamically speaking, if we consider the process of diffusing or eroding topographic features, it is more meaningful to talk about a disintegration depth. Looking at the shape of features we see changes with the time step.
 
 ### Cementation time
 
@@ -1073,7 +1075,7 @@ FIXME: give examples of runs with coast and island topologies.
 
 ## The sediment buffer
 
-In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We'd like to emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis, but is no longer an active component in the model. This means that the model output can be much more precise than the depositional resolution of the buffer.
+In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed-size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis, but is no longer an active component in the model. This means that the model output can be much more precise than the depositional resolution of the buffer.
 
 While the sediment buffer is allocated as a single 4-dimensional array (depth, facies, $x$, $y$), it is best to explain its functioning from the perspective of a single cell in our model. We are left with two dimensions: depth (rows) and facies (columns).
 
@@ -1232,9 +1234,34 @@ Figure: Profile view of atoll simulation.
 Figure: Topographic map of atoll simulation.
 
 
-# Validation Case
-
 # Conclusions
 
-CarboKitten rocks!
+CarboKitten is a new Open Source stratigraphic forward model dedicated for carbonate depositional environments and modeling of timescales between centuries and millions of years. It integrates previous, well-tested approaches used by the community, i.e. the production model by @Bosscher1992 and the generation of spatial heterogeneity proposed by @Burgess2013 with a new approach to sediment transport, based on the concept of the **active layer** by @Paola1992. The software allows modeling and visualization accessible to laptop users, including attractive plotting functions for common use-cases in stratigraphy and sedimentology, such as Wheeler diagrams, age-depth models and stratigraphic columns. CarboKitten uses heuristics to approximate the dynamics of carbonate production, wave transport and biologically driven spatial heterogeneity. The algorithms do not replicate the physical and biological processes behind these phenomena, but allow obtaining results imitating them at timescales, at which they cannot be observed directly. At this stage, CarboKitten's primary value is not a realistic replication of empirical stratigraphic architectures. Among the limitations are: changing the values of production and transport parameters during the run to represent secular change in the composition of carbonate sediment and its producers, storing the history of sediment transport to track autochthonous and allochthonous sediment, empirical validation of transport and prdoduction values, and many others. However, these future features do not limit the primary utility of CarboKitten: testing hypotheses on the formation of the carbonate geological record. With variable sea level and insolation, CarboKitten offers a powerful tool to ground-truth concepts of how time is represented in the physical rock record (e.g., @burgess_nature_2008, @burgess_big_2019, @sultana_how_2022) and constrain the limits of reconstruction of processes such as evolution (@holland_models_1999, @hannisdal_phenotypic_2006, @hohmann_identification_2024), climate change, or other aspects of the changing Earth's environment (e.g., @kemp_investigating_2016, @kemp_metre-scale_2019, @myrow_chemostratigraphic_2000, @geyman_how_2021; @husinec_orbital_2023, @curtis_natural_2025). We hope the accessibility and reproducibility of CarboKitten simulations will encourage wider use of stratigraphic forward models towards a hypothetico-deductive research in stratigraphy.
 
+# Code availability
+
+<! -- FIXME: release the code to allow zenodo registration? -->
+
+# Author contribution
+
+<! -- Please check if you agree --> 
+Conceptualization - JH, EJ, PB
+Funding acquisition - EJ
+Methodology - JH, EJ, PB, XL
+Project administration - EJ
+Software - JH, HS
+Supervision - JH, EJ
+Visualization - JH, EJ
+Writing - JH, EJ
+
+# Competing interests
+
+The authors declare that they have no conflict of interest.
+
+# Acknowledgements
+
+We thank Joris Eggenhausen for discussions on the transport model and Charlotte Summers for programming support. Niels Drost provided administrative and management support during the project.
+
+# Financial support
+
+Funded by the European Union (ERC, MindTheGap, StG project no 101041077). Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them. 
