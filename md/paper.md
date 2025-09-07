@@ -398,7 +398,7 @@ const FACIES = [
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=35.0u"m/yr")
+        diffusion_coefficient=12.5u"m/yr")
 ]
 
 const INPUT = ALCAP.Input(
@@ -430,7 +430,6 @@ end
 
 result = VariableSL.main()
 VariableSL.plot(result)
-
 ```
 :::
 
@@ -541,7 +540,7 @@ const FACIES = [
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=35.0u"m/yr")
+        diffusion_coefficient=12.5u"m/yr")
 ]
 
 const time_vector = collect(time_axis(TIME_PROPERTIES)) / u"yr" .|> NoUnits
@@ -1071,7 +1070,268 @@ Expressing disintegration in terms of rates is a good parametrization choice if 
 
 ## Box topology
 
-FIXME: give examples of runs with coast and island topologies.
+:::hide
+
+```julia
+#| file: runs/topology_coast.jl
+#| classes: ["task"]
+#| creates: data/topology_coast.h5
+module TopologyCoast
+
+using CarboKitten
+using CarboKitten.Models: ALCAP as M
+
+function main()
+    CarboKitten.init()
+
+    facies = [
+        M.Facies(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2",
+            diffusion_coefficient=10.0u"m/yr"),
+        M.Facies(
+            maximum_growth_rate=400u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2",
+            diffusion_coefficient=10.0u"m/yr"),
+        M.Facies(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2",
+            diffusion_coefficient=10.0u"m/yr")
+    ]
+
+    sea_level(t) =
+        10.0u"m" * sin(2π * t / 123456.0u"yr") +
+         5.0u"m" * sin(2π * t /  23456.0u"yr")
+
+    kwargs = (
+        sea_level = sea_level,
+        subsidence_rate=50.0u"m/Myr",
+        disintegration_rate=50.0u"m/Myr",
+        insolation=400.0u"W/m^2",
+        sediment_buffer_size=50,
+        depositional_resolution=0.5u"m",
+        transport_solver=Val{:forward_euler},
+    )
+
+    coast_input = M.Input(
+        time = TimeProperties(
+            Δt=0.0002u"Myr",
+            steps=5000),
+        box = Box{Coast}(
+            grid_size=(250, 50), 
+            phys_scale=60.0u"m"),
+        facies = facies,
+        initial_topography = (x, y) -> let x_prime = x - 3.0u"km"
+            x_prime > 0.0u"km" ? - x_prime / 300.0 : - x_prime / 30.0
+        end,
+        output = Dict(
+            :topography => OutputSpec(write_interval = 1000),
+            :profile => OutputSpec(slice = (:, 25)));
+        kwargs...)
+
+    run_model(Model{M}, coast_input, "data/topology_coast.h5")
+end
+
+end
+
+TopologyCoast.main()
+```
+
+```julia
+#| file: runs/Noise.jl
+module Noise
+using FFTW
+
+"""
+    make_noise(box::Box, n, s, σ)
+
+Make some Gaussian Random Noise with a power spectrum of
+
+``P(k) = (s k)^n \\exp(-2 π^2 k^2 σ^2)``
+
+The `box` should have periodic boundaries, `n` be a unitless
+number (usually between -2.0 and 2.0), `s` is a scaling in meters
+which only affects the amplitude and is needed to make `s * k` unitless,
+and `σ` is the standard deviation of the Gaussian filter to reduce
+small scale noise.
+
+The noise is first generated as Gaussian white noise, then convolved in
+Fourier space by multiplying with the square root of the power spectrum.
+
+Example:
+
+    box = Box{Periodic{2}}(grid_size=(100, 100), phys_scale=300.0u"m")
+	cnoise = make_noise(box, -1.5, 50.0u"m", 500.0u"m")
+
+"""
+function make_noise(box, n, s, σ)
+    white_noise = randn(box.grid_size...)
+    P(k) = (k * s)^n * exp(-π^2 * k^2 * 2 * σ^2)
+    kx = FFTW.rfftfreq(box.grid_size[1], 1/box.phys_scale)
+    ky = FFTW.fftfreq(box.grid_size[2], 1/box.phys_scale)
+    kabs = sqrt.(kx.^2 .+ ky'.^2)
+
+    fy = FFTW.rfft(white_noise)
+    p  = P.(kabs)
+    p[1] = 0.0
+    fy .*= sqrt.(p)
+    FFTW.irfft(fy, box.grid_size[1])
+end
+end
+```
+
+```julia
+#| file: runs/topology_periodic.jl
+#| classes: ["task"]
+#| creates:
+#|   - data/topology_periodic.h5
+#| requires:
+#|   - runs/Noise.jl
+include("Noise.jl")
+
+module TopologyPeriodic
+
+using CarboKitten
+using CarboKitten.Models: ALCAP as M
+using ..Noise: make_noise
+
+function main()
+    CarboKitten.init()
+
+    facies = [
+        M.Facies(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2",
+            diffusion_coefficient=10.0u"m/yr"),
+        M.Facies(
+            maximum_growth_rate=400u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2",
+            diffusion_coefficient=10.0u"m/yr"),
+        M.Facies(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2",
+            diffusion_coefficient=10.0u"m/yr")
+    ]
+
+    sea_level(t) =
+        10.0u"m" * sin(2π * t / 123456.0u"yr") +
+         5.0u"m" * sin(2π * t /  23456.0u"yr")
+
+    kwargs = (
+        sea_level = sea_level,
+        subsidence_rate=50.0u"m/Myr",
+        disintegration_rate=50.0u"m/Myr",
+        insolation=400.0u"W/m^2",
+        sediment_buffer_size=50,
+        depositional_resolution=0.5u"m",
+        transport_solver=Val{:forward_euler},
+    )
+
+    box = Box{Periodic{2}}(grid_size=(256, 256), phys_scale=60.0u"m")
+    initial_topography = make_noise(box, -1.5, 5.0u"m", 1.0u"km") .* 1.0u"m" .- 30.0u"m"
+
+    coast_input = M.Input(
+        time = TimeProperties(
+            Δt=0.0002u"Myr",
+            steps=5000),
+        box = box,
+        facies = facies,
+        initial_topography = initial_topography,
+        output = Dict(
+            :topography => OutputSpec(write_interval = 500),
+            :profile_x => OutputSpec(slice = (:, 125)),
+            :profile_y => OutputSpec(slice = (125, :)));
+        kwargs...)
+
+    run_model(Model{M}, coast_input, "data/topology_periodic.h5")
+end
+
+end
+
+TopologyPeriodic.main()
+```
+
+```julia
+#| file: runs/topology_plot.jl
+#| classes: ["task"]
+#| creates:
+#|   - md/fig/topologies.png
+#| requires:
+#|   - data/topology_coast.h5
+#|   - data/topology_periodic.h5
+#| collect: figures
+module TopologyPlot
+
+using CairoMakie
+using CarboKitten.Export: read_volume
+using CarboKitten.Visualization: glamour_view!
+
+function main()
+    coastal_header, coastal_data =
+        read_volume("data/topology_coast.h5", :topography)
+    periodic_header, periodic_data =
+        read_volume("data/topology_periodic.h5", :topography)
+
+    fig = Figure(size=(800, 500))
+
+	glamour_view!(
+        Axis3(fig[1, 1], title="(a) periodic boundaries",
+              width=250, height=250),
+        periodic_header, periodic_data,
+        colormap=Reverse(:GnBu))
+
+	glamour_view!(
+        Axis3(fig[1, 2], title="(b) coastal boundaries"),
+        coastal_header, coastal_data,
+        colormap=Reverse(:GnBu))
+
+	ax1 = Axis(fig[2, 1], title="(c)", aspect=1.0)
+	hlines!(ax1, [0.0, 15.0])
+	vlines!(ax1, [0.0, 15.0])
+	arrows2d!(ax1,
+			  [Point(7.5, 0.0), Point(7.5, 15.0),
+			   Point(0.0, 7.5), Point(15.0, 7.5)],
+			  [Vec(0.0, 2.0), Vec(0.0, 2.0),
+			   Vec(2.0, 0.0), Vec(2.0, 0.0)],
+			  color=[:red, :red, :blue, :blue])
+
+	ax2 = Axis(fig[2, 2], title="(d)", aspect=DataAspect(), height=100)
+	hlines!(ax2, [0.0, 5.0])
+	vlines!(ax2, [0.0, 15.0])
+	arrows2d!(ax2, 
+			  [Point(7.5, 0.0), Point(7.5, 5.0),
+			   Point(0.0, 2.5), Point(0.0, 2.5),
+			   Point(15.0, 2.5), Point(15.0, 2.5)],
+			  [Vec(0.0, 0.8), Vec(0.0, 0.8),
+			   Vec(1.0, 0.0), Vec(-1.0, 0.0),
+			   Vec(1.0, 0.0), Vec(-1.0, 0.0)],
+			  color=[:red, :red, :blue, :blue, :green, :green])
+
+    save("md/fig/topologies.png", fig)
+    return fig
+end
+
+end
+
+TopologyPlot.main()
+```
+
+:::
+
+CarboKitten needs to work with different choices for box topology, i.e. how the boundaries of a model box connect to each other. For example, when we simulate a small strip of coastline it is best to have one axis (in this case the $x$-axis) reflect onto itself, while the other axis is periodic, leaving fewer edge effects.
+
+In another case, where we want to simulate an entire island, or even an archipelago, it is more convenient to use fully periodic coordinates. We illustrate these choices in Figure @fig:box-topologies.
+
+![Different topologies, 3d view and boundaries](fig/topologies.png){.wide}
+
+Figure: Model topologies. CarboKitten allows the user to choose different topologies for the spatial modelling. In panel (a) we see a group of reef islands that were modelled on a fully periodic grid of size $250 \times 250$, using a randomly generated initial topography. A more common use case is shown in panel (b), where the $x$ coordinate is reflected at the boundaries, while the $y$ coordinate is periodic.
+Panels (c) and (d) schematically illustrate these same box topologies using coloured arrows. {#fig:box-topologies}
 
 ## The sediment buffer
 
