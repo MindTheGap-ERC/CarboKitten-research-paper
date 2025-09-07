@@ -98,5 +98,4 @@ end
 
 result = VariableSL.main()
 VariableSL.plot(result)
-
 # ~/~ end
