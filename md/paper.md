@@ -1355,6 +1355,28 @@ The user interfaces CarboKitten by writing a Julia script that defines the relev
 
 CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines that rely on other programming languages. Data extracted includes sediment accumulation curves, age-depth models, water depth, and stratigraphic columns with facies code, allowing to test a wide range of hypotheses. These include, but are not limited to, testing hypotheses on orderedness of strata @burgess_ordered_2016, preservation orbital forcing @kemp_investigating_2016, proxy records @curtis_natural_2025, or preservation of biotic information such as patterns of origination and extinction, biostratigraphic precision, and evolutionary change @hohmann_stratpal_r_2025 @hohmann_identification_2024 @holland_variation_2002.
 
+## Performance
+
+Since CarboKitten is written in Julia with performance in mind, it should be efficient to run, even on consumer grade hardware, i.e. an average laptop. We are yet to substantiate this claim. Since Julia is a just-in-time compiled language, the first execution of any code in a new session always takes a bit longer than subsequent runs. Measurements presented in this section do not include this initial overhead.
+
+Our baseline model is the example included in the CarboKitten, grid size $100 \times 50$ with 5000 time steps of 200 years each (results shown in Figure @fig:summary-plot). This model runs in 27 seconds on a Intel Core i7 at 3.0GHz.
+
+With regards to memory consumption, CarboKitten allocates a fixed amount of memory at the start of a model run, which scales linearly with the size of the grid. The most significant fraction of the memory is occupied by the sediment buffer. In the example run we have a buffer size of 50. With three facies types being stored this results in an array size of $100 \times 50 \times 50 \times 3$, stored in double precision gives a mere $6 \unit{MB}$. However, for a $300 \times 300$ sized grid this already increases to $108 \unit{MB}$.
+
+The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mittigated by setting a diffusion coefficient. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we're speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
+
+To further quantify these complications in our estimated run-times, we run a model of a single atoll on three different resolutions ($150, 100$, and $50 \unit{m}$, corresponding to grid sizes of $100^2, 150^2, 300^2$) with three different step sizes ($200, 100$, and $50 \unit{yr}$, corresponding to 5000, 10000, and 20000 steps), for a total of nine benchmark cases. We set the interval and scale of the cellular automaton to compensate.
+
+::: hide
+
+```julia
+#| file: runs/benchmarks.jl
+```
+
+:::
+
+At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further.
+
 # Examples of use
 
 ## Wave induced transport

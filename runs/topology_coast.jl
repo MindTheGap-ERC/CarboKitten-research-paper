@@ -1,5 +1,7 @@
 # ~/~ begin <<md/paper.md#runs/topology_coast.jl>>[init]
 #| file: runs/topology_coast.jl
+#| classes: ["task"]
+#| creates: data/topology_coast.h5
 module TopologyCoast
 
 using CarboKitten
