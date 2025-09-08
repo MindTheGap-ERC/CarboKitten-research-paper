@@ -13,7 +13,7 @@ function add_panel_labels!(fig::Figure;
                           fontsize::Int64,
                           offset1::Tuple{Int64, Int64},
                           offset2::Tuple{Int64, Int64})
-    
+
     panel_positions = [
         (1, 1), # a 
         (1, 3), # b 
@@ -22,7 +22,7 @@ function add_panel_labels!(fig::Figure;
         (3, 2), # e 
         (3, 3)  # f 
     ]
-    
+
     for (i, (row, col)) in enumerate(panel_positions)
         if i <= 3   
             Label(fig[row, col], labels[i], 
@@ -42,7 +42,7 @@ function add_panel_labels!(fig::Figure;
                     fontsize=fontsize)
         end
     end
-    
+
     return fig
 end
 
