@@ -1359,13 +1359,28 @@ CarboKitten ships with routines for visualisation and data extraction into CSV f
 
 Since CarboKitten is written in Julia with performance in mind, it should be efficient to run, even on consumer grade hardware, i.e. an average laptop. We are yet to substantiate this claim. Since Julia is a just-in-time compiled language, the first execution of any code in a new session always takes a bit longer than subsequent runs. Measurements presented in this section do not include this initial overhead.
 
+### Baseline
 Our baseline model is the example included in the CarboKitten, grid size $100 \times 50$ with 5000 time steps of 200 years each (results shown in Figure @fig:summary-plot). This model runs in 27 seconds on a Intel Core i7 at 3.0GHz.
 
 With regards to memory consumption, CarboKitten allocates a fixed amount of memory at the start of a model run, which scales linearly with the size of the grid. The most significant fraction of the memory is occupied by the sediment buffer. In the example run we have a buffer size of 50. With three facies types being stored this results in an array size of $100 \times 50 \times 50 \times 3$, stored in double precision gives a mere $6 \unit{MB}$. However, for a $300 \times 300$ sized grid this already increases to $108 \unit{MB}$.
 
+### Scaling
 The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mittigated by setting a diffusion coefficient. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we're speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
 
-To further quantify these complications in our estimated run-times, we run a model of a single atoll on three different resolutions ($150, 100$, and $50 \unit{m}$, corresponding to grid sizes of $100^2, 150^2, 300^2$) with three different step sizes ($200, 100$, and $50 \unit{yr}$, corresponding to 5000, 10000, and 20000 steps), for a total of nine benchmark cases. We set the interval and scale of the cellular automaton to compensate.
+### Benchmark
+To further quantify these complications in our estimated run-times, we run a model of a single atoll on three different resolutions ($200, 100$, and $50 \unit{m}$, corresponding to grid sizes of $75^2, 150^2, 300^2$) with three different step sizes ($400, 200$, and $100 \unit{yr}$, corresponding to 2500, 5000, and 10000 steps), for a total of nine benchmark cases. We set the interval and scale of the cellular automaton to compensate. The results are shown in Figure @fig:benchmark.
+The combination of 2500 time steps with a $300^2$ grid size yields instabilities in the transport model and is left out of the results. Other than that, CarboKitten scaled as predicted from our previous considerations.
+
+![Benchmark plots](fig/benchmark.pdf){.wide}
+
+Figure: Benchmark with respect to number of time steps and grid size. Panel (a) shows the run-time dependency on the number of time-steps, while panel (b) shows the dependency on the number of grid cells on each axis, both on a log-log scale. This scaling follows the predicted behaviour: linear in both the number of time-steps and total number of grid cells (on this plot being the grid size squared). Note that the run with 2500 time steps and $300^2$ grid size is left out, since the transport model was unstable for that configuration. These numbers were consistent throughout multiple runs. {#fig:benchmark}
+
+### Validation
+We may validate our benchmark by looking at the results of the runs with grid size $150^2$. This is shown in Figure @fig:benchmark-validation. These results show that, when time steps are taken small enough, CarboKitten converges to a consistent result that does not depend on the size of the time step.
+
+![Benchmark validation](fig/benchmark_validation.png){.wide}
+
+Figure: Benchmark validation. This shows a crosssection of the runs with a grid size of $150^2$. Looking at the first output, using only 2500 time steps, we see a wave like pattern even where the deep sea facies dominate. These waves are not physical, but a result from taking the time step too large. When we look at the results from 5000 and 10000 time steps, they look so similar that we can conclude that in this case 5000 steps was enough to get accurate results. {#fig:benchmark-validation}
 
 ::: hide
 
@@ -1507,7 +1522,7 @@ Benchmarks.main()
 #| requires:
 #|   - data/benchmark.csv
 #| creates:
-#|   - md/fig/benchmark.svg
+#|   - md/fig/benchmark.pdf
 #| collect: figures
 module BenchmarkPlot
 
@@ -1520,15 +1535,59 @@ function main()
     df = CSV.read("data/benchmark.csv", DataFrame)
     fig = Figure()
 
-    layer1 = data(df) * mapping(:steps, :time, color=:res => string => "Grid size") * visual(ScatterLines)
-    fig = draw(layer1, axis=(xscale=Makie.pseudolog10, yscale=log10))
-    
-    save("md/fig/benchmark.svg", fig)
+    layer1 = data(df) * mapping(:steps => "time steps", :time => "run time [s]", color=:res => string => "grid size") * visual(ScatterLines)
+    layer2 = data(df) * mapping(:res => "grid size", :time => "run time [s]", color=:steps => string => "time steps") * visual(ScatterLines)
+
+    fig = Figure(size=(800, 400))
+    fg1 = draw!(fig[1, 1], layer1, axis=(xscale=Makie.pseudolog10, yscale=log10))
+    legend_args = (tellwidth=false, tellheight=false, halign=:left, valign=:top, margin=(10, 10, 10, 10))
+    legend!(fig[1, 1], fg1; legend_args...)
+    fg2 = draw!(fig[1, 2], layer2, axis=(xscale=Makie.pseudolog10, yscale=log10))
+    legend!(fig[1, 2], fg2; legend_args...)
+
+    Label(fig[1, 1, TopLeft()], "a", halign=:left, fontsize=20)
+    Label(fig[1, 2, TopLeft()], "b", halign=:left, fontsize=20)
+
+    save("md/fig/benchmark.pdf", fig)
+
+    fig
 end
 
 end
 
 BenchmarkPlot.main()
+```
+
+```julia
+#| file: runs/benchmark_validation.jl
+module BenchmarkValidation
+
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile!
+using CarboKitten.Export: read_slice
+
+function main()
+    h1, d1 = read_slice("data/bench_150_2500.h5", :profile)
+    h2, d2 = read_slice("data/bench_150_5000.h5", :profile)
+    h3, d3 = read_slice("data/bench_150_10000.h5", :profile)
+
+    fig = Figure(size = (1200, 400))
+    sediment_profile!(Axis(fig[1, 1], title="2500 steps"), h1, d1)
+    sediment_profile!(Axis(fig[1, 2], title="5000 steps"), h2, d2)
+    sediment_profile!(Axis(fig[1, 3], title="10000 steps"), h3, d3)
+
+    fig.content[1].title = "2500 steps"
+    fig.content[2].title = "5000 steps"
+    fig.content[3].title = "10000 steps"
+
+    save("md/fig/benchmark_validation.png", fig)
+
+    fig
+end
+
+end
+
+BenchmarkValidation.main()
 ```
 
 :::
