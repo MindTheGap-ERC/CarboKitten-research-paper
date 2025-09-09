@@ -13,6 +13,7 @@ using CategoricalArrays
 using CarboKitten.DataSets: artifact_dir
 using CairoMakie
 using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Export: read_slice
 
 function miller_2020()
     dir = artifact_dir()
@@ -39,8 +40,8 @@ end
 
 const TIME_PROPERTIES = TimeProperties(
     t0 = -1999.7u"kyr",
-    Δt = 200.0u"yr",
-    steps = 9325
+    Δt = 100.0u"yr",
+    steps = 18650
 )
 
 const TAG = "lisiecki-sea-level"
@@ -52,29 +53,29 @@ const FACIES = [
         maximum_growth_rate=200u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr"),
+        diffusion_coefficient=20.0u"m/yr"),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
         maximum_growth_rate=500u"m/Myr",
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=25.0u"m/yr"),
+        diffusion_coefficient=10.0u"m/yr"),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=12.5u"m/yr")
+        diffusion_coefficient=50.0u"m/yr")
 ]
 
 const INPUT = ALCAP.Input(
     tag="$TAG",
-    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    box=CarboKitten.Box{Coast}(grid_size=(200, 50), phys_scale=150.0u"m"),
     time=TIME_PROPERTIES,
     ca_interval=1,
-    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
+    initial_topography=(x, y) -> -x / 200.0 + 20.0u"m",
     sea_level=sea_level(),
     output=Dict(
         :profile => OutputSpec(slice = (:, 25), write_interval = 1)),
@@ -86,11 +87,13 @@ const INPUT = ALCAP.Input(
     facies=FACIES)
 
 function main()
-    run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+    CarboKitten.init()
+    run_model(Model{ALCAP}, INPUT, "data/variable-sl.h5")
 end
 
-function plot(result::MemoryOutput)
-    fig = sediment_profile(result.header, result.data_slices[:profile])
+function plot(result)
+    h, d = read_slice(result, :profile)
+    fig = sediment_profile(h, d)
     save("md/fig/variable-sl.png", fig)
 end
 

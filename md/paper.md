@@ -325,9 +325,9 @@ Advancing the CA can be configured to happen one-in-$n$ iterations to slow it do
 
 ### Sea level 
 
-Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step, with which the model is run. 
+Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run. 
 
-The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model 2 Ma and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
+The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
 
 ::: hide
 ```julia
@@ -345,6 +345,7 @@ using CategoricalArrays
 using CarboKitten.DataSets: artifact_dir
 using CairoMakie
 using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Export: read_slice
 
 function miller_2020()
     dir = artifact_dir()
@@ -371,8 +372,8 @@ end
 
 const TIME_PROPERTIES = TimeProperties(
     t0 = -1999.7u"kyr",
-    Δt = 200.0u"yr",
-    steps = 9325
+    Δt = 100.0u"yr",
+    steps = 18650
 )
 
 const TAG = "lisiecki-sea-level"
@@ -384,29 +385,29 @@ const FACIES = [
         maximum_growth_rate=200u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr"),
+        diffusion_coefficient=20.0u"m/yr"),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
         maximum_growth_rate=500u"m/Myr",
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=25.0u"m/yr"),
+        diffusion_coefficient=10.0u"m/yr"),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=12.5u"m/yr")
+        diffusion_coefficient=50.0u"m/yr")
 ]
 
 const INPUT = ALCAP.Input(
     tag="$TAG",
-    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    box=CarboKitten.Box{Coast}(grid_size=(200, 50), phys_scale=150.0u"m"),
     time=TIME_PROPERTIES,
     ca_interval=1,
-    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
+    initial_topography=(x, y) -> -x / 200.0 + 20.0u"m",
     sea_level=sea_level(),
     output=Dict(
         :profile => OutputSpec(slice = (:, 25), write_interval = 1)),
@@ -418,11 +419,13 @@ const INPUT = ALCAP.Input(
     facies=FACIES)
 
 function main()
-    run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+    CarboKitten.init()
+    run_model(Model{ALCAP}, INPUT, "data/variable-sl.h5")
 end
 
-function plot(result::MemoryOutput)
-    fig = sediment_profile(result.header, result.data_slices[:profile])
+function plot(result)
+    h, d = read_slice(result, :profile)
+    fig = sediment_profile(h, d)
     save("md/fig/variable-sl.png", fig)
 end
 
