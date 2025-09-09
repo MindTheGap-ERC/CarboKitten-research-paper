@@ -31,7 +31,7 @@ function make_noise(box, n, s, σ)
     kx = FFTW.rfftfreq(box.grid_size[1], 1/box.phys_scale)
     ky = FFTW.fftfreq(box.grid_size[2], 1/box.phys_scale)
     kabs = sqrt.(kx.^2 .+ ky'.^2)
-    
+
     fy = FFTW.rfft(white_noise)
     p  = P.(kabs)
     p[1] = 0.0

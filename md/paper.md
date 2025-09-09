@@ -33,7 +33,7 @@ bibliography: ref
 biblio-style: copernicus
 firstpage: 1
 dates:
-    revised: \today 
+  revised: \today 
 ---
 
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
@@ -73,7 +73,7 @@ Since the model describes the accumulation of sediment under a range of variable
 
 Subsidence rate
 
-:   Quantified as a rate $\sigma$ in units of $\textrm{m/Myr}$. The growth of sediment is only sustainable in scenarios where there is a steady subsidence. In our models we use a default value of $50 \textrm{m/Myr}$ (or $0.5 \textrm{mm/kyr}$). This parameter can be set by the users.
+:   Quantified as a rate $\sigma$ in units of $\unit{m/Myr}$. The growth of sediment is only sustainable in scenarios where there is a steady subsidence. In our models we use a default value of $50\ \unit{m/Myr}$ (or $0.5\ \unit{mm/kyr}$). This parameter can be set by the users.
 
 Initial topography
 
@@ -113,7 +113,7 @@ Following @Burgess2013, we extend the BS92 model by introducing multiple facies 
 
 $$P(w) = \sum_f P_f(w)$$
 
-| Factory | $g_m$ $[\textrm{m}/\textrm{Myr}]$ | $I_k$ $[\textrm{W}/\textrm{m}^2]$ | $k$ $[\textrm{m}^{-1}]$ |
+| Factory | $g_m$ $[\unit{m/Myr}]$ | $I_k$ $[\unit{W/m^2}]$ | $k$ $[\unit{m^{-1}}]$ |
 |----|----|----|----|
 | Tropical | 500.0 | 60.0 | 0.8 |
 | Mounds | 400.0 | 60.0 | 0.1 |
@@ -325,9 +325,9 @@ Advancing the CA can be configured to happen one-in-$n$ iterations to slow it do
 
 ### Sea level 
 
-Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step, with which the model is run. 
+Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run. 
 
-The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model 2 Ma and build the platform until 134.54 ka, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
+The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
 
 ::: hide
 ```julia
@@ -345,6 +345,7 @@ using CategoricalArrays
 using CarboKitten.DataSets: artifact_dir
 using CairoMakie
 using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Export: read_slice
 
 function miller_2020()
     dir = artifact_dir()
@@ -371,8 +372,8 @@ end
 
 const TIME_PROPERTIES = TimeProperties(
     t0 = -1999.7u"kyr",
-    Δt = 200.0u"yr",
-    steps = 9325
+    Δt = 100.0u"yr",
+    steps = 18650
 )
 
 const TAG = "lisiecki-sea-level"
@@ -384,29 +385,29 @@ const FACIES = [
         maximum_growth_rate=200u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr"),
+        diffusion_coefficient=20.0u"m/yr"),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
         maximum_growth_rate=500u"m/Myr",
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=25.0u"m/yr"),
+        diffusion_coefficient=10.0u"m/yr"),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=12.5u"m/yr")
+        diffusion_coefficient=50.0u"m/yr")
 ]
 
 const INPUT = ALCAP.Input(
     tag="$TAG",
-    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    box=CarboKitten.Box{Coast}(grid_size=(200, 50), phys_scale=150.0u"m"),
     time=TIME_PROPERTIES,
     ca_interval=1,
-    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
+    initial_topography=(x, y) -> -x / 200.0 + 20.0u"m",
     sea_level=sea_level(),
     output=Dict(
         :profile => OutputSpec(slice = (:, 25), write_interval = 1)),
@@ -418,11 +419,13 @@ const INPUT = ALCAP.Input(
     facies=FACIES)
 
 function main()
-    run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+    CarboKitten.init()
+    run_model(Model{ALCAP}, INPUT, "data/variable-sl.h5")
 end
 
-function plot(result::MemoryOutput)
-    fig = sediment_profile(result.header, result.data_slices[:profile])
+function plot(result)
+    h, d = read_slice(result, :profile)
+    fig = sediment_profile(h, d)
     save("md/fig/variable-sl.png", fig)
 end
 
@@ -441,9 +444,9 @@ Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). 
 
 The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths. 
 
-As default, we use insolation of 400 $W/m^2$, which is approximately equivalent to 2000 $\mu E m^{-2} \cdot s^{-1}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
+As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
 
-Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $kW m^{-2}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
+Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
 ::: hide 
 ``` r
@@ -482,7 +485,8 @@ for (t in 1:length(times)) {
 insolation = inso_values <- unlist(insolation)
 write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
 ```
-::: 
+:::
+
 The insolation file can be read into a CarboKitten script defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
 
 ::: hide
@@ -631,7 +635,7 @@ function add_panel_labels!(fig::Figure;
                           fontsize::Int64,
                           offset1::Tuple{Int64, Int64},
                           offset2::Tuple{Int64, Int64})
-    
+
     panel_positions = [
         (1, 1), # a 
         (1, 3), # b 
@@ -640,7 +644,7 @@ function add_panel_labels!(fig::Figure;
         (3, 2), # e 
         (3, 3)  # f 
     ]
-    
+
     for (i, (row, col)) in enumerate(panel_positions)
         if i <= 3   
             Label(fig[row, col], labels[i], 
@@ -660,7 +664,7 @@ function add_panel_labels!(fig::Figure;
                     fontsize=fontsize)
         end
     end
-    
+
     return fig
 end
 
@@ -722,7 +726,7 @@ where $A_f$ the facies-dependent maximum transport velocity. The $k$ parameter c
 
 ![Depth profile](fig/wave-transport-magnitude.pdf)
 
-Figure: Depth profile of wave velocity and shear. The velocity profile was taylored to have a maximum of $10 \textrm{m}/\textrm{yr}$ at a depth of $20 \textrm{m}$. Where the shear is negative (assuming transport is directed onshore), there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
+Figure: Depth profile of wave velocity and shear. The velocity profile was taylored to have a maximum of $10\ \unit{m/yr}$ at a depth of $20\ \unit{m}$. Where the shear is negative (assuming transport is directed onshore), there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
 
 ::: hide
 ``` julia
@@ -780,8 +784,8 @@ Note that not setting the cementation rate (which would amount to immediately ce
 
 ![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf){.wide}
 
-Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of 100 m/Myr for a 4 km wide patch in the middle of the box, and chose a runtime of 1 Myr with a time step of 100 yr (the sharp edges in the production profile induce fast transport, requiring small time steps).
-Panels $(a)$ and $(b)$ have a short cementation time `ct` (100 yr), while panels $(c)$ and $(d)$ have a long cementation time (1000 yr). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` (10 m/Myr), while $(b)$ and $(d)$ have a high disintegration rate (500 m/Myr). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
+Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps).
+Panels $(a)$ and $(b)$ have a short cementation time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long cementation time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
 
 :::hide
 ```julia
@@ -1330,7 +1334,7 @@ In another case, where we want to simulate an entire island, or even an archipel
 
 ![Different topologies, 3d view and boundaries](fig/topologies.png){.wide}
 
-Figure: Model topologies. CarboKitten allows the user to choose different topologies for the spatial modelling. In panel (a) we see a group of reef islands that were modelled on a fully periodic grid of size $250 \times 250$, using a randomly generated initial topography. A more common use case is shown in panel (b), where the $x$ coordinate is reflected at the boundaries, while the $y$ coordinate is periodic.
+Figure: Model topologies. CarboKitten allows the user to choose different topologies for the spatial modelling. In panel (a) we see a group of reef islands that were modelled on a fully periodic grid of size $250 \times 250$, using a randomly generated initial topography. A more common use case is shown in panel (b), where the $x$ coordinate is reflected at the boundaries, while the $y$ coordinate is periodic, thus modelling a small strip of coastline. Here the grid size is $250 \times 50$, and the initial topography is a linearly declining slope of $0.3\%$ (with the exception of the shore, which is steeper). 
 Panels (c) and (d) schematically illustrate these same box topologies using coloured arrows. {#fig:box-topologies}
 
 ## The sediment buffer
@@ -1345,13 +1349,255 @@ We choose to have the head of our sediment stack always be at the first row. Whe
 
 Figure: Above we see a buffer. First we push a parcel of size $3/4$, then we pop an amount of $1/2$. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
 
+<!--
 Our implementation is such that each cell in the buffer is contiguous in memory. Thus, copying rows of unstrided memory should be very efficient, although the performance remains to be tested (FIXME).
+-->
 
 ## User interface
 
 The user interfaces CarboKitten by writing a Julia script that defines the relevant model parameters and runs the chosen model. Effectively, very little Julia needs to be known to take an example input and modify parameters. Output is written to HDF5 files for post-processing and visualization.
 
 CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines that rely on other programming languages. Data extracted includes sediment accumulation curves, age-depth models, water depth, and stratigraphic columns with facies code, allowing to test a wide range of hypotheses. These include, but are not limited to, testing hypotheses on orderedness of strata @burgess_ordered_2016, preservation orbital forcing @kemp_investigating_2016, proxy records @curtis_natural_2025, or preservation of biotic information such as patterns of origination and extinction, biostratigraphic precision, and evolutionary change @hohmann_stratpal_r_2025 @hohmann_identification_2024 @holland_variation_2002.
+
+## Performance
+
+Since CarboKitten is written in Julia with performance in mind, it should be efficient to run, even on consumer grade hardware, i.e. an average laptop. We are yet to substantiate this claim. Since Julia is a just-in-time compiled language, the first execution of any code in a new session always takes a bit longer than subsequent runs. Measurements presented in this section do not include this initial overhead.
+
+### Baseline
+Our baseline model is the example included in CarboKitten, grid size $100 \times 50$ with 5000 time steps of 200 years each (results shown in Figure @fig:summary-plot). This model runs in 27 seconds on a Intel Core i7 at $3.0\ \unit{GHz}$.
+
+With regards to memory consumption, CarboKitten allocates a fixed amount of memory at the start of a model run, which scales linearly with the size of the grid. The most significant fraction of the memory is occupied by the sediment buffer. In the example run we have a buffer size of 50. With three facies types being stored this results in an array size of $100 \times 50 \times 50 \times 3$, stored in double precision gives a mere $6 \unit{MB}$. However, for a $300 \times 300$ sized grid this already increases to $108 \unit{MB}$.
+
+### Scaling
+The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mittigated by setting a diffusion coefficient. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we are speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
+
+### Benchmark
+To further quantify these complications in our estimated run-times, we run a model of a single atoll on three different resolutions ($200, 100$, and $50\ \unit{m}$, corresponding to grid sizes of $75^2, 150^2, 300^2$) with three different step sizes ($400, 200$, and $100\ \unit{yr}$, corresponding to 2500, 5000, and 10000 steps), for a total of nine benchmark cases. We set the interval of the cellular automaton to compensate for the number of time steps. This way, runs with the same grid size should have very similar output. The results are shown in Figure @fig:benchmark.
+
+The combination of 2500 time steps with a $300^2$ grid size yields instabilities in the transport model and is left out of the results. Other than that, CarboKitten scaled as predicted from our previous considerations.
+
+![Benchmark plots](fig/benchmark.pdf){.wide}
+
+Figure: Benchmark with respect to number of time steps and grid size. Panel (a) shows the run-time dependency on the number of time-steps, while panel (b) shows the dependency on the number of grid cells on each axis, both on a log-log scale. This scaling follows the predicted behaviour: linear in both the number of time-steps and total number of grid cells (on this plot being the grid size squared). Note that the run with 2500 time steps and $300^2$ grid size is left out, since the transport model was unstable for that configuration. These numbers were consistent throughout multiple runs. {#fig:benchmark}
+
+### Validation
+We may validate our benchmark by looking at the results of the runs with grid size $150^2$. This is shown in Figure @fig:benchmark-validation. These results show that, when time steps are taken small enough, CarboKitten converges to a consistent result that does not depend on the size of the time step.
+
+![Benchmark validation](fig/benchmark_validation.png){.wide}
+
+Figure: Benchmark validation. This shows a crosssection of the runs with a grid size of $150^2$. Looking at the first output, using only 2500 time steps, we see a wave like pattern even where the deep sea facies dominate. These waves are not physical, but a result from taking the time step too large. When we look at the results from 5000 and 10000 time steps, they look so similar that we can conclude that in this case 5000 steps was enough to get accurate results. {#fig:benchmark-validation}
+
+::: hide
+
+```julia
+#| file: runs/benchmarks.jl
+module Benchmarks
+
+using BenchmarkTools
+using CarboKitten
+using GeometryBasics
+using DataFrames
+using CSV
+
+# A constant homogeneous wave velocity
+v_const(v_max) = _ -> (Vec2(v_max, 0.0u"m/yr"), Vec2(0.0u"1/yr", 0.0u"1/yr"))
+
+initial_topography(x, y) = 
+    - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
+
+const FACIES = [
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=500u"m/Myr",
+        extinction_coefficient=0.8u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=50.0u"m/yr",
+        wave_velocity=v_const(-2.0u"m/yr")),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=400u"m/Myr",
+        extinction_coefficient=0.1u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=10.0u"m/yr",
+        wave_velocity=v_const(-0.5u"m/yr")),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=100u"m/Myr",
+        extinction_coefficient=0.005u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=10.0u"m/yr",
+        wave_velocity=v_const(-2.0u"m/yr"))
+]
+
+box(res) = Box{Periodic{2}}(
+    grid_size=(res, res),
+    phys_scale=15.0u"km" / res)
+
+time(steps) = TimeProperties(
+    Δt=1.0u"Myr" / steps,
+    steps=steps)
+
+output(res, steps) = Dict(
+    :topography => OutputSpec(write_interval = max(1, div(steps, 50))),
+    :profile    => OutputSpec(slice = (:, div(res, 2))))
+
+ca_interval(steps) = max(div(steps, 5000), 1)
+
+sea_level(t) =
+    10.0u"m" * sin(2π * t / 123456.0u"yr") +
+     5.0u"m" * sin(2π * t /  23456.0u"yr")
+
+input(res, steps) = ALCAP.Input(
+    tag="atoll_$(res)_$(steps)",
+    box=box(res),
+    time=time(steps),
+    output=output(res, steps),
+    ca_interval=ca_interval(steps),
+    initial_topography=initial_topography,
+    sea_level=sea_level,
+    subsidence_rate=50.0u"m/Myr",
+    disintegration_rate=50.0u"m/Myr",
+    cementation_time=100.0u"yr",
+    insolation=400.0u"W/m^2",
+    sediment_buffer_size=50,
+    depositional_resolution=0.5u"m",
+    transport_solver=Val{:forward_euler},
+    facies=FACIES)
+
+
+function cartesian_product(pars::Dict{Key,Vector{Elem}}) where {Key, Elem}
+    if isempty(pars)
+        return [ Dict{Key, Any}() ]
+    end
+
+    pars = copy(pars)
+    result = []
+
+    k, vs = first(pairs(pars))
+
+    for item in cartesian_product(delete!(pars, k))
+        for v in vs
+            push!(result, merge(item, Dict(k => v)))
+end
+    end
+
+    return result
+end
+
+const BM = @NamedTuple{value::String, time::Float64, bytes::Int64, alloc::Int64, gctime::Float64}
+
+function run_benchmark(; res, steps)
+    output_file = "data/bench_$(res)_$(steps).h5"
+    try
+        bm = @btimed run_model(Model{ALCAP}, $(input(res, steps)), $output_file)
+        return (res=res, steps=steps, bm...)
+    catch e
+        return (res=res, steps=steps, value="error", time=NaN, bytes=0, alloc=0, gctime=NaN)
+    end
+end
+
+function main()
+    CarboKitten.init()
+    run_model(Model{ALCAP}, input(50, 1000), "data/bench_init.h5")
+
+    pars = Dict(
+        :res => [75, 150, 300],
+        :steps => [2500, 5000, 10000] )
+
+    results = DataFrame(res=Int[], steps=Int[], value=String[], time=Float64[], bytes=Int64[], alloc=Int64[], gctime=Float64[])
+
+    for p in cartesian_product(pars)
+        push!(results, run_benchmark(; p...))
+    end
+
+    CSV.write("data/benchmark.csv", results)
+end
+
+end
+
+Benchmarks.main()
+```
+
+```julia
+#| file: runs/benchmark_plot.jl
+#| classes: ["task"]
+#| requires:
+#|   - data/benchmark.csv
+#| creates:
+#|   - md/fig/benchmark.pdf
+#| collect: figures
+module BenchmarkPlot
+
+using CairoMakie
+using AlgebraOfGraphics
+using DataFrames
+using CSV
+
+function main()
+    df = CSV.read("data/benchmark.csv", DataFrame)
+    fig = Figure()
+
+    layer1 = data(df) * mapping(:steps => "time steps", :time => "run time [s]", color=:res => string => "grid size") * visual(ScatterLines)
+    layer2 = data(df) * mapping(:res => "grid size", :time => "run time [s]", color=:steps => string => "time steps") * visual(ScatterLines)
+
+    fig = Figure(size=(800, 400))
+    fg1 = draw!(fig[1, 1], layer1, axis=(xscale=Makie.pseudolog10, yscale=log10))
+    legend_args = (tellwidth=false, tellheight=false, halign=:left, valign=:top, margin=(10, 10, 10, 10))
+    legend!(fig[1, 1], fg1; legend_args...)
+    fg2 = draw!(fig[1, 2], layer2, axis=(xscale=Makie.pseudolog10, yscale=log10))
+    legend!(fig[1, 2], fg2; legend_args...)
+
+    Label(fig[1, 1, TopLeft()], "a", halign=:left, fontsize=20)
+    Label(fig[1, 2, TopLeft()], "b", halign=:left, fontsize=20)
+
+    save("md/fig/benchmark.pdf", fig)
+
+    fig
+end
+
+end
+
+BenchmarkPlot.main()
+```
+
+```julia
+#| file: runs/benchmark_validation.jl
+module BenchmarkValidation
+
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile!
+using CarboKitten.Export: read_slice
+
+function main()
+    h1, d1 = read_slice("data/bench_150_2500.h5", :profile)
+    h2, d2 = read_slice("data/bench_150_5000.h5", :profile)
+    h3, d3 = read_slice("data/bench_150_10000.h5", :profile)
+
+    fig = Figure(size = (1200, 400))
+    sediment_profile!(Axis(fig[1, 1], title="2500 steps"), h1, d1)
+    sediment_profile!(Axis(fig[1, 2], title="5000 steps"), h2, d2)
+    sediment_profile!(Axis(fig[1, 3], title="10000 steps"), h3, d3)
+
+    fig.content[1].title = "2500 steps"
+    fig.content[2].title = "5000 steps"
+    fig.content[3].title = "10000 steps"
+
+    save("md/fig/benchmark_validation.png", fig)
+
+    fig
+end
+
+end
+
+BenchmarkValidation.main()
+```
+
+:::
+
+At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further.
 
 # Examples of use
 

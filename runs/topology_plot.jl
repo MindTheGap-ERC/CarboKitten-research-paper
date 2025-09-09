@@ -1,5 +1,12 @@
 # ~/~ begin <<md/paper.md#runs/topology_plot.jl>>[init]
 #| file: runs/topology_plot.jl
+#| classes: ["task"]
+#| creates:
+#|   - md/fig/topologies.png
+#| requires:
+#|   - data/topology_coast.h5
+#|   - data/topology_periodic.h5
+#| collect: figures
 module TopologyPlot
 
 using CairoMakie
