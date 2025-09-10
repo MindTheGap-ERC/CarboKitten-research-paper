@@ -1,6 +1,6 @@
 # ~/~ begin <<md/paper.md#runs/atoll-profile-plot.jl>>[init]
 #| file: runs/atoll-profile-plot.jl
-#| classes: ["task"]
+# #| classes: ["task"]
 #| requires: data/atoll.h5
 #| creates: md/fig/atoll-profile.png
 #| collect: figures

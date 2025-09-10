@@ -313,7 +313,7 @@ We consider all sediment transport to happen in an **active layer** close to the
 
 Figure: Diagram showing concepts of production, cementation and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a cementation half-life time) is cemented onto the sea floor. {#fig:active-layer-diagram}
 
-The actual transport is computed using a finite difference approach that is further discussed in Section \ref{sec:transport}.
+The actual transport is computed using a finite difference approach that is further discussed in Section @sec:transport.
 
 ## Composed model
 
@@ -342,7 +342,7 @@ CarboKitten generates data in the accessible, binary HDF5 format, thus output ca
 
 ![Summary plot](fig/summary-plot.png){.wide}
 
-Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic crosssection, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time (Wheeler diagram), (e) dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. FIXME(add labels to figure panes). {#fig:summary-plot}
+Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic crosssection, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time (Wheeler diagram), (e) dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. {#fig:summary-plot}
 
 :::hide
 ```julia
@@ -424,13 +424,13 @@ StandardExamplePlot.main()
 
 
 # Transport {#sec:transport}
-Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is given as a function of space.
+Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is considered separately for each facies (as with all quantities with the $f$ subscript)..
 
-Following @Paola1992, we assume a local sediment flux,
+Following @Paola1992, we assume a local sediment flux proportional to the local gradient,
 
 $$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-where $d_f$ is a facies dependent diffusivity, and $v(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v(w)$ to model wave induced sediment transport. The mass balance is then,
+where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport. The mass balance is then,
 
 $$\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}} = -\sum_f \vec{\nabla} \cdot \vec{q}_f$$
 
@@ -494,6 +494,10 @@ using Unitful
 
 <<velocity-profile>>
 
+inch = 96
+pt = 4/3
+cm = inch / 2.54
+
 function main()
     w = LinRange(0, 100.0, 1000)u"m"
     f = v_prof.(10.0u"m/yr", 20.0u"m", w)
@@ -501,7 +505,7 @@ function main()
     v = first.(f)
     s = last.(f)
     
-    fig = Figure()
+    fig = Figure(size=(8.3cm, 6cm), fontsize=8pt)
     ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
     ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
     lines!(ax1, v / u"m/yr", w / u"m")
@@ -1099,7 +1103,7 @@ Our implementation is such that each cell in the buffer is contiguous in memory.
 
 The user interfaces CarboKitten by writing a Julia script that defines the relevant model parameters and runs the chosen model. Effectively, very little Julia needs to be known to take an example input and modify parameters. Output is written to HDF5 files for post-processing and visualization.
 
-CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines that rely on other programming languages. Data extracted includes sediment accumulation curves, age-depth models, water depth, and stratigraphic columns with facies code, allowing to test a wide range of hypotheses. These include, but are not limited to, testing hypotheses on orderedness of strata @burgess_ordered_2016, preservation orbital forcing @kemp_investigating_2016, proxy records @curtis_natural_2025, or preservation of biotic information such as patterns of origination and extinction, biostratigraphic precision, and evolutionary change @hohmann_stratpal_r_2025 @hohmann_identification_2024 @holland_variation_2002.
+CarboKitten ships with routines for visualisation and data extraction into CSV files. This makes it easier for novice users to use results from CarboKitten in further processing pipelines that rely on other programming languages. Data extracted includes sediment accumulation curves, age-depth models, water depth, and stratigraphic columns with facies code, allowing to test a wide range of hypotheses. These include, but are not limited to, testing hypotheses on orderedness of strata [@burgess_ordered_2016], preservation orbital forcing [@kemp_investigating_2016], proxy records [@curtis_natural_2025], or preservation of biotic information such as patterns of origination and extinction, biostratigraphic precision, and evolutionary change [@hohmann_stratpal_r_2025;@hohmann_identification_2024;@holland_variation_2002].
 
 ## Performance
 
@@ -1343,11 +1347,11 @@ At the time of writing, CarboKitten is a single threaded CPU code. However, the 
 
 ## Documentation
 
-CarboKitten is written entirely using literate programming.  FIXME: expand.
+CarboKitten is written entirely using literate programming [@Knuth1984]. This means that the implementation of CarboKitten is written as an integral part of its own documentation, using a system called Entangled [@Hidding2023].
 
 # Examples {#sec:examples}
 
-### Sea level
+## Sea level
 
 Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run. 
 
@@ -1464,7 +1468,7 @@ VariableSL.plot(result)
 
 Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). {#fig:variable-sl}
 
-### Insolation
+## Insolation
 
 The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths. 
 
@@ -1705,7 +1709,7 @@ CarboKitten.run_model(Model{ALCAP}, Atoll.INPUT, "data/atoll.h5")
 
 ``` julia
 #| file: runs/atoll-profile-plot.jl
-#| classes: ["task"]
+# #| classes: ["task"]
 #| requires: data/atoll.h5
 #| creates: md/fig/atoll-profile.png
 #| collect: figures
