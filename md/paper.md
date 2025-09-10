@@ -169,10 +169,18 @@ using CarboKitten.Visualization: production_curve!
 
 <<bs92-input>>
 
+inch = 96
+pt = 4/3
+cm = inch / 2.54
+
 function main()
-  fig = Figure()
+  fig = Figure(size=(8.3cm, 9.0cm), fontsize=8pt)
   ax = Axis(fig[1, 1])
   production_curve!(ax, INPUT)
+  ax.scene.plots[1].label = "tropical"
+  ax.scene.plots[2].label = "mounds"
+  ax.scene.plots[3].label = "cool water"
+  axislegend(ax, "facies", valign = :bottom)
   save("md/fig/production-curves.pdf", fig)
 end
 
@@ -1708,10 +1716,10 @@ end
 
 ``` julia
 #| file: runs/atoll-map-plot.jl
-#| classes: ["task"]
-#| requires: data/atoll.h5
-#| creates: md/fig/atoll-map.png
-#| collect: figures
+#|# classes: ["task"]
+#|# requires: data/atoll.h5
+#|# creates: md/fig/atoll-map.png
+#|# collect: figures
 using HDF5
 using CairoMakie
 using CarboKitten.Export: read_header

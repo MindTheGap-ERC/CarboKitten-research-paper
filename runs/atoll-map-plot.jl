@@ -1,9 +1,9 @@
 # ~/~ begin <<md/paper.md#runs/atoll-map-plot.jl>>[init]
 #| file: runs/atoll-map-plot.jl
-#| classes: ["task"]
-#| requires: data/atoll.h5
-#| creates: md/fig/atoll-map.png
-#| collect: figures
+#|# classes: ["task"]
+#|# requires: data/atoll.h5
+#|# creates: md/fig/atoll-map.png
+#|# collect: figures
 using HDF5
 using CairoMakie
 using CarboKitten.Export: read_header
