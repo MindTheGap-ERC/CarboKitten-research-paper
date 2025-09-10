@@ -93,7 +93,7 @@ Water depth
 
 $$w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.$$
 
-## Carbonate Production
+## Carbonate Production {#sec:carbonate-production}
 
 The general form of our production model follows that of @Bosscher1992 (BS92). This model finds the sediment accumulation curve by integrating an ODE that outside of the model parameters only depends on the initial topography.
 
@@ -124,8 +124,6 @@ $$P(w) = \sum_f P_f(w)$$
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the tropical (T), mounds (M) and cool water (C) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
 ![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
-
-FIXME: Add legend to figure showing which curve is Tropical, Mounds and Cool water factory.
 
 ::: hide
 ``` julia
@@ -325,282 +323,18 @@ Putting everything together, we evaluate the model as follows each iteration:
 2.  Compute the production $P_f$.
 3.  Disintegrate sediment $D_f$.
 4.  Transport entrained sediment $C_f$.
-5.  Deposit entrained sediment.
+5.  Deposit cemented sediment.
 
 Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
 
-## Input variables
+## Input parameters
 
-### Sea level 
+CarboKitten has many input parameters: box geometry, time parameters, a list of facies properties, transport model intrinsics and external conditions: initial topography, relative sea level and insolation. We've already discussed the facies properties in Section @sec:carbonate-production, and the transport model is discussed in Section @sec:transport. That leaves us the external conditions that should be considered the driving forces of carbonate platform formation.
 
-Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run. 
+The initial topography, sea level and insolation can all be entered in three different ways: a given constant, a Julia function or an array exactly matching the box size or number of time steps.
 
-The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
-
-::: hide
-```julia
-#| id: variable_SL
-#| file: runs/variable_sl.jl
-#| creates: md/fig/variable-sl.png
-module VariableSL
-
-using CarboKitten
-using DelimitedFiles: readdlm
-using Unitful
-using DataFrames
-using Interpolations
-using CategoricalArrays
-using CarboKitten.DataSets: artifact_dir
-using CairoMakie
-using CarboKitten.Visualization: sediment_profile
-using CarboKitten.Export: read_slice
-
-function miller_2020()
-    dir = artifact_dir()
-    filename = joinpath(dir, "Miller2020", "Cenozoic_sea_level_reconstruction.tab")
-
-    data, header = readdlm(filename, '\t', header=true)
-    return DataFrame(
-        time=-data[:,4] * u"kyr",
-        sealevel=data[:,7] * u"m",
-        refkey=categorical(data[:,2]),
-        reference=categorical(data[:,3]))
-end
-
-function sea_level()
-    df = miller_2020()
-    lisiecki_df = df[df.refkey .== "846 Lisiecki", :]
-    lisiecki_df = filter(row -> -2.0u"Myr" <= row.time, lisiecki_df)
-    sort!(lisiecki_df, [:time])
-
-    return linear_interpolation(
-        lisiecki_df.time,
-        lisiecki_df.sealevel)
-end
-
-const TIME_PROPERTIES = TimeProperties(
-    t0 = -1999.7u"kyr",
-    Δt = 100.0u"yr",
-    steps = 18650
-)
-
-const TAG = "lisiecki-sea-level"
-
-const FACIES = [
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=20.0u"m/yr"),
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=10.0u"m/yr"),
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr")
-]
-
-const INPUT = ALCAP.Input(
-    tag="$TAG",
-    box=CarboKitten.Box{Coast}(grid_size=(200, 50), phys_scale=150.0u"m"),
-    time=TIME_PROPERTIES,
-    ca_interval=1,
-    initial_topography=(x, y) -> -x / 200.0 + 20.0u"m",
-    sea_level=sea_level(),
-    output=Dict(
-        :profile => OutputSpec(slice = (:, 25), write_interval = 1)),
-    subsidence_rate=5.0u"m/Myr",
-    disintegration_rate=50.0u"m/Myr",
-    insolation=500.0u"W/m^2",
-    sediment_buffer_size=50,
-    depositional_resolution=0.5u"m",
-    facies=FACIES)
-
-function main()
-    CarboKitten.init()
-    run_model(Model{ALCAP}, INPUT, "data/variable-sl.h5")
-end
-
-function plot(result)
-    h, d = read_slice(result, :profile)
-    fig = sediment_profile(h, d)
-    save("md/fig/variable-sl.png", fig)
-end
-
-end
-
-result = VariableSL.main()
-VariableSL.plot(result)
-```
-:::
-
-![variable-sl](fig/variable-sl.png){.wide}
-
-Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). {#fig:variable-sl}
-
-### Insolation
-
-The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths. 
-
-As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
-
-Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
-
-::: hide 
-``` r
-#| file: runs/extract_insolation.R
-
-if (!require("palinsol")) {
-    install.packages("palinsol", repos = "https://cran.r-project.org")
-}
-
-library(palinsol)
-time_end <- 500000    
-time_start <- 0   
-time_step <- 200 
-times <- seq(time_start, time_end, time_step)
-param_la04 = t(sapply(times, function(t) astro(t, solution = la04, degree = TRUE)))
-orbit <- list()
-insolation <- list()
-lat_degree = 25
-
-for (t in 1:length(times)) {
-  orbit[[t]] <- list(
-    eps = param_la04[t,1] * pi / 180, 
-    ecc = param_la04[t,2], 
-    varpi = (param_la04[t,3] - 180) * pi / 180
-  )
-
-  insolation[[t]] <- Insol(
-    orbit[[t]], 
-    long = pi / 2, 
-    lat = lat_degree * pi / 180, 
-    S0 = 1361, 
-    H = NULL
-  )
-}
-
-insolation = inso_values <- unlist(insolation)
-write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
-```
-:::
-
-The insolation file can be read into a CarboKitten script defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
-
-::: hide
-``` julia
-#| file: runs/insolation_run.jl
-
-module Insolation
-
-using CarboKitten
-using DelimitedFiles: readdlm
-using Unitful
-using Interpolations
-using CairoMakie
-using CarboKitten.Visualization: sediment_profile
-using Statistics
-
-function import_insolation(file::String)
-    dir = "data"
-    filename = joinpath(dir, file)
-    insolation = readdlm(filename, '\t', header=false, skipstart=1)
-    vec(insolation) .|> Float64
-end
-
-const TIME_PROPERTIES = TimeProperties(
-    t0 = 0u"Myr",
-    Δt = 200.0u"yr",
-    steps = length(import_insolation("insolation.csv"))-1
-)
-
-function get_insolation(times::Vector, insolation::Vector)
-	interpolator = linear_interpolation(times, insolation)
-    return t -> interpolator(ustrip(u"yr", t)) * u"W/m^2"
-end
-
-const TAG = "insolation-future"
-
-const FACIES = [
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr"),
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=25.0u"m/yr"),
-    ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=12.5u"m/yr")
-]
-
-const time_vector = collect(time_axis(TIME_PROPERTIES)) / u"yr" .|> NoUnits
-const insolation_vector = import_insolation("insolation.csv")
-
-function get_sea_level(times::Vector, insolation::Vector)
-    insolation_anomaly = (insolation .- mean(insolation)) ./ mean(insolation)
-    sea_level_anomaly = -(100 .* (insolation_anomaly)) .^ 2
-    sea_level_values = -100.0 .+ sea_level_anomaly
-    interpolator = linear_interpolation(times, sea_level_values)
-    return t -> interpolator(ustrip(u"yr", t)) * u"m"
-end
-
-const INPUT = ALCAP.Input(
-    tag="$TAG",
-    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
-    time=TIME_PROPERTIES,
-    ca_interval=1,
-    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
-    sea_level = get_sea_level(time_vector, insolation_vector),
-        output=Dict(
-        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
-    subsidence_rate=50.0u"m/Myr",
-    disintegration_rate=50.0u"m/Myr",
-    insolation= get_insolation(time_vector, insolation_vector),
-    sediment_buffer_size=50,
-    depositional_resolution=0.5u"m",
-    facies=FACIES)
-
-    function main()
-        run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
-    end
-
-    function plot(result::MemoryOutput)
-	    fig = sediment_profile(result.header, result.data_slices[:profile])
-        save("md/fig/variable-insolation.png", fig)
-end
-
-end
-
-result = Insolation.main()
-Insolation.plot(result)
-```
-:::
-
-![variable-insolation](fig/variable-insolation.png){.wide}
-
-Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. {#fig:variable-insolation}
+In Section @sec:examples We provide two examples where we use external sources to drive the sea level and insolation curves.
+A full list  of input parameters is available in the Appendix.
 
 ## Visualisations
 
@@ -1607,7 +1341,282 @@ BenchmarkValidation.main()
 
 At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further.
 
-# Examples of use
+## Documentation
+
+CarboKitten is written entirely using literate programming.  FIXME: expand.
+
+# Examples {#sec:examples}
+
+### Sea level
+
+Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run. 
+
+The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
+
+::: hide
+```julia
+#| id: variable_SL
+#| file: runs/variable_sl.jl
+#| creates: md/fig/variable-sl.png
+module VariableSL
+
+using CarboKitten
+using DelimitedFiles: readdlm
+using Unitful
+using DataFrames
+using Interpolations
+using CategoricalArrays
+using CarboKitten.DataSets: artifact_dir
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Export: read_slice
+
+function miller_2020()
+    dir = artifact_dir()
+    filename = joinpath(dir, "Miller2020", "Cenozoic_sea_level_reconstruction.tab")
+
+    data, header = readdlm(filename, '\t', header=true)
+    return DataFrame(
+        time=-data[:,4] * u"kyr",
+        sealevel=data[:,7] * u"m",
+        refkey=categorical(data[:,2]),
+        reference=categorical(data[:,3]))
+end
+
+function sea_level()
+    df = miller_2020()
+    lisiecki_df = df[df.refkey .== "846 Lisiecki", :]
+    lisiecki_df = filter(row -> -2.0u"Myr" <= row.time, lisiecki_df)
+    sort!(lisiecki_df, [:time])
+
+    return linear_interpolation(
+        lisiecki_df.time,
+        lisiecki_df.sealevel)
+end
+
+const TIME_PROPERTIES = TimeProperties(
+    t0 = -1999.7u"kyr",
+    Δt = 100.0u"yr",
+    steps = 18650
+)
+
+const TAG = "lisiecki-sea-level"
+
+const FACIES = [
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=200u"m/Myr",
+        extinction_coefficient=0.8u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=20.0u"m/yr"),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=500u"m/Myr",
+        extinction_coefficient=0.1u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=10.0u"m/yr"),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=100u"m/Myr",
+        extinction_coefficient=0.005u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=50.0u"m/yr")
+]
+
+const INPUT = ALCAP.Input(
+    tag="$TAG",
+    box=CarboKitten.Box{Coast}(grid_size=(200, 50), phys_scale=150.0u"m"),
+    time=TIME_PROPERTIES,
+    ca_interval=1,
+    initial_topography=(x, y) -> -x / 200.0 + 20.0u"m",
+    sea_level=sea_level(),
+    output=Dict(
+        :profile => OutputSpec(slice = (:, 25), write_interval = 1)),
+    subsidence_rate=5.0u"m/Myr",
+    disintegration_rate=50.0u"m/Myr",
+    insolation=500.0u"W/m^2",
+    sediment_buffer_size=50,
+    depositional_resolution=0.5u"m",
+    facies=FACIES)
+
+function main()
+    CarboKitten.init()
+    run_model(Model{ALCAP}, INPUT, "data/variable-sl.h5")
+end
+
+function plot(result)
+    h, d = read_slice(result, :profile)
+    fig = sediment_profile(h, d)
+    save("md/fig/variable-sl.png", fig)
+end
+
+end
+
+result = VariableSL.main()
+VariableSL.plot(result)
+```
+:::
+
+![variable-sl](fig/variable-sl.png){.wide}
+
+Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). {#fig:variable-sl}
+
+### Insolation
+
+The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths. 
+
+As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
+
+Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
+
+::: hide 
+``` r
+#| file: runs/extract_insolation.R
+
+if (!require("palinsol")) {
+    install.packages("palinsol", repos = "https://cran.r-project.org")
+}
+
+library(palinsol)
+time_end <- 500000    
+time_start <- 0   
+time_step <- 200 
+times <- seq(time_start, time_end, time_step)
+param_la04 = t(sapply(times, function(t) astro(t, solution = la04, degree = TRUE)))
+orbit <- list()
+insolation <- list()
+lat_degree = 25
+
+for (t in 1:length(times)) {
+  orbit[[t]] <- list(
+    eps = param_la04[t,1] * pi / 180, 
+    ecc = param_la04[t,2], 
+    varpi = (param_la04[t,3] - 180) * pi / 180
+  )
+
+  insolation[[t]] <- Insol(
+    orbit[[t]], 
+    long = pi / 2, 
+    lat = lat_degree * pi / 180, 
+    S0 = 1361, 
+    H = NULL
+  )
+}
+
+insolation = inso_values <- unlist(insolation)
+write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
+```
+:::
+
+The insolation file can be read into a CarboKitten script defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
+
+::: hide
+``` julia
+#| file: runs/insolation_run.jl
+
+module Insolation
+
+using CarboKitten
+using DelimitedFiles: readdlm
+using Unitful
+using Interpolations
+using CairoMakie
+using CarboKitten.Visualization: sediment_profile
+using Statistics
+
+function import_insolation(file::String)
+    dir = "data"
+    filename = joinpath(dir, file)
+    insolation = readdlm(filename, '\t', header=false, skipstart=1)
+    vec(insolation) .|> Float64
+end
+
+const TIME_PROPERTIES = TimeProperties(
+    t0 = 0u"Myr",
+    Δt = 200.0u"yr",
+    steps = length(import_insolation("insolation.csv"))-1
+)
+
+function get_insolation(times::Vector, insolation::Vector)
+	interpolator = linear_interpolation(times, insolation)
+    return t -> interpolator(ustrip(u"yr", t)) * u"W/m^2"
+end
+
+const TAG = "insolation-future"
+
+const FACIES = [
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=200u"m/Myr",
+        extinction_coefficient=0.8u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=50.0u"m/yr"),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=500u"m/Myr",
+        extinction_coefficient=0.1u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=25.0u"m/yr"),
+    ALCAP.Facies(
+        viability_range=(4, 10),
+        activation_range=(6, 10),
+        maximum_growth_rate=100u"m/Myr",
+        extinction_coefficient=0.005u"m^-1",
+        saturation_intensity=60u"W/m^2",
+        diffusion_coefficient=12.5u"m/yr")
+]
+
+const time_vector = collect(time_axis(TIME_PROPERTIES)) / u"yr" .|> NoUnits
+const insolation_vector = import_insolation("insolation.csv")
+
+function get_sea_level(times::Vector, insolation::Vector)
+    insolation_anomaly = (insolation .- mean(insolation)) ./ mean(insolation)
+    sea_level_anomaly = -(100 .* (insolation_anomaly)) .^ 2
+    sea_level_values = -100.0 .+ sea_level_anomaly
+    interpolator = linear_interpolation(times, sea_level_values)
+    return t -> interpolator(ustrip(u"yr", t)) * u"m"
+end
+
+const INPUT = ALCAP.Input(
+    tag="$TAG",
+    box=CarboKitten.Box{Coast}(grid_size=(100, 50), phys_scale=150.0u"m"),
+    time=TIME_PROPERTIES,
+    ca_interval=1,
+    initial_topography=(x, y) -> -x / 200.0 - 100.0u"m",
+    sea_level = get_sea_level(time_vector, insolation_vector),
+        output=Dict(
+        :profile => OutputSpec(slice=(:, 25), write_interval=1)),
+    subsidence_rate=50.0u"m/Myr",
+    disintegration_rate=50.0u"m/Myr",
+    insolation= get_insolation(time_vector, insolation_vector),
+    sediment_buffer_size=50,
+    depositional_resolution=0.5u"m",
+    facies=FACIES)
+
+    function main()
+        run_model(Model{ALCAP}, INPUT, MemoryOutput(INPUT))
+    end
+
+    function plot(result::MemoryOutput)
+	    fig = sediment_profile(result.header, result.data_slices[:profile])
+        save("md/fig/variable-insolation.png", fig)
+end
+
+end
+
+result = Insolation.main()
+Insolation.plot(result)
+```
+:::
+
+![variable-insolation](fig/variable-insolation.png){.wide}
+
+Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. {#fig:variable-insolation}
 
 ## Wave induced transport
 
