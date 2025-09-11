@@ -443,8 +443,8 @@ $$\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}} = -\sum_f \
 This gives us a diffusion equation in $\eta$, but we can also view it as an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
 $$
-\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C +
-(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C,
+\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
+(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C_f,
 $${#eq:transport}
 
 where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and $4^{th}$ order Runge-Kuta are supported).
@@ -457,8 +457,6 @@ The problem with this critical angle-based method of transport is that productio
 One aspect of critical angle theory that we do use is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and we don't need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
 
 A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including @adams_basic_2000) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In this study an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms (e.g., @schlager_submarine_1986, @Kenter1990, @adams_basic_2000). This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
-
-## Wave-induced transport
 
 ## Parameter choices
 
@@ -756,6 +754,20 @@ Expressing disintegration in terms of rates is a good parametrization choice if 
 #| file: runs/test-cementation.jl
 ```
 :::
+
+## Implementation and limitations
+
+Our implementation of the transport model first computes the gradient of the sea floor (or equivalently the water depth) $\vec{\nabla} w$ using central differences. From this gradient we can compute the advection coefficients in Equation @eq:transport, $\vec{c}_{\textrm{adv}} = d_f \vec{\nabla} \eta + \vec{v}_f(w)$. The maximum advection coefficient sets the Courant number and determines how many time steps we need to take to solve Equation @eq:transport. For an advection equation integrated with the forward Euler method, we need 
+
+$$|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.$$
+
+This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable. Since we can compute the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use an upwind scheme.
+
+Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} = d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
+
+$$d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.$$
+
+This means that increasing the resolution of a model by a factor two, may need a time step four times smaller to remain stable. There are ways around this limitation, but our current aims to not necessitate the corresponding investment in development time.
 
 # Software design
 
