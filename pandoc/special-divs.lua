@@ -15,4 +15,19 @@ function Div(el)
             pandoc.RawBlock("latex", "\\end{abstract}")
         }
     end
+
+    if cls["code-availability"] then
+        return {
+            pandoc.RawBlock("latex", "\\codeavailability{"),
+            el,
+            pandoc.RawBlock("latex", "}")
+        }
+    end
+
+    if cls["appendix"] then
+        return {
+            pandoc.RawBlock("latex", "\\appendix"),
+            el
+        }
+    end
 end
