@@ -1769,7 +1769,9 @@ CarboKitten is a new Open Source stratigraphic forward model dedicated for carbo
 CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Github](https://github.com/MindTheGap-ERC/CarboKitten.jl). Releases are also made available on Zenodo, see @CarboKitten.
 :::
 
-\noappendix
+:::appendix
+
+:::
 
 :::author-contribution
 <!-- Please check if you agree --> 
@@ -1789,9 +1791,8 @@ The authors declare that they have no conflict of interest.
 
 :::acknowledgements
 We thank Joris Eggenhausen for discussions on the transport model and Charlotte Summers for programming support. Niels Drost provided administrative and management support during the project.
+
+Funded by the European Union (ERC, MindTheGap, StG project no 101041077).
+Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them. 
 :::
-
-# Financial support
-
-Funded by the European Union (ERC, MindTheGap, StG project no 101041077). Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them. 
 

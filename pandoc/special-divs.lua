@@ -27,7 +27,8 @@ function Div(el)
     if cls["appendix"] then
         return {
             pandoc.RawBlock("latex", "\\appendix"),
-            el
+            el,
+            pandoc.RawBlock("latex", "\\noappendix")
         }
     end
 
@@ -52,6 +53,14 @@ function Div(el)
             pandoc.RawBlock("latex", "\\begin{acknowledgements}"),
             el,
             pandoc.RawBlock("latex", "\\end{acknowledgements}")
+        }
+    end
+
+    if cls["disclaimer"] then
+        return {
+            pandoc.RawBlock("latex", "\\disclaimer{"),
+            el,
+            pandoc.RawBlock("latex", "}")
         }
     end
 end
