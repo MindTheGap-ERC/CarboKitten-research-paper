@@ -114,32 +114,7 @@ Figure: Depth profile of velocity and shear. The velocity profile was taylored t
 
 ### Template
 
-We use a modified version of the standard Pandoc template for LaTeX output. The `copernicus` document class and citation styles are shipped in the `latex/copernicus` directory. The template in `latex/template.tex` is configured to use the Geoscientific Model Development (gmd) format. To create a manuscript version, set `\documentclass[gmd, manuscript]{copernicus}` in the template.
-
-## TODO
-
-Most of these need to be fixed in `latex/template.tex`.
-
-- [x] Authors with afilliation
-- [x] Abstract
-- [x] Publication dates block:
-
-  ```latex
-  \received{}
-  \pubdiscuss{} %% only important for two-stage journals
-  \revised{}
-  \accepted{}
-  \published{}
-  ```
-
-- [x] `\firstpage{1}` marker
-- [x] `\introduction` and `\conclusions` section markers
-- [ ] `\codeavailability{}` section 
-- [ ] `\authorcontribution{TEXT} %% this section is mandatory`
-- [ ] `\competinginterests{TEXT} %% this section is mandatory even if you declare that no competing interests are present`
-- [ ] `\disclaimer{TEXT} %% optional section`
-- [ ] acknoledgements section
-- [ ] Use `\unit{}` for physical units
+We use a modified version of the standard Pandoc template for LaTeX output. The `copernicus` document class and citation styles are shipped in the `latex/copernicus` directory. The template in `latex/template.tex` is configured to use the Geoscientific Model Development (gmd) format. To create a (single column) manuscript version, run `make manuscript`.
 
 ## Debugging output
 
