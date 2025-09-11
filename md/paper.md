@@ -467,9 +467,11 @@ Both the disintegration rate and the cementation time modulate how long sediment
 
 Note that not setting the cementation rate (which would amount to immediately cementing all of the active layer on every iteration) results in models that depend heavily on a chosen time step. 
 
+To understand the relative effects of choosing a certain cementation time and/or disintegration rate, we ran a one-dimensional model where sediment is produced in a central patch. Then we can study the rate at which sediment is dispersed, either by direct transport before cementation happens, or by subsequent disintegration and re-deposition. By carefully choosing the parameters, we can make a slow cementation process look very similar to a high disintegration rate, as shown in Figure @fig:disintegration-vs-cementation.
+
 ![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf){.wide}
 
-Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps).
+Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps), and the diffusivity was set to $10\ \unit{m/Myr}$.
 Panels $(a)$ and $(b)$ have a short cementation time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long cementation time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
 
 :::hide
@@ -740,18 +742,6 @@ end
 end
 
 DisintegrationVsCementation.main()
-```
-:::
-
-### Disintegration rate
-
-Expressing disintegration in terms of rates is a good parametrization choice if we consider the concentration of sediment and the fraction of old versus new sediment in it. However, dynamically speaking, if we consider the process of diffusing or eroding topographic features, it is more meaningful to talk about a disintegration depth. Looking at the shape of features we see changes with the time step.
-
-### Cementation time
-
-:::hide
-```julia
-#| file: runs/test-cementation.jl
 ```
 :::
 
