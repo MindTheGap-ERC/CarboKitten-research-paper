@@ -443,8 +443,8 @@ $$\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}} = -\sum_f \
 This gives us a diffusion equation in $\eta$, but we can also view it as an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
 $$
-\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C +
-(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C,
+\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
+(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C_f,
 $${#eq:transport}
 
 where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and $4^{th}$ order Runge-Kuta are supported).
@@ -458,73 +458,6 @@ One aspect of critical angle theory that we do use is that we can modulate the d
 
 A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including @adams_basic_2000) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In this study an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms (e.g., @schlager_submarine_1986, @Kenter1990, @adams_basic_2000). This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
 
-## Wave-induced transport
-
-We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
-
-Our approach is illustrated with an example of an atoll, starting with a conical topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
-
-$$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
-
-where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(-kw)$ to account for Stokes drift:
-
-$$v_f = A_f \exp (- k w) \tanh (k w),$$
-
-where $A_f$ the facies-dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
-
-![Depth profile](fig/wave-transport-magnitude.pdf)
-
-Figure: Depth profile of wave velocity and shear. The velocity profile was taylored to have a maximum of $10\ \unit{m/yr}$ at a depth of $20\ \unit{m}$. Where the shear is negative (assuming transport is directed onshore), there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
-
-::: hide
-``` julia
-#| id: velocity-profile
-v_prof(v_max, max_depth, w) = 
-    let k = sqrt(0.5) / max_depth,
-        A = 3.331 * v_max,
-        α = tanh(k * w),
-        β = exp(-k * w)
-        (A * α * β, -A * k * β * (1 - α - α^2))
-    end
-```
-
-``` julia
-#| classes: ["task"]
-#| creates: md/fig/wave-transport-magnitude.pdf
-#| collect: figures
-
-module Script
-
-using CairoMakie
-using Unitful
-
-<<velocity-profile>>
-
-inch = 96
-pt = 4/3
-cm = inch / 2.54
-
-function main()
-    w = LinRange(0, 100.0, 1000)u"m"
-    f = v_prof.(10.0u"m/yr", 20.0u"m", w)
-
-    v = first.(f)
-    s = last.(f)
-    
-    fig = Figure(size=(8.3cm, 6cm), fontsize=8pt)
-    ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
-    ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
-    lines!(ax1, v / u"m/yr", w / u"m")
-    lines!(ax2, s / u"1/yr", w / u"m")
-    save("md/fig/wave-transport-magnitude.pdf", fig)
-end
-
-end
-
-Script.main()
-```
-:::
-
 ## Parameter choices
 
 Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and cementation time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
@@ -534,9 +467,11 @@ Both the disintegration rate and the cementation time modulate how long sediment
 
 Note that not setting the cementation rate (which would amount to immediately cementing all of the active layer on every iteration) results in models that depend heavily on a chosen time step. 
 
+To understand the relative effects of choosing a certain cementation time and/or disintegration rate, we ran a one-dimensional model where sediment is produced in a central patch. Then we can study the rate at which sediment is dispersed, either by direct transport before cementation happens, or by subsequent disintegration and re-deposition. By carefully choosing the parameters, we can make a slow cementation process look very similar to a high disintegration rate, as shown in Figure @fig:disintegration-vs-cementation.
+
 ![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf){.wide}
 
-Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps).
+Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps), and the diffusivity was set to $10\ \unit{m/Myr}$.
 Panels $(a)$ and $(b)$ have a short cementation time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long cementation time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
 
 :::hide
@@ -810,17 +745,19 @@ DisintegrationVsCementation.main()
 ```
 :::
 
-### Disintegration rate
+## Implementation and limitations
 
-Expressing disintegration in terms of rates is a good parametrization choice if we consider the concentration of sediment and the fraction of old versus new sediment in it. However, dynamically speaking, if we consider the process of diffusing or eroding topographic features, it is more meaningful to talk about a disintegration depth. Looking at the shape of features we see changes with the time step.
+Our implementation of the transport model first computes the gradient of the sea floor (or equivalently the water depth) $\vec{\nabla} w$ using central differences. From this gradient we can compute the advection coefficients in Equation @eq:transport, $\vec{c}_{\textrm{adv}} = d_f \vec{\nabla} \eta + \vec{v}_f(w)$. The maximum advection coefficient sets the Courant number and determines how many time steps we need to take to solve Equation @eq:transport. For an advection equation integrated with the forward Euler method, we need 
 
-### Cementation time
+$$|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.$$
 
-:::hide
-```julia
-#| file: runs/test-cementation.jl
-```
-:::
+This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable. Since we can compute the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use an upwind scheme.
+
+Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} = d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
+
+$$d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.$$
+
+This means that increasing the resolution of a model by a factor two, may need a time step four times smaller to remain stable. There are ways around this limitation, but our current aims to not necessitate the corresponding investment in development time.
 
 # Software design
 
@@ -1630,6 +1567,75 @@ Figure: Platform generated using the daily mean insolation during June solstice 
 
 ## Wave induced transport
 
+We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport.
+
+Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
+
+Here we try two different velocity profiles: first a constant vector that does not depend on water depth, second an attempt at a more realistic scenario.
+
+Our approach is illustrated with an example of an atoll, starting with a conical topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
+
+$$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
+
+where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(-kw)$ to account for Stokes drift:
+
+$$v_f = A_f \exp (- k w) \tanh (k w),$$
+
+where $A_f$ is the facies-dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
+
+![Depth profile](fig/wave-transport-magnitude.pdf)
+
+Figure: Depth profile of wave velocity and shear. The velocity profile was taylored to have a maximum of $10\ \unit{m/yr}$ at a depth of $20\ \unit{m}$. Where the shear is negative (assuming transport is directed onshore), there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
+
+::: hide
+``` julia
+#| id: velocity-profile
+v_prof(v_max, max_depth, w) = 
+    let k = sqrt(0.5) / max_depth,
+        A = 3.331 * v_max,
+        α = tanh(k * w),
+        β = exp(-k * w)
+        (A * α * β, -A * k * β * (1 - α - α^2))
+    end
+```
+
+``` julia
+#| classes: ["task"]
+#| creates: md/fig/wave-transport-magnitude.pdf
+#| collect: figures
+
+module Script
+
+using CairoMakie
+using Unitful
+
+<<velocity-profile>>
+
+inch = 96
+pt = 4/3
+cm = inch / 2.54
+
+function main()
+    w = LinRange(0, 100.0, 1000)u"m"
+    f = v_prof.(10.0u"m/yr", 20.0u"m", w)
+
+    v = first.(f)
+    s = last.(f)
+    
+    fig = Figure(size=(8.3cm, 6cm), fontsize=8pt)
+    ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
+    ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
+    lines!(ax1, v / u"m/yr", w / u"m")
+    lines!(ax2, s / u"1/yr", w / u"m")
+    save("md/fig/wave-transport-magnitude.pdf", fig)
+end
+
+end
+
+Script.main()
+```
+:::
+
 
 ::: hide
 ``` julia
@@ -1769,7 +1775,7 @@ Figure: Topographic map of atoll simulation.
 
 # Conclusions
 
-CarboKitten is a new Open Source stratigraphic forward model dedicated for carbonate depositional environments and modeling of timescales between centuries and millions of years. It integrates previous, well-tested approaches used by the community, i.e. the production model by @Bosscher1992 and the generation of spatial heterogeneity proposed by @Burgess2013 with a new approach to sediment transport, based on the concept of the **active layer** by @Paola1992. The software allows modeling and visualization accessible to laptop users, including attractive plotting functions for common use-cases in stratigraphy and sedimentology, such as Wheeler diagrams, age-depth models and stratigraphic columns. CarboKitten uses heuristics to approximate the dynamics of carbonate production, wave transport and biologically driven spatial heterogeneity. The algorithms do not replicate the physical and biological processes behind these phenomena, but allow obtaining results imitating them at timescales at which they cannot be observed directly. 
+CarboKitten is a new Open Source stratigraphic forward model dedicated for carbonate depositional environments and modeling of timescales between centuries and millions of years. It integrates previous, well-tested approaches used by the community, i.e. the production model by @Bosscher1992 and the generation of spatial heterogeneity proposed by @Burgess2013 with a new approach to sediment transport, based on the concept of the *active layer* by @Paola1992. The software allows modeling and visualization accessible to laptop users, including attractive plotting functions for common use-cases in stratigraphy and sedimentology, such as Wheeler diagrams, age-depth models and stratigraphic columns. CarboKitten uses heuristics to approximate the dynamics of carbonate production, wave transport and biologically driven spatial heterogeneity. The algorithms do not replicate the physical and biological processes behind these phenomena, but allow obtaining results imitating them at timescales at which they cannot be observed directly. 
 
 At this stage, CarboKitten's primary value lies not in a realistic replication of empirical stratigraphic architectures, but in its utility for testing hypotheses on the formation of the carbonate geological record and on our own understanding on its governing processes. Further work is needed to allow more detailed reconstructions of known geological situations. Among future refinements are empirical validation of transport and production values or storing the history of sediment transport to track autochthonous and allochthonous sediment. 
 
