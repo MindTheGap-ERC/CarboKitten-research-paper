@@ -15,4 +15,11 @@ function Div(el)
             pandoc.RawBlock("latex", "\\end{abstract}")
         }
     end
+    if cls["acknowledgements"] then
+        return {
+            pandoc.RawBlock("latex", "\\begin{acknowledgements}"),
+            el,
+            pandoc.RawBlock("latex", "\\end{acknowledgements}")
+        }
+    end
 end

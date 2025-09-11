@@ -1772,9 +1772,10 @@ Writing - JH, EJ
 
 The authors declare that they have no conflict of interest.
 
-# Acknowledgements
+::: acknowledgements
 
 We thank Joris Eggenhausen for discussions on the transport model and Charlotte Summers for programming support. Niels Drost provided administrative and management support during the project.
+:::
 
 # Financial support
 
