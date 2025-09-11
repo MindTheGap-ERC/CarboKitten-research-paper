@@ -15,4 +15,52 @@ function Div(el)
             pandoc.RawBlock("latex", "\\end{abstract}")
         }
     end
+
+    if cls["code-availability"] then
+        return {
+            pandoc.RawBlock("latex", "\\codeavailability{"),
+            el,
+            pandoc.RawBlock("latex", "}")
+        }
+    end
+
+    if cls["appendix"] then
+        return {
+            pandoc.RawBlock("latex", "\\appendix"),
+            el,
+            pandoc.RawBlock("latex", "\\noappendix")
+        }
+    end
+
+    if cls["author-contribution"] then
+        return {
+            pandoc.RawBlock("latex", "\\authorcontribution{"),
+            el,
+            pandoc.RawBlock("latex", "}")
+        }
+    end
+
+    if cls["competing-interests"] then
+        return {
+            pandoc.RawBlock("latex", "\\competinginterests{"),
+            el,
+            pandoc.RawBlock("latex", "}")
+        }
+    end
+
+    if cls["acknowledgements"] then
+        return {
+            pandoc.RawBlock("latex", "\\begin{acknowledgements}"),
+            el,
+            pandoc.RawBlock("latex", "\\end{acknowledgements}")
+        }
+    end
+
+    if cls["disclaimer"] then
+        return {
+            pandoc.RawBlock("latex", "\\disclaimer{"),
+            el,
+            pandoc.RawBlock("latex", "}")
+        }
+    end
 end

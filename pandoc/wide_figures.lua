@@ -15,6 +15,13 @@ function Figure(el)
             "\\caption{" .. caption_tex .. "}\n" ..
             "\\label{" .. el.identifier .. "}\n" ..
             "\\end{figure*}")
+    else
+        caption_tex = pandoc.write(pandoc.Pandoc{ table.unpack(el.caption.long) }, "latex")
+        return pandoc.RawBlock("latex", "\\begin{figure}\n" ..
+            "\\includegraphics[width=8.3cm]{" .. el.content[1].content[1].src .. "}\n" ..
+            "\\caption{" .. caption_tex .. "}\n" ..
+            "\\label{" .. el.identifier .. "}\n" ..
+            "\\end{figure}")
     end
 end
 

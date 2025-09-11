@@ -180,9 +180,7 @@ version = "1.18.5+0"
 
 [[deps.CarboKitten]]
 deps = ["CSV", "CategoricalArrays", "DataFrames", "DelimitedFiles", "GeometryBasics", "HDF5", "LinearAlgebra", "Logging", "ModuleMixins", "Pkg", "ProgressLogging", "Random", "StaticArrays", "TOML", "TerminalLoggers", "Unitful"]
-git-tree-sha1 = "f5e9baf211676b76a3c6f3cba705308682ce6628"
-repo-rev = "main"
-repo-url = "https://github.com/MindTheGap-ERC/CarboKitten.jl"
+git-tree-sha1 = "cb0131921789ba8fdcb200728bc2e3ea70e87e71"
 uuid = "690c6d5c-626a-429f-a06b-981a1dae1c19"
 version = "0.5.3"
 weakdeps = ["Makie", "Statistics"]

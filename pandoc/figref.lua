@@ -11,6 +11,10 @@ function Cite(el)
   if m ~= nil then
     return pandoc.RawInline("tex", "\\ref{" .. m .. "}")
   end 
+  local m = string.match(el.citations[1].id, "(sec:.*)")
+  if m ~= nil then
+    return pandoc.RawInline("tex", "\\ref{" .. m .. "}")
+  end 
 end
 
 function Table(el)
