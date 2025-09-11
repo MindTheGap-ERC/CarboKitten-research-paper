@@ -460,71 +460,6 @@ A different approach has been used in the early model `CARBPLAT` by @bosscher_ca
 
 ## Wave-induced transport
 
-We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
-
-Our approach is illustrated with an example of an atoll, starting with a conical topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
-
-$$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
-
-where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(-kw)$ to account for Stokes drift:
-
-$$v_f = A_f \exp (- k w) \tanh (k w),$$
-
-where $A_f$ the facies-dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
-
-![Depth profile](fig/wave-transport-magnitude.pdf)
-
-Figure: Depth profile of wave velocity and shear. The velocity profile was taylored to have a maximum of $10\ \unit{m/yr}$ at a depth of $20\ \unit{m}$. Where the shear is negative (assuming transport is directed onshore), there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
-
-::: hide
-``` julia
-#| id: velocity-profile
-v_prof(v_max, max_depth, w) = 
-    let k = sqrt(0.5) / max_depth,
-        A = 3.331 * v_max,
-        α = tanh(k * w),
-        β = exp(-k * w)
-        (A * α * β, -A * k * β * (1 - α - α^2))
-    end
-```
-
-``` julia
-#| classes: ["task"]
-#| creates: md/fig/wave-transport-magnitude.pdf
-#| collect: figures
-
-module Script
-
-using CairoMakie
-using Unitful
-
-<<velocity-profile>>
-
-inch = 96
-pt = 4/3
-cm = inch / 2.54
-
-function main()
-    w = LinRange(0, 100.0, 1000)u"m"
-    f = v_prof.(10.0u"m/yr", 20.0u"m", w)
-
-    v = first.(f)
-    s = last.(f)
-    
-    fig = Figure(size=(8.3cm, 6cm), fontsize=8pt)
-    ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
-    ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
-    lines!(ax1, v / u"m/yr", w / u"m")
-    lines!(ax2, s / u"1/yr", w / u"m")
-    save("md/fig/wave-transport-magnitude.pdf", fig)
-end
-
-end
-
-Script.main()
-```
-:::
-
 ## Parameter choices
 
 Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and cementation time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
@@ -1630,6 +1565,75 @@ Figure: Platform generated using the daily mean insolation during June solstice 
 
 ## Wave induced transport
 
+We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport.
+
+Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
+
+Here we try two different velocity profiles: first a constant vector that does not depend on water depth, second an attempt at a more realistic scenario.
+
+Our approach is illustrated with an example of an atoll, starting with a conical topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
+
+$$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
+
+where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(-kw)$ to account for Stokes drift:
+
+$$v_f = A_f \exp (- k w) \tanh (k w),$$
+
+where $A_f$ is the facies-dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
+
+![Depth profile](fig/wave-transport-magnitude.pdf)
+
+Figure: Depth profile of wave velocity and shear. The velocity profile was taylored to have a maximum of $10\ \unit{m/yr}$ at a depth of $20\ \unit{m}$. Where the shear is negative (assuming transport is directed onshore), there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
+
+::: hide
+``` julia
+#| id: velocity-profile
+v_prof(v_max, max_depth, w) = 
+    let k = sqrt(0.5) / max_depth,
+        A = 3.331 * v_max,
+        α = tanh(k * w),
+        β = exp(-k * w)
+        (A * α * β, -A * k * β * (1 - α - α^2))
+    end
+```
+
+``` julia
+#| classes: ["task"]
+#| creates: md/fig/wave-transport-magnitude.pdf
+#| collect: figures
+
+module Script
+
+using CairoMakie
+using Unitful
+
+<<velocity-profile>>
+
+inch = 96
+pt = 4/3
+cm = inch / 2.54
+
+function main()
+    w = LinRange(0, 100.0, 1000)u"m"
+    f = v_prof.(10.0u"m/yr", 20.0u"m", w)
+
+    v = first.(f)
+    s = last.(f)
+    
+    fig = Figure(size=(8.3cm, 6cm), fontsize=8pt)
+    ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
+    ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
+    lines!(ax1, v / u"m/yr", w / u"m")
+    lines!(ax2, s / u"1/yr", w / u"m")
+    save("md/fig/wave-transport-magnitude.pdf", fig)
+end
+
+end
+
+Script.main()
+```
+:::
+
 
 ::: hide
 ``` julia
@@ -1769,7 +1773,7 @@ Figure: Topographic map of atoll simulation.
 
 # Conclusions
 
-CarboKitten is a new Open Source stratigraphic forward model dedicated for carbonate depositional environments and modeling of timescales between centuries and millions of years. It integrates previous, well-tested approaches used by the community, i.e. the production model by @Bosscher1992 and the generation of spatial heterogeneity proposed by @Burgess2013 with a new approach to sediment transport, based on the concept of the **active layer** by @Paola1992. The software allows modeling and visualization accessible to laptop users, including attractive plotting functions for common use-cases in stratigraphy and sedimentology, such as Wheeler diagrams, age-depth models and stratigraphic columns.
+CarboKitten is a new Open Source stratigraphic forward model dedicated for carbonate depositional environments and modeling of timescales between centuries and millions of years. It integrates previous, well-tested approaches used by the community, i.e. the production model by @Bosscher1992 and the generation of spatial heterogeneity proposed by @Burgess2013 with a new approach to sediment transport, based on the concept of the *active layer* by @Paola1992. The software allows modeling and visualization accessible to laptop users, including attractive plotting functions for common use-cases in stratigraphy and sedimentology, such as Wheeler diagrams, age-depth models and stratigraphic columns.
 
 CarboKitten uses heuristics to approximate the dynamics of carbonate production, wave transport and biologically driven spatial heterogeneity. The algorithms do not replicate the physical and biological processes behind these phenomena, but allow obtaining results imitating them at timescales, at which they cannot be observed directly. At this stage, CarboKitten's primary value is not a realistic replication of empirical stratigraphic architectures. Among the limitations are: changing the values of production and transport parameters during the run to represent secular change in the composition of carbonate sediment and its producers, storing the history of sediment transport to track autochthonous and allochthonous sediment, empirical validation of transport and prdoduction values, and many others. However, these future features do not limit the primary utility of CarboKitten: testing hypotheses on the formation of the carbonate geological record.
 
