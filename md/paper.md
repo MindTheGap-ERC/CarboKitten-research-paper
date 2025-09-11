@@ -41,7 +41,15 @@ dates:
 \renewcommand{\]}{\end{equation}}
 
 ::: abstract
-Abstract of this paper.
+# Abstract
+
+Stratigraphic forward modeling is a powerful tool for testing hypotheses about the geological record and conduct numerical experiments in stratigraphy at timescales not accessible to human observation. Open Source software for stratigraphic modeling available so far has focused on siliciclastic or terrestrial depositional environments. We present CarboKitten, a stratigraphic forward modeling toolkit for tropical carbonate platforms. With performance and accessibility in mind, CarboKitten is implemented in Julia, using the literate programming approach.
+
+CarboKitten integrates three components: the carbonate production model of Bosscher & Schlager (1992), the cellular automaton for spatial heterogeneity introduced by Burgess (2013), and a novel finite difference transport model inspired by Paola et al. (1992). The model simulates carbonate production through multiple biological factories (typically tropical, mounds, and cool water), accounts for ecological processes that create spatial facies patterns through cellular automaton rules, and implements sediment transport via an active layer approach where material moves along paths of steepest descent.
+
+Key features include support for different boundary conditions, variable sea level and insolation inputs, wave-induced transport capabilities, and visualization tools aiming at beautiful plots. The software exports data in the interoperable HDF5 format and includes functions for creating stratigraphic cross-sections, chronostratigraphic diagrams, topographic maps, and sediment accumulation curves. Performance benchmarks demonstrate linear scaling with grid size and time steps, enabling efficient execution on consumer hardware.
+
+CarboKitten addresses a gap in available carbonate modeling tools by providing an accessible, well-documented, and modifiable toolkit for hypothesis testing in carbonate stratigraphy. The model operates on timescales from centuries to millions of years and can simulate various scenarios including orbital forcing, sea level change, and biological succession patterns. CarboKitten's accessibility should encourage broader adoption of stratigraphic forward modeling in carbonate research and education, supporting hypothesis-driven approaches to understanding the structure of the geological record and reconstructing the history of the Earth from carbonate strata.
 :::
 
 # Introduction
