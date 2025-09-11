@@ -30,4 +30,28 @@ function Div(el)
             el
         }
     end
+
+    if cls["author-contribution"] then
+        return {
+            pandoc.RawBlock("latex", "\\authorcontribution{"),
+            el,
+            pandoc.RawBlock("latex", "}")
+        }
+    end
+
+    if cls["competing-interests"] then
+        return {
+            pandoc.RawBlock("latex", "\\competinginterests{"),
+            el,
+            pandoc.RawBlock("latex", "}")
+        }
+    end
+
+    if cls["acknowledgements"] then
+        return {
+            pandoc.RawBlock("latex", "\\begin{acknowledgements}"),
+            el,
+            pandoc.RawBlock("latex", "\\end{acknowledgements}")
+        }
+    end
 end
