@@ -41,8 +41,6 @@ dates:
 \renewcommand{\]}{\end{equation}}
 
 ::: abstract
-# Abstract
-
 Stratigraphic forward modeling is a powerful tool for testing hypotheses about the geological record and conduct numerical experiments in stratigraphy at timescales not accessible to human observation. Open Source software for stratigraphic modeling available so far has focused on siliciclastic or terrestrial depositional environments. We present CarboKitten, a stratigraphic forward modeling toolkit for tropical carbonate platforms. With performance and accessibility in mind, CarboKitten is implemented in Julia, using the literate programming approach.
 
 CarboKitten integrates three components: the carbonate production model of Bosscher & Schlager (1992), the cellular automaton for spatial heterogeneity introduced by Burgess (2013), and a novel finite difference transport model inspired by Paola et al. (1992). The model simulates carbonate production through multiple biological factories (typically tropical, mounds, and cool water), accounts for ecological processes that create spatial facies patterns through cellular automaton rules, and implements sediment transport via an active layer approach where material moves along paths of steepest descent.
