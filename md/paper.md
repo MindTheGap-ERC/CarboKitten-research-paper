@@ -1571,7 +1571,7 @@ We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ co
 
 Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
 
-Here we try two different velocity profiles: first a constant vector that does not depend on water depth, second an attempt at a more realistic scenario.
+Here we try three different velocity profiles: first no onshore component, second a constant vector that does not depend on water depth, and third an attempt at a more realistic scenario.
 
 Our approach is illustrated with an example of an atoll, starting with a conical topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
 
@@ -1579,7 +1579,7 @@ $$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
 
 where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(-kw)$ to account for Stokes drift:
 
-$$v_f = A_f \exp (- k w) \tanh (k w),$$
+$$v_f = A_f \exp (- k w) \tanh (k w),$${#eq:velocity-profile}
 
 where $A_f$ is the facies-dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
@@ -1636,40 +1636,41 @@ Script.main()
 ```
 :::
 
-
 ::: hide
 ``` julia
 #| file: runs/atoll.jl
 #| classes: ["task"]
 #| creates: data/atoll.h5
 #| collect: atoll
-using CarboKitten
 
 module Atoll
 
 using CarboKitten
 using GeometryBasics
+using .Threads: @threads
 
 <<velocity-profile>>
 
-wave_velocity(v_max) = w -> let (v, s) = v_prof(v_max, 10.0u"m", w)
+v_none(_) = w -> (Vec2(0.0, 0.0) * u"m/yr", Vec2(0.0, 0.0) * u"1/yr")
+
+v_prof(v_max) = w -> let (v, s) = v_prof(v_max, 10.0u"m", w)
         (Vec2(v, 0.0u"m/Myr"), Vec2(s, 0.0u"1/Myr"))
     end
+
+v_flat(v_max) = _ -> (Vec2(v_max, 0.0u"m/yr"), Vec2(0.0u"1/yr", 0.0u"1/yr"))
 
 initial_topography(x, y) = 
     - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
 
-const INTERTIDAL_ZONE = 10.0u"m"
-
-const FACIES = [
+facies(v) = [
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
         maximum_growth_rate=500u"m/Myr",
         extinction_coefficient=0.8u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=10.0u"m/yr",
-        wave_velocity=wave_velocity(-0.5u"m/yr")),
+        diffusion_coefficient=20.0u"m/yr",
+        wave_velocity=v(-2.0u"m/yr")),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
@@ -1677,46 +1678,70 @@ const FACIES = [
         extinction_coefficient=0.1u"m^-1",
         saturation_intensity=60u"W/m^2",
         diffusion_coefficient=10.0u"m/yr",
-        wave_velocity=wave_velocity(-2.0u"m/yr")),
+        wave_velocity=v(-0.5u"m/yr")),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
         maximum_growth_rate=100u"m/Myr",
         extinction_coefficient=0.005u"m^-1",
         saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=10.0u"m/yr",
-        wave_velocity=wave_velocity(-2.0u"m/yr"))
+        diffusion_coefficient=50.0u"m/yr",
+        wave_velocity=v(-2.0u"m/yr"))
 ]
 
-const BOX = Box{Periodic{2}}(
-    grid_size=(300, 300), phys_scale=50.0u"m")
+box(res) = Box{Periodic{2}}(
+    grid_size=(res, res),
+    phys_scale=15.0u"km" / res)
 
-const INPUT = ALCAP.Input(
-    tag="atoll",
-    box=BOX,
-    time=TimeProperties(
-        Δt=0.0002u"Myr",
-        steps=4000),
-    output = Dict(
-        :topography => OutputSpec(write_interval=400),
-        :profile => OutputSpec(slice=(:, 150)),
-        :offcenter => OutputSpec(slice=(:, 225))),
-    ca_interval=1,
+time(steps) = TimeProperties(
+    Δt=1.0u"Myr" / steps,
+    steps=steps)
+
+output(res, steps) = Dict(
+    :topography => OutputSpec(write_interval = max(1, div(steps, 50))),
+    :profile    => OutputSpec(slice = (:, div(res, 2)+1)))
+
+ca_interval(steps) = max(div(steps, 5000), 1)
+
+sea_level(t) =
+    10.0u"m" * sin(2π * t / 123456.0u"yr") +
+     5.0u"m" * sin(2π * t /  23456.0u"yr")
+
+input(name, res, steps, v) = ALCAP.Input(
+    tag="atoll_$(res)_$(name)",
+    box=box(res),
+    time=time(steps),
+    output=output(res, steps),
+    ca_interval=ca_interval(steps),
     initial_topography=initial_topography,
-    sea_level=t -> 5.0u"m" * sin(2π * t / 123456.0u"yr"),
+    sea_level=sea_level,
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
+    cementation_time=100.0u"yr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
     transport_solver=Val{:forward_euler},
-    intertidal_zone=INTERTIDAL_ZONE,
-    facies=FACIES)
+    ca_random_seed=2,
+    facies=facies(v))
+
+function main()
+    CarboKitten.init()
+    vs = [
+        :none => v_none,
+        :flat => v_flat,
+        :prof => v_prof
+    ]
+
+    @threads for (n, v) in vs
+        inp = input(n, 150, 5000, v)
+        run_model(Model{ALCAP}, inp, "data/$(inp.tag).h5")
+    end
+end
 
 end
 
-CarboKitten.init()
-CarboKitten.run_model(Model{ALCAP}, Atoll.INPUT, "data/atoll.h5")
+Atoll.main()
 ```
 
 ``` julia
@@ -1742,36 +1767,107 @@ end
 ``` julia
 #| file: runs/atoll-map-plot.jl
 #|# classes: ["task"]
-#|# requires: data/atoll.h5
+#|# requires: data/atoll_150_prof.h5
 #|# creates: md/fig/atoll-map.png
 #|# collect: figures
+module AtollMapPlot
+
 using HDF5
+using Unitful
 using CairoMakie
-using CarboKitten.Export: read_header
+using CarboKitten: in_units_of
+using CarboKitten.Visualization: sediment_profile!
+using CarboKitten.Export: read_volume, read_slice
 
-h5open("data/atoll.h5") do fid
-    h = read_header(fid)
-    s = fid["topography"]["sediment_thickness"][:, :, end] * u"m"
+inch = 96
+pt = 4/3
+cm = inch / 2.54
+
+function topography!(ax, header, data; colormap=:nuuk, levels=[-10, -5, 0, 5, 10])
+    ax.aspect = DataAspect()
+
+    h = header
+    s = data.sediment_thickness[:, :, end]
     t = h.initial_topography .+ s .- (h.axes.t[end] * h.subsidence_rate)
+    hm = contourf!(
+        ax,
+        h.axes.x |> in_units_of(u"km"),
+        h.axes.y |> in_units_of(u"km"),
+        t / u"m", levels=levels, colormap=colormap, extendlow=:auto, extendhigh=:auto)
 
-    fig = Figure()
-    ax = Axis(fig[1, 1], limits=((3.0, 12.0), (3.0, 12.0)), aspect=DataAspect())
-    hm = heatmap!(ax, h.axes.x, h.axes.y, t / u"m", colorrange=(-10, 10), colormap=Reverse(:RdBu_8))
-    Colorbar(fig[1, 2], hm)
+    contour!(
+        ax,
+        h.axes.x |> in_units_of(u"km"),
+        h.axes.y |> in_units_of(u"km"),
+        t / u"m", levels=levels, color=:black, labels=true)
+    return hm
+end
 
+function main()
+    fig = Figure(size=(20cm, 12cm), fontsize=8pt)
+
+    res= 150
+    levels = -5:2
+    limits = (5.5, 9.5)
+    tics = 5:9
+
+    kwargs = (
+        limits=(limits, limits), aspect=DataAspect(),
+        xticks=tics, yticks=tics, xlabel="x [km]", ylabel="y [km]")
+    ax1 = Axis(fig[1, 1], title="(a) no onshore transport"; kwargs...)
+    h1, d1 = read_volume("data/atoll_$(res)_none.h5", :topography)
+    ax2 = Axis(fig[1, 2], title="(b) constant velocity"; kwargs...)
+    h2, d2 = read_volume("data/atoll_$(res)_flat.h5", :topography)
+    ax3 = Axis(fig[1, 3], title="(c) depth dependent velocity"; kwargs...)
+    h3, d3 = read_volume("data/atoll_$(res)_prof.h5", :topography)
+
+    _, p1 = read_slice("data/atoll_$(res)_none.h5", :profile)
+    ax4 = Axis(fig[2,1], title="(d)")
+    _, p2 = read_slice("data/atoll_$(res)_flat.h5", :profile)
+    ax5 = Axis(fig[2,2], title="(e)")
+    _, p3 = read_slice("data/atoll_$(res)_prof.h5", :profile)
+    ax6 = Axis(fig[2,3], title="(f)")
+
+    hm1 = topography!(ax1, h1, d1, levels=levels)
+    topography!(ax2, h2, d2, levels=levels)
+    topography!(ax3, h3, d3, levels=levels)
+    Colorbar(fig[1, 4], hm1, label="height [m]")
+    sediment_profile!(ax4, h1, p1)
+    sediment_profile!(ax5, h2, p2)
+    sediment_profile!(ax6, h3, p3)
+
+    ax4.title = "(d)"
+    ax4.limits = ((3, 12), (-100, 5))
+    ax5.title = "(e)"
+    ax5.limits = ((3, 12), (-100, 5))
+    ax6.title = "(f)"
+    ax6.limits = ((3, 12), (-100, 5))
     save("md/fig/atoll-map.png", fig)
 end
+
+end
+
+AtollMapPlot.main()
 ```
 :::
 
-![Atoll profile](fig/atoll-profile.png){.wide}
+![Atoll topography and sediment profile](fig/atoll-map.png){.wide}
 
-Figure: Profile view of atoll simulation.
+Figure: Topography and sediment profiles of an atoll. We ran the same model three times with different on-shore velocity profiles: no on-shore transport, a constant velocity and lastly the profile given in Equation @eq:velocity-profile. The top row (panels a, b, and c) show the topography of the generated island, while the bottom row (panels d, e, and f) show the corresponding sediment profiles.
+Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Most notably in the third case we see a relative prominence of tropical facies on the east side of the island, and the slope towards the platform is much steeper on that side. {#fig:atoll}
 
-![Atoll topography](fig/atoll-map.png)
+We model the formation of an atoll for three cases: no wave transport, constant transport directed west-ward (along the x-axis), and a depth dependent velocity profile.
+The results of this experiment are shown in Figure @fig:atoll. Velocity functions are configured for each facies separately. We found that it was quite easy to create an unstable model by choosing on-shore velocities too high, particularly in the case where the velocity shear is non-zero. Build-up of material due to high on-shore velocity can be compensated by setting a higher facies diffusion coefficient.
 
-Figure: Topographic map of atoll simulation.
+If we assume that both the facies specific diffusivity and the wave velocity are both some constant times a hypothetical carrying water velocity, it would be fitting to make sure that for each facies the diffusivity and velocity have a similar proportion. In our experiment we took the values listed in Table @tbl:transport-coefficients. It is very hard to find proper motivation for any of these values, but by changing them we can learn more about the mechanisms and systematic behaviours of the model and by extension possibly learn more about the formation of carbonate platforms and study sensitivities in their observed stratigraphic patterns.
 
+| facies | diffusivity $[\unit{m/yr}]$ | velocity $[\unit{m/yr}]$ |
+|:---|:---|:---|
+| tropical | 20.0 | 2.0 |
+| mounds   | 10.0 | 0.5 |
+| cool water | 50.0 | 2.0 |
+
+Table: chosen parameters to generate results in Figure @fig:atoll. We used a cementation time of $100 \unit{yr}$ and a disintegration rate of $50 \unit{m/Myr}$. {#tbl:transport-coefficients}
 
 # Conclusions
 
