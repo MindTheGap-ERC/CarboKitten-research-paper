@@ -1299,6 +1299,10 @@ CarboKitten is written entirely using literate programming [@Knuth1984]. This me
 
 # Examples {#sec:examples}
 
+We provide two examples of typical tasks users are likely to undertake: creating a simulation using an empirical, externally provided sea level curve and one with explicit forcing by an insolation curve. These examples are supported by the code used to generate this executable manuscript (FIXME ref to the code) and users are encourage to use that code as a starting point for modifying these examples for their needs.
+
+The third example serves to illustrate the details of how the wave-induced transport is modelled and how modelling decisions and parameter choices affect the outcomes obtained using this feature. 
+
 ## Sea level
 
 Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run. 
