@@ -12,7 +12,6 @@ function Figure(el)
         -- caption_tex = pandoc.write(pandoc.Pandoc{ table.unpack(el.caption.long) }, "latex")
         table.insert(el.caption.long[1].content, 1, pandoc.RawInline("latex", "\\caption{"))
         table.insert(el.caption.long[1].content, pandoc.RawInline("latex", "}"))
-        print(el.caption.long)
         return {
             pandoc.RawBlock("latex", "\\begin{figure*}\n" ..
                 "\\includegraphics[width=\\textwidth]{" .. el.content[1].content[1].src .. "}\n"),
