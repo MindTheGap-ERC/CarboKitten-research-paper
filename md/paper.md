@@ -54,7 +54,9 @@ CarboKitten addresses a gap in available carbonate modeling tools by providing a
 
 Stratigraphic forward modelling is well established as a means of examining our understanding of the formation of stratal architectures [@burgess_numerical_2001;@paterson_accommodation_2006;@schlager_record_2009;@ding_quantitative_2019;@jean_borgomano_quantitative_2020;@liu_formation_2022], prediction, correlation and imputation of architectures from incomplete data [@Warrlich2008;@masiero_syn-rift_2021], and testing hypotheses on the structure of the geological record [e.g., @kemp_stratigraphic_2018;@masiero_numerical_2020;@liu_estimating_2021] and the preservation of proxies [@curtis_natural_2025], fossils [@holland_quality_2000;@hannisdal_phenotypic_2006;@hohmann_identification_2024], or forcing mechanisms [@kemp_investigating_2016;@kemp_metre-scale_2019;@burgess_big_2019]. Owing to their economic interest, most such models are proprietary to exploration companies and their availability to researchers is limited. Some older models developed by researchers share the fate of many other research software packages and their maintenance ceases, e.g. when a project ends [@Warrlich2000]. It is not always possible to resuscitate such models, especially if documentation or license are lacking or code has not been shared [e.g., @strobel_interactive_1989;@demicco_cycopath_1998;@barrett_reef_2017]. As a result, the choice of stratigraphic forward models available to researchers at the moment is narrow and shifted towards siliciclastic [@hutton_sedflux_2008;@sylvester_stratigraphy_2024] or specifically fluvial depositional systems [@wild_sedsim_2019;@falivene_three-dimensional_2019], to the point that researchers may resort to these models to create simulations of carbonate sections [@zimmt_recognizing_2021].
 
-Modeling carbonate depositional systems requires not only accounting for water and atmospheric processes, but also for the biological character of sediment production and dispersal. Ecological processes, such as facilitation, competition and dispersal, may on one hand confound the relationships between sediment composition and water depth [e.g. @granjeon_concepts_1999;@dyer_quantifying_2018;@weij_limited_2019] and, on the other hand, lead to creation of complex facies patterns under stable sea level conditions [@drummond_self-organizing_1999;@purkis_spatial_2016;@xi_stratigraphic_2022]. Complex models accounting for it have been mostly developed for exploration, e.g. `Carbonate 3D` [@warrlich_quantifying_2002;@Warrlich2008], `DIONISOS` [@granjeon_concepts_1999] and `Carbonate GPM` [@hill_modeling_2009]. Of research-driven models operating in more than one dimension, two include a wider range of depositional environment with carbonate production modules: `CARB3D+` [@paterson_accommodation_2006], `SedSimple` [@tetzlaff_stratigraphic_2023] and `Badlands` [@salles_badlands_2016], including its Python interface `pyBadlands` [@salles_pybadlands_2018], but due to their general focus these models do not account for the spatial heterogeneity driven by biological processes. Finally, `CarboCAT` [@Burgess2013] is a research-driven 2D model dedicated to stratigraphic forward modeling of carbonate platforms, which includes a cellular automaton that approximates the spatial heterogeneity formed through ecological interactions between carbonate-producing organisms. `CarboCAT` has been used in multiple studies [e.g. @masiero_numerical_2020;@xi_stratigraphic_2022;@hohmann_identification_2024], but having been written in Matlab, it was not accessible to contributions from the entire scientific community. Based on the successful applications of `CarboCAT`, we set out to develop a new generation model with the following specifications:
+Modeling carbonate depositional systems requires not only accounting for water and atmospheric processes, but also for the biological character of sediment production and dispersal. Ecological processes, such as facilitation, competition and dispersal, may on one hand confound the relationships between sediment composition and water depth [e.g. @granjeon_concepts_1999;@dyer_quantifying_2018;@weij_limited_2019] and, on the other hand, lead to creation of complex facies patterns under stable sea level conditions [@drummond_self-organizing_1999;@purkis_spatial_2016;@xi_stratigraphic_2022]. Complex models accounting for it have been mostly developed for exploration, e.g. `Carbonate 3D` [@warrlich_quantifying_2002;@Warrlich2008], `DIONISOS` [@granjeon_concepts_1999] and `Carbonate GPM` [@hill_modeling_2009].
+Of research-driven models operating in more than one dimension, two include a wider range of depositional environment with carbonate production modules: `CARB3D+` [@paterson_accommodation_2006], `SedSimple` [@tetzlaff_stratigraphic_2023] and `Badlands` [@salles_badlands_2016], including its Python interface `pyBadlands` [@salles_pybadlands_2018], but due to their general focus these models do not account for the spatial heterogeneity driven by biological processes.
+Finally, `CarboCAT` [@Burgess2013] is a research-driven 2D model dedicated to stratigraphic forward modeling of carbonate platforms, which includes a cellular automaton that approximates the spatial heterogeneity formed through ecological interactions between carbonate-producing organisms. `CarboCAT` has been used in multiple studies [e.g. @masiero_numerical_2020;@xi_stratigraphic_2022;@hohmann_identification_2024], but having been written in Matlab, it was not accessible to contributions from the entire scientific community. Based on the successful applications of `CarboCAT`, we set out to develop a new generation model with the following specifications:
 
 1.  it should be Open Source and it should be easy for researchers to understand the algorithm, which is a prerequisite to being able to contribute to it or modify it to one's needs,
 
@@ -309,7 +311,7 @@ Script.main()
 
 Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
-## Transport
+## Transport {#sec:model-transport}
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
@@ -430,17 +432,18 @@ StandardExamplePlot.main()
 
 
 # Transport {#sec:transport}
-Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is considered separately for each facies (as with all quantities with the $f$ subscript)..
+In Section @sec:model-transport we discussed how transport is embedded in the larger model.
+Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is considered separately for each facies (as with all quantities with the $f$ subscript). Each iteration of the larger model we supply the active layer with freshly produced (autochthonous) sediment as well as disintegrated older (allochthonous) sediment. We then compute transport of the active layer for as many sub-iterations as is deemed needed for the solver to remain stable. After that, a percentage of the contents in the active layer is cemented on the sea floor. The cementation percentage depends both on the time step taken and the given cementation time, which is configured in terms of a half-life time. There are many ways to compute sediment transport in the active layer. We've opted for a finite difference strategy inspired on @Paola1992.
 
-Following @Paola1992, we assume a local sediment flux proportional to the local gradient,
+We assume a local sediment flux proportional to the local gradient,
 
 $$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport. The mass balance is then,
+where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport [for an example see Section @sec:wave-induced-transport]. The mass balance (continuity equation) is then,
 
-$$\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{transport}} = -\sum_f \vec{\nabla} \cdot \vec{q}_f$$
+$$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
-This gives us a diffusion equation in $\eta$, but we can also view it as an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
+This gives us an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
 $$
 \frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
@@ -449,6 +452,8 @@ $${#eq:transport}
 
 where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and $4^{th}$ order Runge-Kuta are supported).
 
+Note that, although the transport equation is an advection equation in $C_f$, if we consider that $C_f$ acts as a proxy for $\eta$ through disintegration and cementation, what seems like an innocent reaction term in Equation @eq:transport, turns out to behave as a diffusion equation  in $\eta$. This is why we refer to $d_f$ as the *diffusion coefficient* of a particular facies.
+
 ## Other approaches
 In the critical angle approach developed by @Warrlich2000, sediment is transported from unstable slopes to the nearest down-slope stable region. Stability is defined separately for different grain sizes. This method is motivated by the empirical relationship between grain composition and maximum slope angle [@Kenter1990].
 
@@ -456,7 +461,7 @@ The problem with this critical angle-based method of transport is that productio
 
 One aspect of critical angle theory that we do use is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and we don't need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
 
-A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including @adams_basic_2000) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In this study an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms (e.g., @schlager_submarine_1986, @Kenter1990, @adams_basic_2000). This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
+A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including @adams_basic_2000) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In this study an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms [e.g., @schlager_submarine_1986;@Kenter1990;@adams_basic_2000]. This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
 
 ## Parameter choices
 
@@ -1286,11 +1291,11 @@ BenchmarkValidation.main()
 
 :::
 
-At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further.
+### Potential for GPU optimisation
+At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further. Going through the steps of the composed model [Section @sec:composed-model]: the cellular automaton is a stencil operation, production a map, disintegration a stencil, transport is implemented as an iterated stencil, and deposition is a map. Both stencil and map operations are highly localized in memory and are ideal for implementation on a GPU.
 
 ## Documentation
-
-CarboKitten is written entirely using literate programming [@Knuth1984]. This means that the implementation of CarboKitten is written as an integral part of its own documentation, using a system called Entangled [@Hidding2023].
+CarboKitten is written entirely using literate programming [@Knuth1984]. This means that the implementation of CarboKitten is written as an integral part of its own documentation, using a system called Entangled [@Hidding2023]. The aim is that interested readers have a direct reference to the code implementing the methods that are explained in the documentation.
 
 # Examples {#sec:examples}
 
@@ -1565,7 +1570,7 @@ Insolation.plot(result)
 
 Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. {#fig:variable-insolation}
 
-## Wave induced transport
+## Wave induced transport {#sec:wave-induced-transport}
 
 We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport.
 
