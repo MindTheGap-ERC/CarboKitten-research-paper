@@ -1896,7 +1896,7 @@ CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Git
 :::
 
 :::author-contribution
-EJ, JH, PB conceptualized the study. Software and visualizations were developed by JH with contributions from EJ, XL and HS. All authors contributed to the methodology. EJ was responsible for funding acquisition and project administration. JH and EJ wrote the manuscript.
+EJ, JH, PB and NH conceptualized the study. Software and visualizations were developed by JH with contributions from EJ, XL, NH and HS. All authors contributed to the methodology. EJ was responsible for funding acquisition and project administration. JH and EJ drafted the manuscript and PB and NH contributed to the final version.
 :::
 
 :::competing-interests
