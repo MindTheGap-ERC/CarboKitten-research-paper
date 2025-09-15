@@ -27,8 +27,8 @@ author:
       affiliation: 1
 affiliation:
     - Netherlands eScience Center
-    - Utrecht University, dep. of Geosciences
-    - University of Liverpool, School of Env. Sciences
+    - Utrecht University, Department of Earth Sciences
+    - University of Liverpool, School of Environmental Sciences
 numbersections: true
 runningauthor: Hidding et al.
 runningtitle: CarboKitten.jl
