@@ -10,6 +10,9 @@ author:
       surname: Jarochowska
       # email: e.b.jarochowska@uu.nl
       affiliation: 2
+    - given_name: Niklas
+      surname: Hohmann
+      affiliation: 2
     - given_name: Xianyi
       surname: Liu
       # email: x.liu6@uu.nl
@@ -1580,9 +1583,11 @@ We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ co
 
 Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
 
+Our approach is illustrated with an example of an atoll, starting with a conical topography and  periodic boundaries. 
+
 Here we try three different velocity profiles: first no onshore component, second a constant vector that does not depend on water depth, and third an attempt at a more realistic scenario.
 
-Our approach is illustrated with an example of an atoll, starting with a conical topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
+The following equation is the well known phase velocity of waves as a function of depth from linear wave theory,
 
 $$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
 
@@ -1863,7 +1868,7 @@ AtollMapPlot.main()
 ![Atoll topography and sediment profile](fig/atoll-map.png){.wide}
 
 Figure: Topography and sediment profiles of an atoll. We ran the same model three times with different on-shore velocity profiles: no on-shore transport, a constant velocity and lastly the profile given in Equation @eq:velocity-profile. The top row (panels a, b, and c) show the topography of the generated island, while the bottom row (panels d, e, and f) show the corresponding sediment profiles.
-Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Most notably in the third case we see a relative prominence of tropical facies on the east side of the island, and the slope towards the platform is much steeper on that side. {#fig:atoll}
+Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Comparing the first (without additional transport vector) and second case (flat profile), we see little change in the overall shape of the atoll, but there is a clear difference in the facies composition at the transition between mounds and deep water dominated areas. In the third case we see the topography changed significantly between the leeward and windward sides of the atoll, where the slope is much steeper. Also the facies composition changed further: most notably we see a relative prominence of tropical facies on the windward side of the island. {#fig:atoll}
 
 We model the formation of an atoll for three cases: no wave transport, constant transport directed west-ward (along the x-axis), and a depth dependent velocity profile.
 The results of this experiment are shown in Figure @fig:atoll. Velocity functions are configured for each facies separately. We found that it was quite easy to create an unstable model by choosing on-shore velocities too high, particularly in the case where the velocity shear is non-zero. Build-up of material due to high on-shore velocity can be compensated by setting a higher facies diffusion coefficient.
@@ -1896,7 +1901,7 @@ CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Git
 :::
 
 :::author-contribution
-EJ, JH, PB and NH conceptualized the study. Software and visualizations were developed by JH with contributions from EJ, XL, NH and HS. All authors contributed to the methodology. EJ was responsible for funding acquisition and project administration. JH and EJ drafted the manuscript and PB and NH contributed to the final version.
+EJ, JH, PB and NH conceptualized the study. Software and visualizations were developed by JH with contributions from EJ, XL, NH, and HS. All authors contributed to the methodology. EJ was responsible for funding acquisition and project administration. JH and EJ drafted the manuscript and PB and NH contributed to the final version.
 :::
 
 :::competing-interests
