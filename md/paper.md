@@ -10,6 +10,9 @@ author:
       surname: Jarochowska
       # email: e.b.jarochowska@uu.nl
       affiliation: 2
+    - given_name: Niklas
+      surname: Hohmann
+      affiliation: 2
     - given_name: Xianyi
       surname: Liu
       # email: x.liu6@uu.nl
@@ -1865,7 +1868,7 @@ AtollMapPlot.main()
 ![Atoll topography and sediment profile](fig/atoll-map.png){.wide}
 
 Figure: Topography and sediment profiles of an atoll. We ran the same model three times with different on-shore velocity profiles: no on-shore transport, a constant velocity and lastly the profile given in Equation @eq:velocity-profile. The top row (panels a, b, and c) show the topography of the generated island, while the bottom row (panels d, e, and f) show the corresponding sediment profiles.
-Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Most notably in the third case we see a relative prominence of tropical facies on the east side of the island, and the slope towards the platform is much steeper on that side. {#fig:atoll}
+Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Comparing the first (without additional transport vector) and second case (flat profile), we see little change in the overall shape of the atoll, but there is a clear difference in the facies composition at the transition between mounds and deep water dominated areas. In the third case we see the topography changed significantly between the leeward and windward sides of the atoll, where the slope is much steeper. Also the facies composition changed further: most notably we see a relative prominence of tropical facies on the windward side of the island. {#fig:atoll}
 
 We model the formation of an atoll for three cases: no wave transport, constant transport directed west-ward (along the x-axis), and a depth dependent velocity profile.
 The results of this experiment are shown in Figure @fig:atoll. Velocity functions are configured for each facies separately. We found that it was quite easy to create an unstable model by choosing on-shore velocities too high, particularly in the case where the velocity shear is non-zero. Build-up of material due to high on-shore velocity can be compensated by setting a higher facies diffusion coefficient.
