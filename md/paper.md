@@ -1580,9 +1580,11 @@ We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ co
 
 Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
 
+Our approach is illustrated with an example of an atoll, starting with a conical topography and  periodic boundaries. 
+
 Here we try three different velocity profiles: first no onshore component, second a constant vector that does not depend on water depth, and third an attempt at a more realistic scenario.
 
-Our approach is illustrated with an example of an atoll, starting with a conical topography, periodic boundaries and a sediment transport vector with a constant depth profile. We follow @xi_stratigraphic_2022, who use the following equation for the phase velocity of waves as a function of depth:
+The following equation is the well known phase velocity of waves as a function of depth from linear wave theory,
 
 $$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
 
