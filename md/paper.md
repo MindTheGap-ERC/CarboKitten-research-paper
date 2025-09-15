@@ -189,7 +189,7 @@ function main()
   ax.scene.plots[1].label = "tropical"
   ax.scene.plots[2].label = "mounds"
   ax.scene.plots[3].label = "cool water"
-  axislegend(ax, "facies", valign = :bottom)
+  axislegend(ax, "factories", valign = :bottom)
   save("md/fig/production-curves.pdf", fig)
 end
 
