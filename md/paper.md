@@ -44,7 +44,7 @@ dates:
 \renewcommand{\]}{\end{equation}}
 
 ::: abstract
-Stratigraphic forward modeling is a powerful tool for testing hypotheses about the geological record and conduct numerical experiments in stratigraphy at timescales not accessible to human observation. Open Source software for stratigraphic modeling available so far has focused on siliciclastic or terrestrial depositional environments. We present CarboKitten, a stratigraphic forward modeling toolkit for tropical carbonate platforms. With performance and accessibility in mind, CarboKitten is implemented in Julia, using the literate programming approach.
+Stratigraphic forward modeling is a powerful tool for testing hypotheses about the geological record and conduct numerical experiments in stratigraphy at timescales not accessible to human observation. Open Source software for stratigraphic modeling available so far has focused on siliciclastic or terrestrial depositional environments. We present CarboKitten, a stratigraphic forward modeling toolkit for carbonate platforms. With performance and accessibility in mind, CarboKitten is implemented in Julia, using the literate programming approach.
 
 CarboKitten integrates three components: the carbonate production model of @Bosscher1992, the cellular automaton for spatial heterogeneity introduced by @Burgess2013, and a novel finite difference transport model inspired by @Paola1992. The model simulates carbonate production through multiple biological factories (typically euphotic, oligophotic and aphotic), accounts for ecological processes that create spatial facies patterns through cellular automaton rules, and implements sediment transport via an active layer approach where material moves along paths of steepest descent.
 
@@ -73,7 +73,7 @@ Finally, `CarboCAT` [@Burgess2013] is a research-driven 2D model dedicated to st
 
 6.  it should be well documented and easy to use at a level accessible to a geosciences student.
 
-The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present CarboKitten, an efficient and accessible Open Source model for stratigraphic forward simulations of tropical carbonate platforms.
+The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present CarboKitten, an efficient and accessible Open Source model for stratigraphic forward simulations of carbonate platforms.
 
 # Model
 
