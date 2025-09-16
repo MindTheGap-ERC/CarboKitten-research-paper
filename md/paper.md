@@ -1912,7 +1912,7 @@ The authors declare that they have no conflict of interest.
 :::
 
 :::acknowledgements
-We thank Joris Eggenhausen for discussions on the transport model and Charlotte Summers for programming support. Niels Drost provided administrative and management support during the project.
+We thank Joris Eggenhuisen for discussions on the transport model and Charlotte Summers for programming support. Niels Drost provided administrative and management support during the project.
 
 Funded by the European Union (ERC, MindTheGap, StG project no 101041077).
 Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them.
