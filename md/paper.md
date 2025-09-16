@@ -39,7 +39,6 @@ dates:
   revised: \today
 ---
 
-\newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
 \renewcommand{\[}{\begin{equation}}
 \renewcommand{\]}{\end{equation}}
 
