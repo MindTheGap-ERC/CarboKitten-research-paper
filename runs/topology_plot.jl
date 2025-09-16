@@ -2,7 +2,7 @@
 #| file: runs/topology_plot.jl
 #| classes: ["task"]
 #| creates:
-#|   - md/fig/topologies.png
+#|   - md/fig/fig06_topologies.png
 #| requires:
 #|   - data/topology_coast.h5
 #|   - data/topology_periodic.h5
@@ -54,7 +54,7 @@ function main()
 			   Vec(1.0, 0.0), Vec(-1.0, 0.0)],
 			  color=[:red, :red, :blue, :blue, :green, :green])
 
-    save("md/fig/topologies.png", fig)
+    save("md/fig/fig06_topologies.png", fig)
     return fig
 end
 

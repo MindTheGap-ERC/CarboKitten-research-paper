@@ -88,7 +88,7 @@ const INPUT = ALCAP.Input(
 
     function plot(result::MemoryOutput)
 	    fig = sediment_profile(result.header, result.data_slices[:profile])
-        save("md/fig/variable-insolation.png", fig)
+        save("md/fig/fig11_variable-insolation.png", fig)
 end
 
 end

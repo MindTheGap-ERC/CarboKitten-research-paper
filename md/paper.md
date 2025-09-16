@@ -134,7 +134,7 @@ $$P(w) = \sum_f P_f(w)$$
 
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A)) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
-![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
+![Production curves for three default carbonate factories](fig/fig01_production-curves.pdf){#fig:factories width="8.3cm"}
 
 ::: hide
 ``` julia
@@ -169,7 +169,7 @@ const INPUT = BS92.Input(
 ``` julia
 #| file: "runs/production-curves.jl"
 #| classes: ["task"]
-#| creates: ["md/fig/production-curves.pdf"]
+#| creates: ["md/fig/fig01_production-curves.pdf"]
 #| collect: figures
 
 module Script
@@ -191,7 +191,7 @@ function main()
   ax.scene.plots[2].label = "oligophotic"
   ax.scene.plots[3].label = "aphotic"
   axislegend(ax, "factories", valign = :bottom)
-  save("md/fig/production-curves.pdf", fig)
+  save("md/fig/fig01_production-curves.pdf", fig)
 end
 
 end
@@ -257,7 +257,7 @@ Script.main()
 
 ``` julia
 #| classes: ["task"]
-#| creates: ["md/fig/ca-long-term.png"]
+#| creates: ["md/fig/fig02_ca-long-term.png"]
 #| collect: figures
 module Script
 using CarboKitten
@@ -302,7 +302,7 @@ function main()
       i += 1
     end
   end
-  save("md/fig/ca-long-term.pdf", fig)
+  save("md/fig/fig02_ca-long-term.pdf", fig)
 end
 
 end
@@ -311,7 +311,7 @@ Script.main()
 ```
 :::
 
-![CA](fig/ca-long-term.pdf){.wide}
+![CA](fig/fig02_ca-long-term.pdf){.wide}
 
 Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
@@ -323,7 +323,7 @@ We consider all sediment transport to happen in an **active layer** close to the
 
 <!-- In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily. -->
 
-![Diagram showing concepts of production, lithification and disintegration](fig/active-layer-diagram.pdf)
+![Diagram showing concepts of production, lithification and disintegration](fig/fig03_active-layer-diagram.pdf)
 
 Figure: Diagram showing concepts of production, lithification and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a lithification half-life time) is lithified, becoming the sea floor. {#fig:active-layer-diagram}
 
@@ -354,7 +354,7 @@ A full list  of input parameters is available in the Appendix.
 
 CarboKitten generates data in the accessible, binary HDF5 format, thus output can be visualised with most common tools, e.g. imported into R or a Jupyter notebook. Nevertheless, we provide some routines based on Makie [@DanischKrumbiegel2021] for creating crosssections, Wheeler diagrams and topographic overviews. Some of the most common plot types have been collected into a summary plot, which is shown in Figure @fig:summary-plot.
 
-![Summary plot](fig/summary-plot.png){.wide}
+![Summary plot](fig/fig04_summary-plot.png){.wide}
 
 Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic crosssection, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time (Wheeler diagram), (e) dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. {#fig:summary-plot}
 
@@ -380,7 +380,7 @@ StandardExample.main()
 #| file: runs/standard_example_plot.jl
 #| classes: ["task"]
 #| requires: data/alcap-example.h5
-#| creates: md/fig/summary-plot.png
+#| creates: md/fig/fig04_summary-plot.png
 #| collect: figures
 module StandardExamplePlot
 using CairoMakie
@@ -428,7 +428,7 @@ end
 function main()
     fig = summary_plot("data/alcap-example.h5")
     add_panel_labels!(fig, labels = ["a", "b", "c", "d", "e", "f"], fontsize = 22, offset1 = (-25,-5), offset2 = (-25,10))
-    save("md/fig/summary-plot.png", fig)
+    save("md/fig/fig04_summary-plot.png", fig)
 end
 end
 
@@ -480,7 +480,7 @@ Note that not setting the lithification rate (which would amount to immediately 
 
 To understand the relative effects of choosing a certain lithification time and/or disintegration rate, we ran a one-dimensional model where sediment is produced in a central patch. Then we can study the rate at which sediment is dispersed, either by direct transport before lithification happens, or by subsequent disintegration and re-deposition. By carefully choosing the parameters, we can make a slow lithification process look very similar to a high disintegration rate, as shown in Figure @fig:disintegration-vs-lithification.
 
-![Comparison between lithification and disintegration](fig/disintegration-vs-lithification.pdf){.wide}
+![Comparison between lithification and disintegration](fig/fig05_disintegration-vs-lithification.pdf){.wide}
 
 Figure: Comparison between lithification and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps), and the diffusivity was set to $10\ \unit{m/Myr}$.
 Panels $(a)$ and $(b)$ have a short lithification time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long lithification time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-lithification}
@@ -708,7 +708,7 @@ end
 #| file: runs/disintegration-vs-lithification.jl
 #| classes: ["task"]
 #| creates:
-#|   - md/fig/disintegration-vs-lithification.pdf
+#|   - md/fig/fig05_disintegration-vs-lithification.pdf
 #| requires:
 #|   - runs/TransportTest.jl
 #|   - runs/TransportPlots.jl
@@ -747,7 +747,7 @@ function main()
         plot_topography!(ax, result)
     end
 
-    save("md/fig/disintegration-vs-lithification.pdf", fig)
+    save("md/fig/fig05_disintegration-vs-lithification.pdf", fig)
 end
 
 end
@@ -965,7 +965,7 @@ TopologyPeriodic.main()
 #| file: runs/topology_plot.jl
 #| classes: ["task"]
 #| creates:
-#|   - md/fig/topologies.png
+#|   - md/fig/fig06_topologies.png
 #| requires:
 #|   - data/topology_coast.h5
 #|   - data/topology_periodic.h5
@@ -1017,7 +1017,7 @@ function main()
 			   Vec(1.0, 0.0), Vec(-1.0, 0.0)],
 			  color=[:red, :red, :blue, :blue, :green, :green])
 
-    save("md/fig/topologies.png", fig)
+    save("md/fig/fig06_topologies.png", fig)
     return fig
 end
 
@@ -1032,7 +1032,7 @@ CarboKitten needs to work with different choices for box topology, i.e. how the 
 
 In another case, where we want to simulate an entire island, or even an archipelago, it is more convenient to use fully periodic coordinates. We illustrate these choices in Figure @fig:box-topologies.
 
-![Different topologies, 3d view and boundaries](fig/topologies.png){.wide}
+![Different topologies, 3d view and boundaries](fig/fig06_topologies.png){.wide}
 
 Figure: Model topologies. CarboKitten allows the user to choose different topologies for the spatial modelling. In panel (a) we see a group of reef islands that were modelled on a fully periodic grid of size $250 \times 250$, using a randomly generated initial topography. A more common use case is shown in panel (b), where the $x$ coordinate is reflected at the boundaries, while the $y$ coordinate is periodic, thus modelling a small strip of coastline. Here the grid size is $250 \times 50$, and the initial topography is a linearly declining slope of $0.3\%$ (with the exception of the shore, which is steeper).
 Panels (c) and (d) schematically illustrate these same box topologies using coloured arrows. {#fig:box-topologies}
@@ -1045,7 +1045,7 @@ While the sediment buffer is allocated as a single 4-dimensional array (depth, f
 
 We choose to have the head of our sediment stack always be at the first row. When sediment out-grows the buffer, the deepest layers are dropped from memory. The head can contain an incomplete amount of sediment, while all rows below the head are either full or empty. When sediment is pushed to the stack and the head row overflows, all rows are copied down one row and the surplus is assigned to the now empty head row. The inverse happens when removing (popping) material from the stack. This process is illustrated below in Figure @fig:sediment-buffer.
 
-![Sediment buffer diagram](fig/sediment-buffer.pdf)
+![Sediment buffer diagram](fig/fig07_sediment-buffer.pdf)
 
 Figure: Above we see a buffer. First we push a parcel of size $3/4$, then we pop an amount of $1/2$. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
 
@@ -1076,14 +1076,14 @@ To further quantify these complications in our estimated run-times, we run a mod
 
 The combination of 2500 time steps with a $300^2$ grid size yields instabilities in the transport model and is left out of the results. Other than that, CarboKitten scaled as predicted from our previous considerations.
 
-![Benchmark plots](fig/benchmark.pdf){.wide}
+![Benchmark plots](fig/fig08_benchmark.pdf){.wide}
 
 Figure: Benchmark with respect to number of time steps and grid size. Panel (a) shows the run-time dependency on the number of time-steps, while panel (b) shows the dependency on the number of grid cells on each axis, both on a log-log scale. This scaling follows the predicted behaviour: linear in both the number of time-steps and total number of grid cells (on this plot being the grid size squared). Note that the run with 2500 time steps and $300^2$ grid size is left out, since the transport model was unstable for that configuration. These numbers were consistent throughout multiple runs. {#fig:benchmark}
 
 ### Validation
 We may validate our benchmark by looking at the results of the runs with grid size $150^2$. This is shown in Figure @fig:benchmark-validation. These results show that, when time steps are taken small enough, CarboKitten converges to a consistent result that does not depend on the size of the time step.
 
-![Benchmark validation](fig/benchmark_validation.png){.wide}
+![Benchmark validation](fig/fig09_benchmark_validation.png){.wide}
 
 Figure: Benchmark validation. This shows a crosssection of the runs with a grid size of $150^2$. Looking at the first output, using only 2500 time steps, we see a wave like pattern even where the deep sea facies dominate. These waves are not physical, but a result from taking the time step too large. When we look at the results from 5000 and 10000 time steps, they look so similar that we can conclude that in this case 5000 steps was enough to get accurate results. {#fig:benchmark-validation}
 
@@ -1227,7 +1227,7 @@ Benchmarks.main()
 #| requires:
 #|   - data/benchmark.csv
 #| creates:
-#|   - md/fig/benchmark.pdf
+#|   - md/fig/fig08_benchmark.pdf
 #| collect: figures
 module BenchmarkPlot
 
@@ -1253,7 +1253,7 @@ function main()
     Label(fig[1, 1, TopLeft()], "a", halign=:left, fontsize=20)
     Label(fig[1, 2, TopLeft()], "b", halign=:left, fontsize=20)
 
-    save("md/fig/benchmark.pdf", fig)
+    save("md/fig/fig08_benchmark.pdf", fig)
 
     fig
 end
@@ -1285,7 +1285,7 @@ function main()
     fig.content[2].title = "5000 steps"
     fig.content[3].title = "10000 steps"
 
-    save("md/fig/benchmark_validation.png", fig)
+    save("md/fig/fig09_benchmark_validation.png", fig)
 
     fig
 end
@@ -1319,7 +1319,7 @@ The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005
 ```julia
 #| id: variable_SL
 #| file: runs/variable_sl.jl
-#| creates: md/fig/variable-sl.png
+#| creates: md/fig/fig10_variable-sl.png
 module VariableSL
 
 using CarboKitten
@@ -1412,7 +1412,7 @@ end
 function plot(result)
     h, d = read_slice(result, :profile)
     fig = sediment_profile(h, d)
-    save("md/fig/variable-sl.png", fig)
+    save("md/fig/fig10_variable-sl.png", fig)
 end
 
 end
@@ -1422,7 +1422,7 @@ VariableSL.plot(result)
 ```
 :::
 
-![variable-sl](fig/variable-sl.png){.wide}
+![variable-sl](fig/fig10_variable-sl.png){.wide}
 
 Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). {#fig:variable-sl}
 
@@ -1566,7 +1566,7 @@ const INPUT = ALCAP.Input(
 
     function plot(result::MemoryOutput)
 	    fig = sediment_profile(result.header, result.data_slices[:profile])
-        save("md/fig/variable-insolation.png", fig)
+        save("md/fig/fig11_variable-insolation.png", fig)
 end
 
 end
@@ -1576,7 +1576,7 @@ Insolation.plot(result)
 ```
 :::
 
-![variable-insolation](fig/variable-insolation.png){.wide}
+![variable-insolation](fig/fig11_variable-insolation.png){.wide}
 
 Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. {#fig:variable-insolation}
 
@@ -1600,7 +1600,7 @@ $$v_f = A_f \exp (- k w) \tanh (k w),$${#eq:velocity-profile}
 
 where $A_f$ is the facies-dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
-![Depth profile](fig/wave-transport-magnitude.pdf)
+![Depth profile](fig/fig12_wave-transport-magnitude.pdf)
 
 Figure: Depth profile of wave velocity and shear. The velocity profile was taylored to have a maximum of $10\ \unit{m/yr}$ at a depth of $20\ \unit{m}$. Where the shear is negative (assuming transport is directed onshore), there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
 
@@ -1618,7 +1618,7 @@ v_prof(v_max, max_depth, w) =
 
 ``` julia
 #| classes: ["task"]
-#| creates: md/fig/wave-transport-magnitude.pdf
+#| creates: md/fig/fig12_wave-transport-magnitude.pdf
 #| collect: figures
 
 module Script
@@ -1644,7 +1644,7 @@ function main()
     ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
     lines!(ax1, v / u"m/yr", w / u"m")
     lines!(ax2, s / u"1/yr", w / u"m")
-    save("md/fig/wave-transport-magnitude.pdf", fig)
+    save("md/fig/fig12_wave-transport-magnitude.pdf", fig)
 end
 
 end
@@ -1785,7 +1785,7 @@ end
 #| file: runs/atoll-map-plot.jl
 #|# classes: ["task"]
 #|# requires: data/atoll_150_prof.h5
-#|# creates: md/fig/atoll-map.png
+#|# creates: md/fig/fig13_atoll-map.png
 #|# collect: figures
 module AtollMapPlot
 
@@ -1859,7 +1859,7 @@ function main()
     ax5.limits = ((3, 12), (-100, 5))
     ax6.title = "(f)"
     ax6.limits = ((3, 12), (-100, 5))
-    save("md/fig/atoll-map.png", fig)
+    save("md/fig/fig13_atoll-map.png", fig)
 end
 
 end
@@ -1868,7 +1868,7 @@ AtollMapPlot.main()
 ```
 :::
 
-![Atoll topography and sediment profile](fig/atoll-map.png){.wide}
+![Atoll topography and sediment profile](fig/fig13_atoll-map.png){.wide}
 
 Figure: Topography and sediment profiles of an atoll. We ran the same model three times with different on-shore velocity profiles: no on-shore transport, a constant velocity and lastly the profile given in Equation @eq:velocity-profile. The top row (panels a, b, and c) show the topography of the generated island, while the bottom row (panels d, e, and f) show the corresponding sediment profiles.
 Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Comparing the first (without additional transport vector) and second case (flat profile), we see little change in the overall shape of the atoll, but there is a clear difference in the facies composition at the transition between oligophotic (yellow) and aphotic (green) dominated areas. In the third case we see the topography changed significantly between the leeward and windward sides of the atoll, where the slope is much steeper. Also the facies composition changed further: most notably we see a relative prominence of euphotic (blue) facies on the windward side of the island. {#fig:atoll}

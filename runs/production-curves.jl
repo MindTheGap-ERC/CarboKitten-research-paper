@@ -1,7 +1,7 @@
 # ~/~ begin <<md/paper.md#runs/production-curves.jl>>[init]
 #| file: "runs/production-curves.jl"
 #| classes: ["task"]
-#| creates: ["md/fig/production-curves.pdf"]
+#| creates: ["md/fig/fig01_production-curves.pdf"]
 #| collect: figures
 
 module Script
@@ -50,7 +50,7 @@ function main()
   ax.scene.plots[2].label = "oligophotic"
   ax.scene.plots[3].label = "aphotic"
   axislegend(ax, "factories", valign = :bottom)
-  save("md/fig/production-curves.pdf", fig)
+  save("md/fig/fig01_production-curves.pdf", fig)
 end
 
 end

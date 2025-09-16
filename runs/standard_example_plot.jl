@@ -2,7 +2,7 @@
 #| file: runs/standard_example_plot.jl
 #| classes: ["task"]
 #| requires: data/alcap-example.h5
-#| creates: md/fig/summary-plot.png
+#| creates: md/fig/fig04_summary-plot.png
 #| collect: figures
 module StandardExamplePlot
 using CairoMakie
@@ -50,7 +50,7 @@ end
 function main()
     fig = summary_plot("data/alcap-example.h5")
     add_panel_labels!(fig, labels = ["a", "b", "c", "d", "e", "f"], fontsize = 22, offset1 = (-25,-5), offset2 = (-25,10))
-    save("md/fig/summary-plot.png", fig)
+    save("md/fig/fig04_summary-plot.png", fig)
 end
 end
 

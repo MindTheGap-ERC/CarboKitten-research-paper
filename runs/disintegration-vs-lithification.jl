@@ -2,7 +2,7 @@
 #| file: runs/disintegration-vs-lithification.jl
 #| classes: ["task"]
 #| creates:
-#|   - md/fig/disintegration-vs-lithification.pdf
+#|   - md/fig/fig05_disintegration-vs-lithification.pdf
 #| requires:
 #|   - runs/TransportTest.jl
 #|   - runs/TransportPlots.jl
@@ -41,7 +41,7 @@ function main()
         plot_topography!(ax, result)
     end
 
-    save("md/fig/disintegration-vs-lithification.pdf", fig)
+    save("md/fig/fig05_disintegration-vs-lithification.pdf", fig)
 end
 
 end

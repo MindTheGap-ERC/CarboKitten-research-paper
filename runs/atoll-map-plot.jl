@@ -2,7 +2,7 @@
 #| file: runs/atoll-map-plot.jl
 #|# classes: ["task"]
 #|# requires: data/atoll_150_prof.h5
-#|# creates: md/fig/atoll-map.png
+#|# creates: md/fig/fig13_atoll-map.png
 #|# collect: figures
 module AtollMapPlot
 
@@ -76,7 +76,7 @@ function main()
     ax5.limits = ((3, 12), (-100, 5))
     ax6.title = "(f)"
     ax6.limits = ((3, 12), (-100, 5))
-    save("md/fig/atoll-map.png", fig)
+    save("md/fig/fig13_atoll-map.png", fig)
 end
 
 end

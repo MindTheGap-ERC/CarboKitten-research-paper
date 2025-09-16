@@ -1,7 +1,7 @@
 # ~/~ begin <<md/paper.md#variable_SL>>[init]
 #| id: variable_SL
 #| file: runs/variable_sl.jl
-#| creates: md/fig/variable-sl.png
+#| creates: md/fig/fig10_variable-sl.png
 module VariableSL
 
 using CarboKitten
@@ -94,7 +94,7 @@ end
 function plot(result)
     h, d = read_slice(result, :profile)
     fig = sediment_profile(h, d)
-    save("md/fig/variable-sl.png", fig)
+    save("md/fig/fig10_variable-sl.png", fig)
 end
 
 end

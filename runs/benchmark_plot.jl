@@ -4,7 +4,7 @@
 #| requires:
 #|   - data/benchmark.csv
 #| creates:
-#|   - md/fig/benchmark.pdf
+#|   - md/fig/fig08_benchmark.pdf
 #| collect: figures
 module BenchmarkPlot
 
@@ -30,7 +30,7 @@ function main()
     Label(fig[1, 1, TopLeft()], "a", halign=:left, fontsize=20)
     Label(fig[1, 2, TopLeft()], "b", halign=:left, fontsize=20)
 
-    save("md/fig/benchmark.pdf", fig)
+    save("md/fig/fig08_benchmark.pdf", fig)
 
     fig
 end

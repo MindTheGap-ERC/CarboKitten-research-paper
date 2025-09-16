@@ -20,7 +20,7 @@ function main()
     fig.content[2].title = "5000 steps"
     fig.content[3].title = "10000 steps"
 
-    save("md/fig/benchmark_validation.png", fig)
+    save("md/fig/fig09_benchmark_validation.png", fig)
 
     fig
 end
