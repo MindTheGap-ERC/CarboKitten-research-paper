@@ -10,7 +10,13 @@ local function join(lst, sep)
 end
 
 function Table(el)
-    local caption_tex = pandoc.write(pandoc.Pandoc{ table.unpack(el.caption.long) }, "latex")
+    local class = "table"
+
+    if el.identifier == "tbl:input" then
+        class = "table*"
+    end
+
+    local caption_tex = pandoc.write(pandoc.Pandoc { table.unpack(el.caption.long) }, "latex")
     local col_spec = ""
     local align_table = {
         AlignLeft = "l", AlignRight = "r", AlignCenter = "c", AlignDefault = "l"
@@ -21,19 +27,19 @@ function Table(el)
 
     local header = {}
     for _, h in ipairs(el.head.rows[1].cells) do
-        table.insert(header, pandoc.write(pandoc.Pandoc{ table.unpack(h.content) }, "latex"))
+        table.insert(header, pandoc.write(pandoc.Pandoc { table.unpack(h.content) }, "latex"))
     end
-    
+
     local body = {}
     for _, row in ipairs(el.bodies[1].body) do
         local row_items = {}
         for _, i in ipairs(row.cells) do
-            table.insert(row_items, pandoc.write(pandoc.Pandoc{ table.unpack(i.content) }, "latex"))
+            table.insert(row_items, pandoc.write(pandoc.Pandoc { table.unpack(i.content) }, "latex"))
         end
         table.insert(body, join(row_items, " & ") .. "\\\\")
     end
 
-    return pandoc.RawBlock("latex", "\\begin{table}\n" ..
+    return pandoc.RawBlock("latex", "\\begin{" .. class .. "}\n" ..
         "\\caption{" .. caption_tex .. "}\n" ..
         "\\label{" .. el.identifier .. "}\n" ..
         "\\begin{tabular}{" .. col_spec .. "}\n" ..
@@ -43,5 +49,5 @@ function Table(el)
         join(body, "\n") .. "\n" ..
         "\\bottomhline\n" ..
         "\\end{tabular}\n" ..
-        "\\end{table}")
+        "\\end{" .. class .. "}")
 end
