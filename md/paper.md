@@ -36,7 +36,7 @@ bibliography: ref
 biblio-style: copernicus
 firstpage: 1
 dates:
-  revised: \today 
+  revised: \today
 ---
 
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
@@ -231,7 +231,7 @@ function main()
 
   state = CA.initial_state(input)
   step! = CA.step!(input)
-  
+
   fig = Figure(size=(1000, 500))
   axes_indices = Iterators.flatten(eachrow(CartesianIndices((2, 4))))
   xaxis, yaxis = box_axes(input.box)
@@ -276,7 +276,7 @@ function main()
   for _ in 1:1000
     step!(state)
   end
-  
+
   fig = Figure(size=(1000, 500))
   axes_indices = Iterators.flatten(eachrow(CartesianIndices((2, 4))))
   xaxis, yaxis = box_axes(input.box)
@@ -284,7 +284,7 @@ function main()
   for row in 1:2
     for col in 1:4
       ax = Axis(fig[row, col], aspect=AxisAspect(1), title="step $(i)")
-      
+
       if row == 2
         ax.xlabel = "x [m]"
       end
@@ -318,15 +318,17 @@ Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid o
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **cementation**, see Figure @fig:active-layer-diagram. In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily.
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
 
-![Diagram showing concepts of production, cementation and disintegration](fig/active-layer-diagram.pdf)
+<!-- In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily. -->
 
-Figure: Diagram showing concepts of production, cementation and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a cementation half-life time) is cemented onto the sea floor. {#fig:active-layer-diagram}
+![Diagram showing concepts of production, lithification and disintegration](fig/active-layer-diagram.pdf)
+
+Figure: Diagram showing concepts of production, lithification and disintegration. Every time step newly produced sediment and older disintegrated material (configured as a disintegration rate) is added to the active layer. After transport, a set fraction of the sediment (configured as a lithification half-life time) is lithified, becoming the sea floor. {#fig:active-layer-diagram}
 
 The actual transport is computed using a finite difference approach that is further discussed in Section @sec:transport.
 
-## Composed model
+## Composed model {#sec:composed-model}
 
 Putting everything together, we evaluate the model as follows each iteration:
 
@@ -334,7 +336,7 @@ Putting everything together, we evaluate the model as follows each iteration:
 2.  Compute the production $P_f$.
 3.  Disintegrate sediment $D_f$.
 4.  Transport entrained sediment $C_f$.
-5.  Deposit cemented sediment.
+5.  Deposit lithified sediment.
 
 Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
 
@@ -383,33 +385,33 @@ module StandardExamplePlot
 using CairoMakie
 using CarboKitten.Visualization: summary_plot
 
-function add_panel_labels!(fig::Figure; 
-                          labels::Vector{String}, 
+function add_panel_labels!(fig::Figure;
+                          labels::Vector{String},
                           fontsize::Int64,
                           offset1::Tuple{Int64, Int64},
                           offset2::Tuple{Int64, Int64})
 
     panel_positions = [
-        (1, 1), # a 
-        (1, 3), # b 
-        (2, 3), # c 
-        (3, 1), # d 
-        (3, 2), # e 
-        (3, 3)  # f 
+        (1, 1), # a
+        (1, 3), # b
+        (2, 3), # c
+        (3, 1), # d
+        (3, 2), # e
+        (3, 3)  # f
     ]
 
     for (i, (row, col)) in enumerate(panel_positions)
-        if i <= 3   
-            Label(fig[row, col], labels[i], 
-                  tellwidth=false, 
+        if i <= 3
+            Label(fig[row, col], labels[i],
+                  tellwidth=false,
                   tellheight=false,
                   halign=:left,
                   valign=:top,
                   padding=(offset1[1], offset1[1], -offset1[2], offset1[1]),
                   fontsize=fontsize)
-        else 
-            Label(fig[row, col], labels[i], 
-                    tellwidth=false, 
+        else
+            Label(fig[row, col], labels[i],
+                    tellwidth=false,
                     tellheight=false,
                     halign=:left,
                     valign=:top,
@@ -436,13 +438,13 @@ StandardExamplePlot.main()
 
 # Transport {#sec:transport}
 In Section @sec:model-transport we discussed how transport is embedded in the larger model.
-Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is considered separately for each facies (as with all quantities with the $f$ subscript). Each iteration of the larger model we supply the active layer with freshly produced (autochthonous) sediment as well as disintegrated older (allochthonous) sediment. We then compute transport of the active layer for as many sub-iterations as is deemed needed for the solver to remain stable. After that, a percentage of the contents in the active layer is cemented on the sea floor. The cementation percentage depends both on the time step taken and the given cementation time, which is configured in terms of a half-life time. There are many ways to compute sediment transport in the active layer. We've opted for a finite difference strategy inspired on @Paola1992.
+Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is considered separately for each facies (as with all quantities with the $f$ subscript). Each iteration of the larger model we supply the active layer with freshly produced (autochthonous) sediment as well as disintegrated older (allochthonous) sediment. We then compute transport of the active layer for as many sub-iterations as is deemed needed for the solver to remain stable. After that, a percentage of the contents in the active layer is deposited on the sea floor. The lithification percentage depends both on the time step taken and the given lithification time, which is configured in terms of a half-life time. There are many ways to compute sediment transport in the active layer. We've opted for a finite difference strategy inspired on @Paola1992.
 
 We assume a local sediment flux proportional to the local gradient,
 
 $$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport [for an example see Section @sec:wave-induced-transport]. The mass balance (continuity equation) is then,
+where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
 
 $$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
@@ -455,12 +457,12 @@ $${#eq:transport}
 
 where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and $4^{th}$ order Runge-Kuta are supported).
 
-Note that, although the transport equation is an advection equation in $C_f$, if we consider that $C_f$ acts as a proxy for $\eta$ through disintegration and cementation, what seems like an innocent reaction term in Equation @eq:transport, turns out to behave as a diffusion equation  in $\eta$. This is why we refer to $d_f$ as the *diffusion coefficient* of a particular facies.
+Note that, although the transport equation is an advection equation in $C_f$, if we consider that $C_f$ acts as a proxy for $\eta$ through disintegration and lithification, what seems like an innocent reaction term in Equation @eq:transport, turns out to behave as a diffusion equation  in $\eta$. This is why we refer to $d_f$ as the *diffusion coefficient* of a particular facies. Any attempt at modelling sediment transport where there is an effective down-slope flux combined with some form of disintegration will yield diffusive behaviour.
 
 ## Other approaches
 In the critical angle approach developed by @Warrlich2000, sediment is transported from unstable slopes to the nearest down-slope stable region. Stability is defined separately for different grain sizes. This method is motivated by the empirical relationship between grain composition and maximum slope angle [@Kenter1990].
 
-The problem with this critical angle-based method of transport is that production across an unstable region is deposited on a small strip, where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. 
+The problem with this critical angle-based method of transport is that production across an unstable region is deposited on a small strip, where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. Contrasting to that, both our transport model and production model (with the exception of the cellular automaton) are discretisations of otherwise continuous processes. This means that, at least assymptotically (i.e. as long as the time step is small enough), our implementation is independent of the chosen time step.
 
 One aspect of critical angle theory that we do use is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and we don't need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
 
@@ -468,19 +470,19 @@ A different approach has been used in the early model `CARBPLAT` by @bosscher_ca
 
 ## Parameter choices
 
-Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and cementation time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
+Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and lithification time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
 
-### Disintegration versus cementation
-Both the disintegration rate and the cementation time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high cementation time (thus a slow cementation) over a high disintegration rate can help in transporting only freshly produced sediments.
+### Disintegration versus lithification
+Both the disintegration rate and the lithification time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high lithification time (thus a slow lithification) over a high disintegration rate can help in transporting only freshly produced sediments.
 
-Note that not setting the cementation rate (which would amount to immediately cementing all of the active layer on every iteration) results in models that depend heavily on a chosen time step. 
+Note that not setting the lithification rate (which would amount to immediately depositing all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
 
-To understand the relative effects of choosing a certain cementation time and/or disintegration rate, we ran a one-dimensional model where sediment is produced in a central patch. Then we can study the rate at which sediment is dispersed, either by direct transport before cementation happens, or by subsequent disintegration and re-deposition. By carefully choosing the parameters, we can make a slow cementation process look very similar to a high disintegration rate, as shown in Figure @fig:disintegration-vs-cementation.
+To understand the relative effects of choosing a certain lithification time and/or disintegration rate, we ran a one-dimensional model where sediment is produced in a central patch. Then we can study the rate at which sediment is dispersed, either by direct transport before lithification happens, or by subsequent disintegration and re-deposition. By carefully choosing the parameters, we can make a slow lithification process look very similar to a high disintegration rate, as shown in Figure @fig:disintegration-vs-lithification.
 
-![Comparison between cementation and disintegration](fig/disintegration-vs-cementation.pdf){.wide}
+![Comparison between lithification and disintegration](fig/disintegration-vs-lithification.pdf){.wide}
 
-Figure: Comparison between cementation and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps), and the diffusivity was set to $10\ \unit{m/Myr}$.
-Panels $(a)$ and $(b)$ have a short cementation time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long cementation time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-cementation}
+Figure: Comparison between lithification and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps), and the diffusivity was set to $10\ \unit{m/Myr}$.
+Panels $(a)$ and $(b)$ have a short lithification time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long lithification time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-lithification}
 
 :::hide
 ```julia
@@ -578,7 +580,7 @@ end
 using CarboKitten
 using CarboKitten.Components.Common
 using CarboKitten.Components:
-    TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth, 
+    TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth,
     Tag, ActiveLayer, H5Writer
 using ModuleMixins
 
@@ -702,10 +704,10 @@ end
 ```
 
 ```julia
-#| file: runs/disintegration-vs-cementation.jl
+#| file: runs/disintegration-vs-lithification.jl
 #| classes: ["task"]
 #| creates:
-#|   - md/fig/disintegration-vs-cementation.pdf
+#|   - md/fig/disintegration-vs-lithification.pdf
 #| requires:
 #|   - runs/TransportTest.jl
 #|   - runs/TransportPlots.jl
@@ -737,14 +739,14 @@ function main()
         result[i] = run_with(;cp[i]...)
     end
 
-    fig = plot_matrix(result[1,:,1,:], 
+    fig = plot_matrix(result[1,:,1,:],
             ["dr = $(d.val) m/Myr" for d in pars.disintegration_rate],
             ["ct = $(d.val) yr" for d in pars.cementation_time];
             fontsize = 10) do ax, result
         plot_topography!(ax, result)
     end
 
-    save("md/fig/disintegration-vs-cementation.pdf", fig)
+    save("md/fig/disintegration-vs-lithification.pdf", fig)
 end
 
 end
@@ -755,7 +757,7 @@ DisintegrationVsCementation.main()
 
 ## Implementation and limitations
 
-Our implementation of the transport model first computes the gradient of the sea floor (or equivalently the water depth) $\vec{\nabla} w$ using central differences. From this gradient we can compute the advection coefficients in Equation @eq:transport, $\vec{c}_{\textrm{adv}} = d_f \vec{\nabla} \eta + \vec{v}_f(w)$. The maximum advection coefficient sets the Courant number and determines how many time steps we need to take to solve Equation @eq:transport. For an advection equation integrated with the forward Euler method, we need 
+Our implementation of the transport model first computes the gradient of the sea floor (or equivalently the water depth) $\vec{\nabla} w$ using central differences. From this gradient we can compute the advection coefficients in Equation @eq:transport, $\vec{c}_{\textrm{adv}} = d_f \vec{\nabla} \eta + \vec{v}_f(w)$. The maximum advection coefficient sets the Courant number and determines how many time steps we need to take to solve Equation @eq:transport. For an advection equation integrated with the forward Euler method, we need
 
 $$|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.$$
 
@@ -822,7 +824,7 @@ function main()
             Δt=0.0002u"Myr",
             steps=5000),
         box = Box{Coast}(
-            grid_size=(250, 50), 
+            grid_size=(250, 50),
             phys_scale=60.0u"m"),
         facies = facies,
         initial_topography = (x, y) -> let x_prime = x - 3.0u"km"
@@ -1005,7 +1007,7 @@ function main()
 	ax2 = Axis(fig[2, 2], title="(d)", aspect=DataAspect(), height=100)
 	hlines!(ax2, [0.0, 5.0])
 	vlines!(ax2, [0.0, 15.0])
-	arrows2d!(ax2, 
+	arrows2d!(ax2,
 			  [Point(7.5, 0.0), Point(7.5, 5.0),
 			   Point(0.0, 2.5), Point(0.0, 2.5),
 			   Point(15.0, 2.5), Point(15.0, 2.5)],
@@ -1031,7 +1033,7 @@ In another case, where we want to simulate an entire island, or even an archipel
 
 ![Different topologies, 3d view and boundaries](fig/topologies.png){.wide}
 
-Figure: Model topologies. CarboKitten allows the user to choose different topologies for the spatial modelling. In panel (a) we see a group of reef islands that were modelled on a fully periodic grid of size $250 \times 250$, using a randomly generated initial topography. A more common use case is shown in panel (b), where the $x$ coordinate is reflected at the boundaries, while the $y$ coordinate is periodic, thus modelling a small strip of coastline. Here the grid size is $250 \times 50$, and the initial topography is a linearly declining slope of $0.3\%$ (with the exception of the shore, which is steeper). 
+Figure: Model topologies. CarboKitten allows the user to choose different topologies for the spatial modelling. In panel (a) we see a group of reef islands that were modelled on a fully periodic grid of size $250 \times 250$, using a randomly generated initial topography. A more common use case is shown in panel (b), where the $x$ coordinate is reflected at the boundaries, while the $y$ coordinate is periodic, thus modelling a small strip of coastline. Here the grid size is $250 \times 50$, and the initial topography is a linearly declining slope of $0.3\%$ (with the exception of the shore, which is steeper).
 Panels (c) and (d) schematically illustrate these same box topologies using coloured arrows. {#fig:box-topologies}
 
 ## The sediment buffer
@@ -1099,7 +1101,7 @@ using CSV
 # A constant homogeneous wave velocity
 v_const(v_max) = _ -> (Vec2(v_max, 0.0u"m/yr"), Vec2(0.0u"1/yr", 0.0u"1/yr"))
 
-initial_topography(x, y) = 
+initial_topography(x, y) =
     - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
 
 const FACIES = [
@@ -1304,11 +1306,11 @@ CarboKitten is written entirely using literate programming [@Knuth1984]. This me
 
 We provide two examples of typical tasks users are likely to undertake: creating a simulation using an empirical, externally provided sea level curve and one with explicit forcing by an insolation curve. These examples are supported by the code used to generate this executable manuscript (FIXME ref to the code) and users are encourage to use that code as a starting point for modifying these examples for their needs.
 
-The third example serves to illustrate the details of how the wave-induced transport is modelled and how modelling decisions and parameter choices affect the outcomes obtained using this feature. 
+The third example serves to illustrate the details of how the wave-induced transport is modelled and how modelling decisions and parameter choices affect the outcomes obtained using this feature.
 
 ## Sea level
 
-Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run. 
+Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run.
 
 The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
 
@@ -1425,13 +1427,13 @@ Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). 
 
 ## Insolation
 
-The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths. 
+The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths.
 
-As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production. 
+As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production.
 
 Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
-::: hide 
+::: hide
 ``` r
 #| file: runs/extract_insolation.R
 
@@ -1440,9 +1442,9 @@ if (!require("palinsol")) {
 }
 
 library(palinsol)
-time_end <- 500000    
-time_start <- 0   
-time_step <- 200 
+time_end <- 500000
+time_start <- 0
+time_step <- 200
 times <- seq(time_start, time_end, time_step)
 param_la04 = t(sapply(times, function(t) astro(t, solution = la04, degree = TRUE)))
 orbit <- list()
@@ -1451,16 +1453,16 @@ lat_degree = 25
 
 for (t in 1:length(times)) {
   orbit[[t]] <- list(
-    eps = param_la04[t,1] * pi / 180, 
-    ecc = param_la04[t,2], 
+    eps = param_la04[t,1] * pi / 180,
+    ecc = param_la04[t,2],
     varpi = (param_la04[t,3] - 180) * pi / 180
   )
 
   insolation[[t]] <- Insol(
-    orbit[[t]], 
-    long = pi / 2, 
-    lat = lat_degree * pi / 180, 
-    S0 = 1361, 
+    orbit[[t]],
+    long = pi / 2,
+    lat = lat_degree * pi / 180,
+    S0 = 1361,
     H = NULL
   )
 }
@@ -1583,7 +1585,7 @@ We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ co
 
 Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
 
-Our approach is illustrated with an example of an atoll, starting with a conical topography and  periodic boundaries. 
+Our approach is illustrated with an example of an atoll, starting with a conical topography and  periodic boundaries.
 
 Here we try three different velocity profiles: first no onshore component, second a constant vector that does not depend on water depth, and third an attempt at a more realistic scenario.
 
@@ -1604,7 +1606,7 @@ Figure: Depth profile of wave velocity and shear. The velocity profile was taylo
 ::: hide
 ``` julia
 #| id: velocity-profile
-v_prof(v_max, max_depth, w) = 
+v_prof(v_max, max_depth, w) =
     let k = sqrt(0.5) / max_depth,
         A = 3.331 * v_max,
         α = tanh(k * w),
@@ -1635,7 +1637,7 @@ function main()
 
     v = first.(f)
     s = last.(f)
-    
+
     fig = Figure(size=(8.3cm, 6cm), fontsize=8pt)
     ax1 = Axis(fig[1, 1], title="transport velocity", yreversed=true, xlabel="velocity [m/yr]", ylabel="depth [m]")
     ax2 = Axis(fig[1, 2], title="transport shear", yreversed=true, xlabel="shear [1/yr]", ylabel="depth [m]")
@@ -1673,7 +1675,7 @@ v_prof(v_max) = w -> let (v, s) = v_prof(v_max, 10.0u"m", w)
 
 v_flat(v_max) = _ -> (Vec2(v_max, 0.0u"m/yr"), Vec2(0.0u"1/yr", 0.0u"1/yr"))
 
-initial_topography(x, y) = 
+initial_topography(x, y) =
     - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
 
 facies(v) = [
@@ -1881,13 +1883,13 @@ If we assume that both the facies specific diffusivity and the wave velocity are
 | mounds   | 10.0 | 0.5 |
 | cool water | 50.0 | 2.0 |
 
-Table: chosen parameters to generate results in Figure @fig:atoll. We used a cementation time of $100 \unit{yr}$ and a disintegration rate of $50 \unit{m/Myr}$. {#tbl:transport-coefficients}
+Table: chosen parameters to generate results in Figure @fig:atoll. We used a lithification time of $100 \unit{yr}$ and a disintegration rate of $50 \unit{m/Myr}$. {#tbl:transport-coefficients}
 
 # Conclusions
 
-CarboKitten is a new Open Source stratigraphic forward model dedicated for carbonate depositional environments and modeling of timescales between centuries and millions of years. It integrates previous, well-tested approaches used by the community, i.e. the production model by @Bosscher1992 and the generation of spatial heterogeneity proposed by @Burgess2013 with a new approach to sediment transport, based on the concept of the *active layer* by @Paola1992. The software allows modeling and visualization accessible to laptop users, including attractive plotting functions for common use-cases in stratigraphy and sedimentology, such as Wheeler diagrams, age-depth models and stratigraphic columns. CarboKitten uses heuristics to approximate the dynamics of carbonate production, wave transport and biologically driven spatial heterogeneity. The algorithms do not replicate the physical and biological processes behind these phenomena, but allow obtaining results imitating them at timescales at which they cannot be observed directly. 
+CarboKitten is a new Open Source stratigraphic forward model dedicated for carbonate depositional environments and modeling of timescales between centuries and millions of years. It integrates previous, well-tested approaches used by the community, i.e. the production model by @Bosscher1992 and the generation of spatial heterogeneity proposed by @Burgess2013 with a new approach to sediment transport, based on the concept of the *active layer* by @Paola1992. The software allows modeling and visualization accessible to laptop users, including attractive plotting functions for common use-cases in stratigraphy and sedimentology, such as Wheeler diagrams, age-depth models and stratigraphic columns. CarboKitten uses heuristics to approximate the dynamics of carbonate production, wave transport and biologically driven spatial heterogeneity. The algorithms do not replicate the physical and biological processes behind these phenomena, but allow obtaining results imitating them at timescales at which they cannot be observed directly.
 
-At this stage, CarboKitten's primary value lies not in a realistic replication of empirical stratigraphic architectures, but in its utility for testing hypotheses on the formation of the carbonate geological record and on our own understanding on its governing processes. Further work is needed to allow more detailed reconstructions of known geological situations. Among future refinements are empirical validation of transport and production values or storing the history of sediment transport to track autochthonous and allochthonous sediment. 
+At this stage, CarboKitten's primary value lies not in a realistic replication of empirical stratigraphic architectures, but in its utility for testing hypotheses on the formation of the carbonate geological record and on our own understanding on its governing processes. Further work is needed to allow more detailed reconstructions of known geological situations. Among future refinements are empirical validation of transport and production values or storing the history of sediment transport to track autochthonous and allochthonous sediment.
 
 CarboKitten offers a powerful tool to ground-truth concepts of how time is represented in the physical rock record [e.g., @burgess_nature_2008;@burgess_big_2019;@sultana_how_2022] and constrain the limits of reconstruction of processes such as evolution [@holland_models_1999;@hannisdal_phenotypic_2006;@hohmann_identification_2024], climate change, or other aspects of the changing Earth's environment [e.g., @kemp_investigating_2016;@kemp_metre-scale_2019;@myrow_chemostratigraphic_2000;@geyman_how_2021; @husinec_orbital_2023;@curtis_natural_2025]. We hope the accessibility and reproducibility of CarboKitten simulations will encourage wider use of stratigraphic forward models towards a hypothetico-deductive research in stratigraphy.
 
@@ -1912,6 +1914,5 @@ The authors declare that they have no conflict of interest.
 We thank Joris Eggenhausen for discussions on the transport model and Charlotte Summers for programming support. Niels Drost provided administrative and management support during the project.
 
 Funded by the European Union (ERC, MindTheGap, StG project no 101041077).
-Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them. 
+Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them.
 :::
-

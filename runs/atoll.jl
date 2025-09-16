@@ -12,7 +12,7 @@ using .Threads: @threads
 
 # ~/~ begin <<md/paper.md#velocity-profile>>[init]
 #| id: velocity-profile
-v_prof(v_max, max_depth, w) = 
+v_prof(v_max, max_depth, w) =
     let k = sqrt(0.5) / max_depth,
         A = 3.331 * v_max,
         α = tanh(k * w),
@@ -29,7 +29,7 @@ v_prof(v_max) = w -> let (v, s) = v_prof(v_max, 10.0u"m", w)
 
 v_flat(v_max) = _ -> (Vec2(v_max, 0.0u"m/yr"), Vec2(0.0u"1/yr", 0.0u"1/yr"))
 
-initial_topography(x, y) = 
+initial_topography(x, y) =
     - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
 
 facies(v) = [

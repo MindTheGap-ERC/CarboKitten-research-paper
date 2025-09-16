@@ -3,7 +3,7 @@
 using CarboKitten
 using CarboKitten.Components.Common
 using CarboKitten.Components:
-    TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth, 
+    TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth,
     Tag, ActiveLayer, H5Writer
 using ModuleMixins
 

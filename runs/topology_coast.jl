@@ -47,7 +47,7 @@ function main()
             Δt=0.0002u"Myr",
             steps=5000),
         box = Box{Coast}(
-            grid_size=(250, 50), 
+            grid_size=(250, 50),
             phys_scale=60.0u"m"),
         facies = facies,
         initial_topography = (x, y) -> let x_prime = x - 3.0u"km"

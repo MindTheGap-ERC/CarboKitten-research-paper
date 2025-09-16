@@ -45,7 +45,7 @@ function main()
 	ax2 = Axis(fig[2, 2], title="(d)", aspect=DataAspect(), height=100)
 	hlines!(ax2, [0.0, 5.0])
 	vlines!(ax2, [0.0, 15.0])
-	arrows2d!(ax2, 
+	arrows2d!(ax2,
 			  [Point(7.5, 0.0), Point(7.5, 5.0),
 			   Point(0.0, 2.5), Point(0.0, 2.5),
 			   Point(15.0, 2.5), Point(15.0, 2.5)],

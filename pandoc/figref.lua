@@ -3,18 +3,26 @@ function Cite(el)
   if #el.citations > 1 then
     return
   end
+  local plain_ref = pandoc.write(pandoc.Pandoc{ table.unpack(el.content) }, "plain")
+  local pre = string.match(plain_ref, "%[([^@]*)@.*%]")
+  if pre then
+    pre = pre:gsub("%s+", "") .. "~"
+  else
+    pre = ""
+  end
+  print(el.content, " => ", pre)
   local m = string.match(el.citations[1].id, "(fig:.*)")
   if m ~= nil then
-    return pandoc.RawInline("tex", "\\ref{" .. m .. "}")
-  end 
+    return pandoc.RawInline("tex", pre .. "\\ref{" .. m .. "}")
+  end
   local m = string.match(el.citations[1].id, "(tbl:.*)")
   if m ~= nil then
-    return pandoc.RawInline("tex", "\\ref{" .. m .. "}")
-  end 
+    return pandoc.RawInline("tex", pre .. "\\ref{" .. m .. "}")
+  end
   local m = string.match(el.citations[1].id, "(sec:.*)")
   if m ~= nil then
-    return pandoc.RawInline("tex", "\\ref{" .. m .. "}")
-  end 
+    return pandoc.RawInline("tex", pre .. "\\ref{" .. m .. "}")
+  end
 end
 
 function Table(el)

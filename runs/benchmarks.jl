@@ -11,7 +11,7 @@ using CSV
 # A constant homogeneous wave velocity
 v_const(v_max) = _ -> (Vec2(v_max, 0.0u"m/yr"), Vec2(0.0u"1/yr", 0.0u"1/yr"))
 
-initial_topography(x, y) = 
+initial_topography(x, y) =
     - sqrt((x - 7.5u"km")^2 + (y - 7.5u"km")^2) / 100.0
 
 const FACIES = [

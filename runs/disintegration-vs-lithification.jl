@@ -1,8 +1,8 @@
-# ~/~ begin <<md/paper.md#runs/disintegration-vs-cementation.jl>>[init]
-#| file: runs/disintegration-vs-cementation.jl
+# ~/~ begin <<md/paper.md#runs/disintegration-vs-lithification.jl>>[init]
+#| file: runs/disintegration-vs-lithification.jl
 #| classes: ["task"]
 #| creates:
-#|   - md/fig/disintegration-vs-cementation.pdf
+#|   - md/fig/disintegration-vs-lithification.pdf
 #| requires:
 #|   - runs/TransportTest.jl
 #|   - runs/TransportPlots.jl
@@ -34,14 +34,14 @@ function main()
         result[i] = run_with(;cp[i]...)
     end
 
-    fig = plot_matrix(result[1,:,1,:], 
+    fig = plot_matrix(result[1,:,1,:],
             ["dr = $(d.val) m/Myr" for d in pars.disintegration_rate],
             ["ct = $(d.val) yr" for d in pars.cementation_time];
             fontsize = 10) do ax, result
         plot_topography!(ax, result)
     end
 
-    save("md/fig/disintegration-vs-cementation.pdf", fig)
+    save("md/fig/disintegration-vs-lithification.pdf", fig)
 end
 
 end
