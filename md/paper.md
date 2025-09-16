@@ -46,7 +46,7 @@ dates:
 ::: abstract
 Stratigraphic forward modeling is a powerful tool for testing hypotheses about the geological record and conduct numerical experiments in stratigraphy at timescales not accessible to human observation. Open Source software for stratigraphic modeling available so far has focused on siliciclastic or terrestrial depositional environments. We present CarboKitten, a stratigraphic forward modeling toolkit for tropical carbonate platforms. With performance and accessibility in mind, CarboKitten is implemented in Julia, using the literate programming approach.
 
-CarboKitten integrates three components: the carbonate production model of @Bosscher1992, the cellular automaton for spatial heterogeneity introduced by @Burgess2013, and a novel finite difference transport model inspired by @Paola1992. The model simulates carbonate production through multiple biological factories (typically tropical, mounds, and cool water), accounts for ecological processes that create spatial facies patterns through cellular automaton rules, and implements sediment transport via an active layer approach where material moves along paths of steepest descent.
+CarboKitten integrates three components: the carbonate production model of @Bosscher1992, the cellular automaton for spatial heterogeneity introduced by @Burgess2013, and a novel finite difference transport model inspired by @Paola1992. The model simulates carbonate production through multiple biological factories (typically euphotic, oligophotic and aphotic), accounts for ecological processes that create spatial facies patterns through cellular automaton rules, and implements sediment transport via an active layer approach where material moves along paths of steepest descent.
 
 Key features include support for different boundary conditions, variable sea level and insolation inputs, wave-induced transport capabilities, and visualization tools aiming at beautiful plots. The software exports data in the interoperable HDF5 format and includes functions for creating stratigraphic cross-sections, chronostratigraphic diagrams, topographic maps, and sediment accumulation curves. Performance benchmarks demonstrate linear scaling with grid size and time steps, enabling efficient execution on consumer hardware.
 
@@ -126,13 +126,13 @@ $$P(w) = \sum_f P_f(w)$$
 
 | Factory | $g_m$ $[\unit{m/Myr}]$ | $I_k$ $[\unit{W/m^2}]$ | $k$ $[\unit{m^{-1}}]$ |
 |----|----|----|----|
-| Tropical | 500.0 | 60.0 | 0.8 |
-| Mounds | 400.0 | 60.0 | 0.1 |
-| Cool water | 100.0 | 60.0 | 0.005 |
+| Euphotic | 500.0 | 60.0 | 0.8 |
+| Oligophotic | 400.0 | 60.0 | 0.1 |
+| Aphotic | 100.0 | 60.0 | 0.005 |
 
 : Parameters for the production model of the three default carbonate factories. {#tbl:factories}
 
-Our default parameters define three biological facies based on sediment produced by three carbonate factories: the tropical (T), mounds (M) and cool water (C) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
+Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A)) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
 ![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
 
@@ -167,6 +167,7 @@ const INPUT = BS92.Input(
 ```
 
 ``` julia
+#| file: "runs/production-curves.jl"
 #| classes: ["task"]
 #| creates: ["md/fig/production-curves.pdf"]
 #| collect: figures
@@ -186,9 +187,9 @@ function main()
   fig = Figure(size=(8.3cm, 9.0cm), fontsize=8pt)
   ax = Axis(fig[1, 1])
   production_curve!(ax, INPUT)
-  ax.scene.plots[1].label = "tropical"
-  ax.scene.plots[2].label = "mounds"
-  ax.scene.plots[3].label = "cool water"
+  ax.scene.plots[1].label = "euphotic"
+  ax.scene.plots[2].label = "oligophotic"
+  ax.scene.plots[3].label = "aphotic"
   axislegend(ax, "factories", valign = :bottom)
   save("md/fig/production-curves.pdf", fig)
 end
@@ -209,7 +210,7 @@ For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is cons
 
 Since a dead cell may qualify to become alive for different carbonate factories at the same time, birth priority is rotated every iteration.
 
-In the default configuration we emulate three species, corresponding to the Tropical, Mound and Cool water species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
+In the default configuration we emulate three species, corresponding to the factory species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
 
 ::: hide
 ``` julia
@@ -1427,7 +1428,7 @@ Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). 
 
 ## Insolation
 
-The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the cool water factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths.
+The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the aphotic factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths.
 
 As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production.
 
@@ -1870,7 +1871,7 @@ AtollMapPlot.main()
 ![Atoll topography and sediment profile](fig/atoll-map.png){.wide}
 
 Figure: Topography and sediment profiles of an atoll. We ran the same model three times with different on-shore velocity profiles: no on-shore transport, a constant velocity and lastly the profile given in Equation @eq:velocity-profile. The top row (panels a, b, and c) show the topography of the generated island, while the bottom row (panels d, e, and f) show the corresponding sediment profiles.
-Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Comparing the first (without additional transport vector) and second case (flat profile), we see little change in the overall shape of the atoll, but there is a clear difference in the facies composition at the transition between mounds and deep water dominated areas. In the third case we see the topography changed significantly between the leeward and windward sides of the atoll, where the slope is much steeper. Also the facies composition changed further: most notably we see a relative prominence of tropical facies on the windward side of the island. {#fig:atoll}
+Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Comparing the first (without additional transport vector) and second case (flat profile), we see little change in the overall shape of the atoll, but there is a clear difference in the facies composition at the transition between oligophotic (yellow) and aphotic (green) dominated areas. In the third case we see the topography changed significantly between the leeward and windward sides of the atoll, where the slope is much steeper. Also the facies composition changed further: most notably we see a relative prominence of euphotic (blue) facies on the windward side of the island. {#fig:atoll}
 
 We model the formation of an atoll for three cases: no wave transport, constant transport directed west-ward (along the x-axis), and a depth dependent velocity profile.
 The results of this experiment are shown in Figure @fig:atoll. Velocity functions are configured for each facies separately. We found that it was quite easy to create an unstable model by choosing on-shore velocities too high, particularly in the case where the velocity shear is non-zero. Build-up of material due to high on-shore velocity can be compensated by setting a higher facies diffusion coefficient.
@@ -1879,9 +1880,9 @@ If we assume that both the facies specific diffusivity and the wave velocity are
 
 | facies | diffusivity $[\unit{m/yr}]$ | velocity $[\unit{m/yr}]$ |
 |:---|:---|:---|
-| tropical | 20.0 | 2.0 |
-| mounds   | 10.0 | 0.5 |
-| cool water | 50.0 | 2.0 |
+| euphotic | 20.0 | 2.0 |
+| oligophotic   | 10.0 | 0.5 |
+| aphotic | 50.0 | 2.0 |
 
 Table: chosen parameters to generate results in Figure @fig:atoll. We used a lithification time of $100 \unit{yr}$ and a disintegration rate of $50 \unit{m/Myr}$. {#tbl:transport-coefficients}
 
