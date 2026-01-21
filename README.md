@@ -98,15 +98,23 @@ Citations follow a syntax like `@Bosscher1992`, where `Bosscher1992` is an entry
 
 - `fignos.lua` and `figref.lua` number the figures and enable referencing those figures in the text. The label should be given at the end of the caption, which should be given as a paragraph following the image, starting with `Figure: `. Example:
 
+- `eqnos.lua` makes equations numbered and allows cross referencing them.
+
+- `plain_tables.lua` converts tables to `\begin{table}...\end{table}` environment in LaTeX. This is needed because the default behaviour is to create a `longtable` which doesn't work in 2-column mode.
+
+- `wide_figures.lua` you can tag a figure with the `{.wide}` class, so that it will translate to a LaTeX `figure*` and a set width of `\textwidth`.
+
 ```md
 An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
-![Depth profile](fig/wave-transport-magnitude.svg){width=100%}
+![Depth profile](fig/wave-transport-magnitude.svg){.wide}
 
 Figure: Depth profile of velocity and shear. The velocity profile was taylored to have a maximum of $10 \textrm{m}/\textrm{yr}$ at a depth of $20 \textrm{m}$. Where the shear is non-zero, there is a net accumulation of sediment. {#fig:wave-transport-magnitude}
 ```
 
-- `eqnos.lua` numbers equation and handles references to equations.
+### Template
+
+We use a modified version of the standard Pandoc template for LaTeX output. The `copernicus` document class and citation styles are shipped in the `latex/copernicus` directory. The template in `latex/template.tex` is configured to use the Geoscientific Model Development (gmd) format. To create a (single column) manuscript version, run `make manuscript`.
 
 ## Debugging output
 

@@ -3,7 +3,7 @@ function Pandoc(doc, meta)
   local blocks =  {}
   local prev = false
   for i, el in pairs(doc.blocks) do
-    if prev and (prev.t == "Figure") and (el.content[1] == pandoc.Str("Figure:")) then
+    if prev and (prev.t == "Figure") and el.content and (el.content[1] == pandoc.Str("Figure:")) then
       -- print("ammending Figure ", prev, "\n")
       table.remove(el.content,  1)
       local last = el.content[#el.content]

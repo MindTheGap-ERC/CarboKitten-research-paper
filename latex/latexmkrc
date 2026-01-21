@@ -1,2 +1,5 @@
+ensure_path( 'TEXINPUTS', '../latex/copernicus/' );
+
 $pdf_mode = 1;
-$pdflatex = 'lualatex --shell-escape';
+$pdflatex = 'pdflatex';
+# lualatex --shell-escape';
