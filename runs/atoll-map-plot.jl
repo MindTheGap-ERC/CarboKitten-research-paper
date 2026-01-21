@@ -1,9 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/atoll-map-plot.jl>>[init]
-#| file: runs/atoll-map-plot.jl
-#|# classes: ["task"]
-#|# requires: data/atoll_150_prof.h5
-#|# creates: md/fig/atoll-map.png
-#|# collect: figures
 module AtollMapPlot
 
 using HDF5

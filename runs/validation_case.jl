@@ -1,7 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/validation_case.jl>>[init]
-#| file: runs/validation_case.jl
-#| creates: md/fig/validation.png
-
 module Validation
 
 using Unitful
@@ -96,5 +93,4 @@ end
 end
 
 result = Validation.main()
-
 # ~/~ end

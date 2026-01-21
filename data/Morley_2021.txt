@@ -1,4 +1,4 @@
-Time	Sealevel
+# Time	Sealevel
 0       0
 0.081	-11.74200
 0.085	-9.91080

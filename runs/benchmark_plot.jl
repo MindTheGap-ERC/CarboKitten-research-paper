@@ -1,11 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/benchmark_plot.jl>>[init]
-#| file: runs/benchmark_plot.jl
-#| classes: ["task"]
-#| requires:
-#|   - data/benchmark.csv
-#| creates:
-#|   - md/fig/benchmark.pdf
-#| collect: figures
 module BenchmarkPlot
 
 using CairoMakie

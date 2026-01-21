@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/insolation_run.jl>>[init]
-#| file: runs/insolation_run.jl
 
 module Insolation
 
