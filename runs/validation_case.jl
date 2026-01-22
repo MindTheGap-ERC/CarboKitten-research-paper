@@ -1,7 +1,3 @@
-# ~/~ begin <<md/paper.md#runs/validation_case.jl>>[init]
-#| file: runs/validation_case.jl
-#| creates: md/fig/validation.png
-
 module Validation
 
 using Unitful
@@ -10,12 +6,20 @@ using DelimitedFiles
 using DataFrames
 using Interpolations
 using CairoMakie
+using Tables
+using CSV
 using CarboKitten.Visualization: sediment_profile
 using CarboKitten.Export: read_slice
 
 const TAG = "alcap-validation"
 const FILEPATH = "data/Morley_2021.txt"
 const OUTPUT_FILE = "data/validation.h5"
+
+include("validation_prerun.jl")
+
+function load_init_topo()
+    (CSV.File(ValidationPrerun.DATAFILE) |> Tables.matrix) * u"m"
+end
 
 function sea_level(filepath::String)
     sealevel_data, header = readdlm(filepath,header=true)
@@ -29,61 +33,26 @@ function sea_level(filepath::String)
     return sl_interpolated
 end
 
-function dome_topography(x, y)
-    radius = sqrt(60.0 / π) * u"km"
-    center_x, center_y = 25u"km", 25u"km"
-    dist = sqrt((x - center_x)^2 + (y - center_y)^2)
-    if dist <= radius
-        20.0u"m"
-    else
-        slope = (dist - radius) / (1.0u"km")
-        max(0.0u"m" - 100.0u"m", 20.0u"m" - 10.0u"m" * slope)
-    end
-end
-
-const FACIES = [
-    ALCAP.Facies(
-        viability_range = (4, 10),
-        activation_range = (6, 10),
-        maximum_growth_rate=250u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr"),
-    ALCAP.Facies(
-        viability_range = (4, 10),
-        activation_range = (6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=25.0u"m/yr"),
-    ALCAP.Facies(
-        viability_range = (4, 10),
-        activation_range = (6, 10),
-        maximum_growth_rate=50u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=12.5u"m/yr")
-]
 
 const INPUT = ALCAP.Input(
     tag="$TAG",
-    box=CarboKitten.Box{Coast}(grid_size=(100, 100), phys_scale=0.5u"km"),
+    box=ValidationPrerun.INPUT.box,
     time=TimeProperties(
         t0 = -15.48u"Myr",
-        Δt=200u"yr",
-        steps=36600),
+        Δt=100u"yr",
+        steps=36600*2),
     output=Dict(
-        :topography => OutputSpec(write_interval = 200),
-        :profile => OutputSpec(slice=(:, 25), write_interval=50)),
+        :topography => OutputSpec(write_interval = 1000),
+        :profile => OutputSpec(slice=(:, 50), write_interval=50)),
     ca_interval=10,
-    initial_topography = dome_topography,
+    initial_topography = ValidationPrerun.dome_topography, #load_init_topo(),
     sea_level=sea_level(FILEPATH),
-    subsidence_rate=25.0u"m/Myr",
+    subsidence_rate=30.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
-    facies=FACIES)
+    facies=ValidationPrerun.INPUT.facies)
 
 function main()
     run_model(Model{ALCAP}, INPUT, "$OUTPUT_FILE")
@@ -98,5 +67,4 @@ end
 end
 
 result = Validation.main()
-
-# ~/~ end
+Validation.plot()
