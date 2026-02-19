@@ -1,10 +1,10 @@
 ## General comments
 
-First of all, bravo to the authors for building a comprehensive open-source carbonate stratigraphic model. This is a much needed contribution, and one that nicely builds on the previous CarboCAT model written in Matlab by Burgess and colleagues. The manuscript does a good job of presenting the theory and capabilities of the new model. I appreciate the user-friendly nature of the design, including examples, I/O, visualisation tools, and a literate programming approach that blends code and documentation.
+- [x] First of all, bravo to the authors for building a comprehensive open-source carbonate stratigraphic model. This is a much needed contribution, and one that nicely builds on the previous CarboCAT model written in Matlab by Burgess and colleagues. The manuscript does a good job of presenting the theory and capabilities of the new model. I appreciate the user-friendly nature of the design, including examples, I/O, visualisation tools, and a literate programming approach that blends code and documentation.
 
-That said, I was surprised that there was no mention of how this package might fit into the broader context of open-source software for modeling earth surface processes, given how much activity there has been in that space in recent years. For example, to what extent is CarboKitten interoperable with other surface dynamics models, modular model-building packages, and/or data sets? To what extent, if any, does it take advantage of modern interface standards for numerical model codes? Even if the authors feel that these are not relevant issues, it would be useful to present the reasoning behind such a view.
+- [ ] That said, I was surprised that there was no mention of how this package might fit into the broader context of open-source software for modeling earth surface processes, given how much activity there has been in that space in recent years. For example, to what extent is CarboKitten interoperable with other surface dynamics models, modular model-building packages, and/or data sets? To what extent, if any, does it take advantage of modern interface standards for numerical model codes? Even if the authors feel that these are not relevant issues, it would be useful to present the reasoning behind such a view. @emiliajarochowska @burgesski
 
-Overall, the manuscript is well written and illustrated. There are some aspects of the mathematics, detailed below, that could benefit from more detailed presentation. But on the whole I feel this is a very nice contribution. I especially appreciate the authors' forthrightness in pointing out, for example, the limitations of free parameters. I recommend publication after minor revisions.
+- [x] Overall, the manuscript is well written and illustrated. There are some aspects of the mathematics, detailed below, that could benefit from more detailed presentation. But on the whole I feel this is a very nice contribution. I especially appreciate the authors' forthrightness in pointing out, for example, the limitations of free parameters. I recommend publication after minor revisions.
 
 ## Comments by line or equation number
 
@@ -14,7 +14,7 @@ Overall, the manuscript is well written and illustrated. There are some aspects 
 
 - [ ] Eq 3: at some point it would be helpful to state how the case w < 0 is handled. The equation itself implies positive exponential growth, which obviously isn't what's intended. @jhidding
 
-- [ ] 108 It's probably beyond the scope of this paper, but I wonder how this scales with cell size. I suppose larger cells would mean that a given species is effectively competing over a larger territorial area. In any event, the reliance on number of pixels instead of a spatial scale must mean that pixel size is actually a model parameter rather than just a numerical thing. I also wonder whether this could be viewed as a discrete approximation of a continuum formulation. For example, maybe you could view survival and activation as functions of exponentially weighted population density, with a given decay length scale. The cellular algorithm could then be viewed as a discrete approximation of this. But I realize this is kind of a tangential issue for purposes of a model description paper. @jhidding
+- [ ] 108 It's probably beyond the scope of this paper, but I wonder how this scales with cell size. I suppose larger cells would mean that a given species is effectively competing over a larger territorial area. In any event, the reliance on number of pixels instead of a spatial scale must mean that pixel size is actually a model parameter rather than just a numerical thing. I also wonder whether this could be viewed as a discrete approximation of a continuum formulation. For example, maybe you could view survival and activation as functions of exponentially weighted population density, with a given decay length scale. The cellular algorithm could then be viewed as a discrete approximation of this. But I realize this is kind of a tangential issue for purposes of a model description paper. @jhidding @burgesski
 
 - [ ] 112 I'm not sure what it means for birth priority to be 'rotated every iteration'. @jhidding
 
@@ -90,24 +90,24 @@ then the product h df would be a proper diffusivity, and qf would be either a vo
 
 - [ ] 194-5 please show the form of this slope function @jhidding
 
-- [ ] 205-6 I appreciate the honesty of this statement!
+- [x] 205-6 I appreciate the honesty of this statement!
 
 - [ ] 208 it would be helpful to remind readers of the variables for disintegration rate coefficient and lithification time parameter.
 
-  Also, the comment about scaling suggests that presenting either a non dimensional form of the governing equations, or at least of the parameters, could be useful. Presumably something involving the ratio of lithification time and disintegration rate would pop out. Worth considering at least.
+  Also, the comment about scaling suggests that presenting either a non dimensional form of the governing equations, or at least of the parameters, could be useful. Presumably something involving the ratio of lithification time and disintegration rate would pop out. Worth considering at least. @jhidding
 
-- [ ] 226 is the upwind advection scheme first or second order, and if second order, linear or nonlinear?
+- [ ] 226 is the upwind advection scheme first or second order, and if second order, linear or nonlinear? @jhidding
 
-- [ ] 232 nice to have the two time-step limiters presented, thank you
+- [x] 232 nice to have the two time-step limiters presented, thank you
 
 - [ ] 234 typo
 
-- [ ] 249 not clear to me what 'no longer an active component' means. Does it imply that if erosion were to eat into previous deposits that the original facies composition of those deposits would be ignored?
+- [ ] 249 not clear to me what 'no longer an active component' means. Does it imply that if erosion were to eat into previous deposits that the original facies composition of those deposits would be ignored? @jhidding
 
-- [ ] 253-7 it sounds as if the height of each element is constant; if correct, it would be worth saying so explicitly (I have seen other treatments, for example where layers are based on time rather than thickness).
+- [ ] 253-7 it sounds as if the height of each element is constant; if correct, it would be worth saying so explicitly (I have seen other treatments, for example where layers are based on time rather than thickness). @jhidding
 
-- [ ] 302-305 nice touch to show a convergence test.
+- [x] 302-305 nice touch to show a convergence test.
 
-- [ ] 313 Wonderful to see the literature programming method used here.
+- [x] 313 Wonderful to see the literature programming method used here.
 
 Citation: https://doi.org/10.5194/egusphere-2025-4561-RC2 

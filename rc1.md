@@ -12,6 +12,8 @@ Once these items are addressed, together with minor editorial corrections (typos
 
 ## General comments
 
+> These comments are converted into issues already. - JH
+
  1. Comment on CA
 
 The description of the CA in Sect. 2.3 provides a quick overview of how ecological succession is emulated, but several aspects would benefit from clarification. First, the implementation is said to be a “direct reimplementation of Burgess (2013) CarboCAT,” yet no details are given about whether any modifications were introduced or tested (e.g., neighbourhood size, rule thresholds, asynchronous vs synchronous updating). It would be helpful to state explicitly whether the algorithm reproduces Burgess’s rules verbatim or if adjustments were made for computational or ecological reasons.
@@ -54,42 +56,42 @@ Provide parameter sweeps for the key parameters (diffusivity df, lithification t
 
 The online documentation (mindthegap-erc.github.io) is great and should be referenced in the manuscript. Also, you should mention the license of the code GPL v3. On a side note, that is not that crucial for the paper, the binder server did not work for me when I tried to run the notebooks… so I installed it locally… might be good to have it fixed.
 
-Line-level revision suggestions
+## Line-level revision suggestions
 
-Ln. 40 to 50: regarding models specifically looking at carbonate platform development, the authors might want to add in 1D pyReef-core (https://doi.org/10.5194/gmd-11-2093-2018) and the 2D model from Pastier et al. (https://doi.org/10.1029/2019GC008239).
+- [ ] Ln. 40 to 50: regarding models specifically looking at carbonate platform development, the authors might want to add in 1D pyReef-core (https://doi.org/10.5194/gmd-11-2093-2018) and the 2D model from Pastier et al. (https://doi.org/10.1029/2019GC008239). @emiliajarochowska
 
-Eq. 3: you are providing the units for the different variables in Table 1 but I would also recommend adding them in text below the eq.
+- [ ] Eq. 3: you are providing the units for the different variables in Table 1 but I would also recommend adding them in text below the eq. @jhidding
 
-In Figure 1. What is the value of I0? It needs to be specified.
+- [ ] In Figure 1. What is the value of I0? It needs to be specified. @jhidding
 
-In section 2.3. The reference to Fig. 2 missing.
+- [ ] In section 2.3. The reference to Fig. 2 missing. @jhidding
 
-In Fig. 2: missing colour bar to explain the fig. (each colour corresponds to one type of carbonate)
+- [ ] In Fig. 2: missing colour bar to explain the fig. (each colour corresponds to one type of carbonate) @jhidding
 
-Ln. 103: Change Celullar to Cellular
+- [ ] Ln. 103: Change Celullar to Cellular @jhidding
 
-Ln. 122: rewrite this sentence: “Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment” and fix distintegrated to disintegrated
+- [ ] Ln. 122: rewrite this sentence: “Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment” and fix distintegrated to disintegrated @jhidding
 
- Ln 123: “After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as lithification, being the process of turning loose sediment into rock”: missing comma after transport; change in process to a process. Also I think you should at least modify the end of this sentence. How about rewriting it as: “Once transported, some of the suspended sediment is deposited on the seafloor, where it becomes incorporated into the substrate through lithification (i.e., the conversion of loose sediment into cohesive rock).”
+- [ ] Ln 123: “After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as lithification, being the process of turning loose sediment into rock”: missing comma after transport; change in process to a process. Also I think you should at least modify the end of this sentence. How about rewriting it as: “Once transported, some of the suspended sediment is deposited on the seafloor, where it becomes incorporated into the substrate through lithification (i.e., the conversion of loose sediment into cohesive rock).” @jhidding
 
-Ln 139: I think a formal academic tone will require you to remove all contractions like we’ve, it’s, don’t. So on this line we’ve needs to become we have. There are other instances in the manuscript (e.g., lines 80 and 190 with don’t).
+- [ ] Ln 139: I think a formal academic tone will require you to remove all contractions like we’ve, it’s, don’t. So on this line we’ve needs to become we have. There are other instances in the manuscript (e.g., lines 80 and 190 with don’t). @jhidding
 
-Ln. 149: change crosssection to cross-section
+- [ ] Ln. 149: change crosssection to cross-section @jhidding
 
-In Fig. 7, the description of the push and pop amount is difficult to understand and will need some additional information. More specifically, could you explain the relationship between the light blue colours and the size of the parcel (3/4 and 1/2 that you push and pop respectively).
+- [ ] In Fig. 7, the description of the push and pop amount is difficult to understand and will need some additional information. More specifically, could you explain the relationship between the light blue colours and the size of the parcel (3/4 and 1/2 that you push and pop respectively). @jhidding
 
-Ln 289 change mittigated to mitigated
+- [ ] Ln 289 change mittigated to mitigated @jhidding
 
-Fig. 4 caption change crosssection to cross-section
+- [ ] Fig. 4 caption change crosssection to cross-section @jhidding
 
-Fig. 9 caption change crosssection to cross-section
+- [ ] Fig. 9 caption change crosssection to cross-section @jhidding
 
-Ln. 319: “FIXME ref to the code” replace with something along those lines: “All scripts used to generate figures are available at https://github.com//CarboKitten-paper, release v1.0 (DOI: 10.5281/zenodo.xxxxxxx). The Julia environment is defined by Project.toml and Manifest.toml files.”
+- [ ] Ln. 319: “FIXME ref to the code” replace with something along those lines: “All scripts used to generate figures are available at https://github.com//CarboKitten-paper, release v1.0 (DOI: 10.5281/zenodo.xxxxxxx). The Julia environment is defined by Project.toml and Manifest.toml files.” @jhidding
 
-Ln. 324: Variables external to the production… What do you mean exactly? This is too vague and will need to be reframe.
+- [ ] Ln. 324: Variables external to the production… What do you mean exactly? This is too vague and will need to be reframe. @jhidding
 
-In Fig. 6, you need to add a colour bar for the elevation range. Also in the caption, you need to explain that the superimposed surfaces represent different time step and specify these times.
+- [ ] In Fig. 6, you need to add a colour bar for the elevation range. Also in the caption, you need to explain that the superimposed surfaces represent different time step and specify these times. @jhidding
 
-In Figs. 9, 10., 11 and 13d,e,f: you will need to add a colour bar like the one in Fig. 4 for the dominant facies. Also, for each simulation include grid size and time steps in the captions to make it easier for the reader.
+- [ ] In Figs. 9, 10., 11 and 13d,e,f: you will need to add a colour bar like the one in Fig. 4 for the dominant facies. Also, for each simulation include grid size and time steps in the captions to make it easier for the reader. @jhidding
 
 Citation: https://doi.org/10.5194/egusphere-2025-4561-RC1
