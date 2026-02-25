@@ -12,8 +12,6 @@ using CarboKitten: MemoryOutput
 using CarboKitten.Utility: in_units_of
 using Unitful
 
-# functions from Johan's gist
-
 trapezoid(t, y) = (t[2:end] .- t[1:end-1]) .* (y[2:end] .+ y[1:end-1]) ./ 2 |> sum
 
 moment(g, t, y) = trapezoid(t, y .* g.(t))

@@ -757,10 +757,15 @@ DisintegrationVsCementation.main()
 
 ### Diffusivity
 
-The diffusivity parameter used in CarboKitten is expressed in $m \times Myr^{-1}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $D$ would appear in $\partial_t \eta = D \nabla^2 \eta$ and have units $m^2 \times Myr^{-1}$. In CarboKitten's formulation $\nu_f$ is one factor of $m$ smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting diffusion coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should such values be available, converting these diffusion coefficients to diffusivity values used in the model.
+The diffusivity parameter used in CarboKitten is expressed in $\unit{m/Myr}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $D$ would appear in $\partial_t \eta = D \nabla^2 \eta$ and have units $\unit{m^2/Myr}$. In CarboKitten's formulation $\nu_f$ is one factor of $m$ smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting diffusion coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should such values be available, converting these diffusion coefficients to diffusivity values used in the model.
 
-Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior literature on realistic diffusion coefficients is limited. An effective diffusion coefficient that implicitly accounts for cementation and depth-dependent wave velocity was introduced by @kaufman_depth-dependent_1991.
+Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$. FIXME add references Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from 1.25 $\times 10^6$ for the sand fraction in the photozoan factory to 50 $\times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5 \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for cementation and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
 
+$$D_{Kaufman}(W) = C_0 × \exp(-C_1 × W)$$
+
+where $C_0 = 0.005 \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{Kaufman}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
+
+Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given diffusivity, cementation time and disintegration rate. Values for a diffusivity of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5$ to 8.8 $\times 10^6$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies.
 
 ```julia
 #| file: runs/diffusivity_estimation.jl
@@ -776,8 +781,6 @@ using CarboKitten.Export: read_slice, Header, DataSlice
 using CarboKitten: MemoryOutput
 using CarboKitten.Utility: in_units_of
 using Unitful
-
-# functions from Johan's gist
 
 trapezoid(t, y) = (t[2:end] .- t[1:end-1]) .* (y[2:end] .+ y[1:end-1]) ./ 2 |> sum
 
@@ -954,6 +957,135 @@ end
 
 end # module
 ```
+
+```julia
+#| file: runs/diffusivity_scan.jl
+using CarboKitten
+using CarboKitten.Models: ALCAP as M
+using GLMakie
+using Unitful: ustrip, unit, NoUnits
+using DelimitedFiles
+
+include("diffusivity_estimation.jl")
+
+box = CarboKitten.Box{Periodic{2}}(grid_size=(100, 1), phys_scale=50.0u"m")
+
+t_end = 1.0u"Myr"
+Δt = 50.0u"yr"
+t_steps = t_end / Δt |> ceil |> Int
+peak_centre = box.phys_scale * box.grid_size[1] ÷ 2
+peak_width = 200.0u"m"
+peak_height = 10.0u"m"
+write_interval = max(1, t_steps ÷ 1000)
+
+facies1 = M.Facies(
+	viability_range = (0, 0),
+	activation_range = (0, 0),
+	maximum_growth_rate = 0u"m/Myr",
+	extinction_coefficient = 0u"m^-1",
+	saturation_intensity = 60u"W/m^2",
+	diffusion_coefficient = 5u"m/yr",
+	wave_velocity = _ -> (Vec2(0.0u"m/Myr", 0.0u"m/Myr"), Vec2(0.0u"1/Myr", 0.0u"1/Myr")),
+	initial_sediment = (x, _) -> peak_height * exp(-(x - peak_centre)^2/(2 * peak_width^2)),
+)
+
+function make_input(; cementation_time, disintegration_rate)
+	M.Input(
+		facies = [facies1],
+		box = box,
+		time = TimeProperties(Δt=Δt, steps=t_steps),
+		output = Dict(:profile => OutputSpec(slice=(:, 1), write_interval=write_interval)),
+		cementation_time = cementation_time,
+		disintegration_rate = disintegration_rate,
+		subsidence_rate = 0.0u"m/Myr",
+		sea_level = _ -> 0.0u"m",
+		initial_topography = (_, _) -> -100.0u"m",
+		insolation = 0.0u"W/m^2",
+		transport_solver = Val{:forward_euler},
+		depositional_resolution = 1.0u"km",
+		sediment_buffer_size = 2,
+	)
+end
+
+parameters = Dict(
+	:cementation_time    => [1000, 2500, 5000] .* u"yr",
+	:disintegration_rate => [5.0, 10.0, 20.0, 50.0] .* u"m/Myr",
+)
+
+function cartesian_product(pars::Dict{Key,Vector}) where {Key}
+	if isempty(pars)
+		return [ Dict{Key, Any}() ]
+	end
+	pars = copy(pars)
+	result = []
+	k, vs = first(pairs(pars))
+	for item in cartesian_product(delete!(pars, k))
+		for v in vs
+			push!(result, merge(item, Dict(k => v)))
+		end
+	end
+	return result
+end
+
+ct_values = parameters[:cementation_time]
+dr_values = parameters[:disintegration_rate]
+D_values   = Matrix{Any}(undef, length(ct_values), length(dr_values))
+
+for (i_ct, ct) in enumerate(ct_values)
+	for (i_dr, dr) in enumerate(dr_values)
+		inp    = make_input(cementation_time=ct, disintegration_rate=dr)
+
+		output = run_model(Model{M}, inp, MemoryOutput(inp))
+
+		fig = Figure()
+		ax  = Axis(fig[1, 1])
+		x   = output.header.axes.x |> in_units_of(u"km")
+		y   = output.data_slices[:profile].sediment_thickness |> in_units_of(u"m")
+		for i in [1, 100, 1000]
+			lines!(ax, x, y[:, i])
+		end
+
+		ct_val = round(Int, ustrip(u"yr", ct))
+		dr_val = round(ustrip(u"m/Myr", dr), digits=2)
+		save("data/diffusivity_scan/ct_$(ct_val)yr_dr$(dr_val)mMyr.png", fig)
+
+		est = DiffusivityEstimation.estimate_diffusivity(output, use_active_layer=false)
+		D_values[i_ct, i_dr] = est.D
+	end
+end
+
+# strip units for plotting
+D_unit   = unit(first(D_values))
+D_matrix = ustrip.(D_values)
+ct_axis  = ustrip.(u"yr",   ct_values)
+dr_axis  = ustrip.(u"m/Myr", dr_values)
+
+# save D_matrix to CSV: rows = cementation_time, cols = disintegration_rate
+open("data/diffusivity_scan/D_matrix.csv", "w") do io
+    write(io, "cementation_time_yr," * join(["dr_$(d)mMyr" for d in dr_axis], ",") * "\n")
+    for (i, ct) in enumerate(ct_axis)
+        write(io, "$(ct)," * join(D_matrix[i, :], ",") * "\n")
+    end
+end
+
+fig_summary = Figure()
+ax = Axis(fig_summary[1, 1],
+	xlabel = "cementation time [yr]",
+	ylabel = "disintegration rate [m/Myr]",
+	title  = "Estimated diffusion coefficient for diffusivity = $(facies1.diffusion_coefficient)",
+    aspect = length(ct_axis) / length(dr_axis))
+hm = heatmap!(ax, ct_axis, dr_axis, D_matrix)
+Colorbar(fig_summary[1, 2], hm, label = "D [$D_unit]")
+save("data/diffusivity_scan/D_summary.png", fig_summary)
+```
+
+Table: Estimated effective diffusion coefficient $D$ [m² Myr⁻¹] for combinations of cementation time and disintegration rate $d_r$ at facies diffusivity equal to 5 m/yr. {#tbl:diffusivity-scan}
+
+| Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
+|:---|---:|---:|---:|---:|
+| 1000 yr | 36,565 | 72,237 | 137,595 | 299,711 |
+| 2500 yr | 84,136 | 165,496 | 301,921 | 540,862 |
+| 5000 yr | 156,904 | 300,574 | 503,548 | 879,985 |
 
 ## Implementation and limitations
 
