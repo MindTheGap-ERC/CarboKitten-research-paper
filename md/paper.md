@@ -759,7 +759,7 @@ DisintegrationVsCementation.main()
 
 The diffusivity parameter used in CarboKitten is expressed in $\unit{m/Myr}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $D$ would appear in $\partial_t \eta = D \nabla^2 \eta$ and have units $\unit{m^2/Myr}$. In CarboKitten's formulation $\nu_f$ is one factor of $m$ smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting diffusion coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should such values be available, converting these diffusion coefficients to diffusivity values used in the model.
 
-Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$. FIXME add references Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from 1.25 $\times 10^6$ for the sand fraction in the photozoan factory to 50 $\times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5 \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for cementation and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
+Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from 1.25 $\times 10^6$ for the sand fraction in the photozoan factory to 50 $\times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5 \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for cementation and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
 
 $$D_{Kaufman}(W) = C_0 × \exp(-C_1 × W)$$
 
@@ -917,7 +917,7 @@ function _fit_diffusivity(t, μ, σ; R²_threshold=0.99)
 
     D = fit.b / 2
 
-    @info "Estimated diffusivity: $D"
+    @info "Estimated effective diffusion coefficient: $D"
     @info "Linear fit R² = $(fit.R²), using $(n_fit)/$(n) valid time steps"
     @info "Fit range: t = $(t_v[1]) to $(t_v[n_fit])"
     @info "Peak center at t_first: $(μ_v[1]), t_last: $(μ_v[n_fit])"
