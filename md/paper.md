@@ -479,13 +479,13 @@ That being said, by considering some artificial scenarios we can gain more insig
 The chosen disintegration rate will determine wheter our model is on average erosive or accumulative. In the case of a platform morphology, the potential production exceeds the subsidence, meaning that the subsidence rate sets the pace at which the platform grows. At the edge of the platform, there is a transitional region where the maximum production is at pace with the subsidence. If the distintegration rate is higher than the subsidence rate, produced sediment will be immediately disintegrated and stay in the active layer for much longer, and be transported down slope. If the disintegration rate is much lower than the subsidence rate, produced (autochtonous) sediment can accumulate directly, generating sharper features.
 
 ### Equilibrium Concentration
-The model parametrizes sediment disintegration (i.e. activation or entrainment of older sediments) by a global constant disintegration rate $r_d$. Entrained sediment is transported by the mechanism described above, and then (re)lithifies by a given percentage every time step. The lithification time is specified as a half-life time $l_{1/2}$. In absence of production, and with infinite available sediment for disintegration, we can see the amount of entrained sediment $C$ reaching an equilibrium:
+The model parametrizes sediment disintegration (i.e. activation or entrainment of older sediments) by a global constant disintegration rate $r_d$. Entrained sediment is transported by the mechanism described above, and then (re)lithifies by a given percentage every time step. The lithification time is specified as a half-life time $l$. In absence of production, and with infinite available sediment for disintegration, we can see the amount of entrained sediment $C$ reaching an equilibrium:
 
 $$C(t + \Delta t) = C(t) 2^{-\Delta t / l} + r\Delta t,$$
 
 and taking the limit $\Delta t \to 0$, the equilibrium is reached at,
 
-$$<C> = \frac{1}{\ln 2}\ r_d\ l_{1/2}.$$
+$$\langle C\rangle = \frac{1}{\ln 2}\ r_d\ l.$$
 
 This equilibrium (having units of $\unit{m}$) can be useful when estimating the effects of choosing the disintegration rate and lithification time.
 
