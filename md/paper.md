@@ -765,7 +765,7 @@ $$D_{Kaufman}(W) = C_0 × \exp(-C_1 × W)$$
 
 where $C_0 = 0.005 \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{Kaufman}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
-Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given diffusivity, cementation time and disintegration rate. Values for a diffusivity of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5$ to 8.8 $\times 10^6$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies.
+Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given diffusivity, cementation time and disintegration rate. Values for a diffusivity of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5$ to 8.8 $\times 10^6$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $D$ values obtained using this estimate scale linearly with input diffusivity.
 
 ```julia
 #| file: runs/diffusivity_estimation.jl
