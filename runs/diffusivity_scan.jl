@@ -1,7 +1,7 @@
 # ~/~ begin <<md/paper.md#runs/diffusivity_scan.jl>>[init]
 using CarboKitten
 using CarboKitten.Models: ALCAP as M
-using GLMakie
+using CairoMakie
 using Unitful: ustrip, unit, NoUnits
 using DelimitedFiles
 

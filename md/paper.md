@@ -962,7 +962,7 @@ end # module
 #| file: runs/diffusivity_scan.jl
 using CarboKitten
 using CarboKitten.Models: ALCAP as M
-using GLMakie
+using CairoMakie
 using Unitful: ustrip, unit, NoUnits
 using DelimitedFiles
 
