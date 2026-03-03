@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/TransportPlots.jl>>[init]
-#| file: runs/TransportPlots.jl
 module TransportPlots
 
 using CarboKitten

@@ -473,10 +473,26 @@ A different approach has been used in the early model `CARBPLAT` by @bosscher_ca
 
 Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and lithification time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
 
+That being said, by considering some artificial scenarios we can gain more insight into the behaviour of our main parameters.
+
+### Disintegration versus subsidence
+The chosen disintegration rate will determine wheter our model is on average erosive or accumulative. In the case of a platform morphology, the potential production exceeds the subsidence, meaning that the subsidence rate sets the pace at which the platform grows. At the edge of the platform, there is a transitional region where the maximum production is at pace with the subsidence. If the distintegration rate is higher than the subsidence rate, produced sediment will be immediately disintegrated and stay in the active layer for much longer, and be transported down slope. If the disintegration rate is much lower than the subsidence rate, produced (autochtonous) sediment can accumulate directly, generating sharper features.
+
+### Equilibrium Concentration
+The model parametrizes sediment disintegration (i.e. activation or entrainment of older sediments) by a global constant disintegration rate $r_d$. Entrained sediment is transported by the mechanism described above, and then (re)lithifies by a given percentage every time step. The lithification time is specified as a half-life time $l_{1/2}$. In absence of production, and with infinite available sediment for disintegration, we can see the amount of entrained sediment $C$ reaching an equilibrium:
+
+$$C(t + \Delta t) = C(t) 2^{-\Delta t / l} + r\Delta t,$$
+
+and taking the limit $\Delta t \to 0$, the equilibrium is reached at,
+
+$$<C> = \frac{1}{\ln 2}\ r_d\ l_{1/2}.$$
+
+This equilibrium (having units of $\unit{m}$) can be useful when estimating the effects of choosing the disintegration rate and lithification time.
+
 ### Disintegration versus lithification
 Both the disintegration rate and the lithification time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high lithification time (thus a slow lithification) over a high disintegration rate can help in transporting only freshly produced sediments.
 
-Note that not setting the lithification rate (which would amount to immediately depositing all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
+Note that not setting the lithification time (which would amount to immediately depositing all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
 
 To understand the relative effects of choosing a certain lithification time and/or disintegration rate, we ran a one-dimensional model where sediment is produced in a central patch. Then we can study the rate at which sediment is dispersed, either by direct transport before lithification happens, or by subsequent disintegration and re-deposition. By carefully choosing the parameters, we can make a slow lithification process look very similar to a high disintegration rate, as shown in Figure @fig:disintegration-vs-lithification.
 

@@ -1,8 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/atoll.jl>>[init]
-#| file: runs/atoll.jl
-#| classes: ["task"]
-#| creates: data/atoll.h5
-#| collect: atoll
 
 module Atoll
 
@@ -11,7 +7,6 @@ using GeometryBasics
 using .Threads: @threads
 
 # ~/~ begin <<md/paper.md#velocity-profile>>[init]
-#| id: velocity-profile
 v_prof(v_max, max_depth, w) =
     let k = sqrt(0.5) / max_depth,
         A = 3.331 * v_max,

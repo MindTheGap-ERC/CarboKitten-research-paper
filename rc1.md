@@ -6,7 +6,12 @@ The manuscript presents CarboKitten, an open-source stratigraphic forward model 
 
 I recommend several revisions/improvements before publication. Overall, the manuscript is well written, and the software fills a clear niche (open, Julia, carbonate-focused, CA + transport). However, the paper currently lacks adequate empirical/quantitative validation and some methodological details and justifications that are necessary for an EGU-Esurf research/software paper (see comments below). Many of the issues are fixable with additional analyses, clarifications and small code/documentation updates.
 
-The principal issues are (1) insufficient validation -- no comparison with empirical or previously published model results; (2) lack of a systematic sensitivity analysis for key parameters controlling production, lithification, and diffusion; (3) incomplete discussion of numerical stability (CFL limits, time step guidance) and missing automatic checks; and (4) incomplete reproducibility: figure-generation scripts and environment files are not yet linked (there is still a “FIXME” placeholder).
+The principal issues are
+
+1. insufficient validation -- no comparison with empirical or previously published model results;
+2. lack of a systematic sensitivity analysis for key parameters controlling production, lithification, and diffusion;
+3. incomplete discussion of numerical stability (CFL limits, time step guidance) and missing automatic checks; and
+4. incomplete reproducibility: figure-generation scripts and environment files are not yet linked (there is still a “FIXME” placeholder).
 
 Once these items are addressed, together with minor editorial corrections (typos, units in tables, full code citation, consistent references), the paper will be suitable for publication. There is a really good online documentation associated with the code and I believe it has strong pedagogical potential and could become a reference implementation for open carbonate platform forward models.
 
