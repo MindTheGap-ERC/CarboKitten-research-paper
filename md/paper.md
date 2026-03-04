@@ -221,13 +221,13 @@ Represent spatial heterogeneity resulting from positive and negative biological 
 3. the approach must be scalable to *n* facies, even if we focus the examples here on 3;
 4. adjustable temporal persistence: it must be possible to set the turnover frequency.
 
-The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in his package CarboCAT.
+The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in his package CarboCAT. Cellular automata are common tools to generate spatial heterogeniety in forward modeling, with some models serving as discrete approximations of partial differential equations that can generate complex spatial dynamics such as Turing patterns @Dormann2001 @drummond_self-organizing_1999.
 
 The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
 
 For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive.
 
-Since a dead cell may qualify to become alive for different carbonate factories at the same time, birth priority is rotated every iteration.
+A dead cell may qualify to become alive for different carbonate factories at the same time. To resolve this priority collision and avoid favoring specific facies, facies priority for occupying a dead cell is rotated every iteration.
 
 In the default configuration we emulate three species, corresponding to the factory species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
 
