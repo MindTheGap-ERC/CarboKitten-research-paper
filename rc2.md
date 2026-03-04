@@ -10,23 +10,29 @@
 
 - [ ] 34-5 Is this really the extent of existing forward stratigraphic models? What about SedSim or Dionysus (albeit both closed source I think), MIDAS, Sequence, etc.? @emiliajarochowska
 
-- [ ] 80 Lack of subsidence correction was surprising at first. It might help to note that eta is defined relative to a reference level in the bedrock column, rather than to say the geoid or current sea level. @jhidding
+- [x] 80 Lack of subsidence correction was surprising at first. It might help to note that eta is defined relative to a reference level in the bedrock column, rather than to say the geoid or current sea level. @jhidding
 
 JH: This reflects more closely how we implemented this in the code. 
 
-- [ ] Eq 3: at some point it would be helpful to state how the case w < 0 is handled. The equation itself implies positive exponential growth, which obviously isn't what's intended. @jhidding
+- [x] Eq 3: at some point it would be helpful to state how the case w < 0 is handled. The equation itself implies positive exponential growth, which obviously isn't what's intended. @jhidding
 
 - [ ] 108 It's probably beyond the scope of this paper, but I wonder how this scales with cell size. I suppose larger cells would mean that a given species is effectively competing over a larger territorial area. In any event, the reliance on number of pixels instead of a spatial scale must mean that pixel size is actually a model parameter rather than just a numerical thing. I also wonder whether this could be viewed as a discrete approximation of a continuum formulation. For example, maybe you could view survival and activation as functions of exponentially weighted population density, with a given decay length scale. The cellular algorithm could then be viewed as a discrete approximation of this. But I realize this is kind of a tangential issue for purposes of a model description paper. @jhidding @burgesski
 
-- [ ] 112 I'm not sure what it means for birth priority to be 'rotated every iteration'. @jhidding
+- [x] 112 I'm not sure what it means for birth priority to be 'rotated every iteration'. @jhidding
 
-- [ ] Fig 2: what are each of the colors? @jhidding
+> JH: Added a paragraph to explain what this means.
 
-- [ ] 122 please give units or dimensions of Cf @jhidding
+- [x] Fig 2: what are each of the colors? @jhidding
 
-- [ ] 124 when sediment is deposited/lithified, what facies does it form? Oh never mind, I see the later statement that Cf is considered separately for each facies. So I guess that means there is a PDE for Cf for each f. @jhidding
+> JH: Colors represent facies; added a sentence to explain.
 
-- [ ] 130 This sketch of the algorithm is helpful. It would be even better if you could be a bit more specific in the following sense: if step 2 is calculating a RATE that will be time-integrated later, then it would be helpful to describe it as a rate; same with Df in step 3. In step 4, perhaps refer to flux rather than concentration? In step 5, to be consistent with the others, you could give the rate (or thickness?) variable. Also, if the time integration of steps 2-5 is done all at once, then it would be helpful to add a step in which the integration is performed and w, eta, and Cf are updated. @jhidding
+- [x] 122 please give units or dimensions of Cf @jhidding
+
+- [x] 124 when sediment is deposited/lithified, what facies does it form? Oh never mind, I see the later statement that Cf is considered separately for each facies. So I guess that means there is a PDE for Cf for each f. @jhidding
+
+- [ ] 130 This sketch of the algorithm is helpful. It would be even better if you could be a bit more specific in the following sense: if step 2 is he choice of neighbourhood (5 x 5) and activation/viability ranges (6 ≤ n ≤ 10 and 4 ≤ n ≤ 10, respectively). Are these empirical defaults or user-defined parameters? A short sensitivity check or schematic (showing how cell states evolve under different thresholds) would clarify the model’s behaviour.calculating a RATE that will be time-integrated later, then it would be helpful to describe it as a rate; same with Df in step 3. In step 4, perhaps refer to flux rather than concentration? In step 5, to be consistent with the others, you could give the rate (or thickness?) variable. Also, if the time integration of steps 2-5 is done all at once, then it would be helpful to add a step in which the integration is performed and w, eta, and Cf are updated. @jhidding
+
+> JH: These are several questions: about the CA.
 
 - [ ] 144 typo @jhidding
 

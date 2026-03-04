@@ -92,7 +92,7 @@ Initial topography
 
 Topography
 
-:   The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below).
+:   The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below), so it should be considered relative to a bedrock reference. This definition matches how coordinates are handled in CarboKitten internally.
 
 Relative sea level
 
@@ -112,9 +112,12 @@ $$\frac{\partial \eta}{\partial t} = P(\eta),$$
 
 where $P$ is the sediment production in $\textrm{m/Myr}$,
 
-$$P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),$$
+$$P(w) = \begin{cases}
+g_m \tanh\left(\frac{I_0}{I_k}\ e^{-kw}\right) & \text{if $w \ge 0$}\\
+0 & \text{if $w < 0$}
+\end{cases},$$
 
-where $I_0$ is the insolation, $I_k$ is the saturation intensity, $k$ the extinction coefficient and $g_m$ the maximum growth rate.
+where $I_0$ is the insolation, $I_k$ is the saturation intensity, $k$ the extinction coefficient and $g_m$ the maximum growth rate. 
 
 This model encapsulates both the exponential extinction of sun light as water depth increases, and the idea that the growth of organisms interpolates between no growth at great depth and saturated growth in shallow waters (i.e. solar input is not the limiting factor at those depths).
 
@@ -134,38 +137,9 @@ $$P(w) = \sum_f P_f(w)$$
 
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A)) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
-![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
+![Production curves for three default carbonate factories, and as an example a facies with a pelagic production profile.](fig/production-curves.pdf){#fig:factories width="8.3cm"}
 
 ::: hide
-``` julia
-#| id: bs92-input
-const FACIES = [
-    BS92.Facies(
-         maximum_growth_rate=500u"m/Myr"/4,
-         extinction_coefficient=0.8u"m^-1",
-         saturation_intensity=60u"W/m^2"),
-    BS92.Facies(
-         maximum_growth_rate=400u"m/Myr"/4,
-         extinction_coefficient=0.1u"m^-1",
-         saturation_intensity=60u"W/m^2"),
-    BS92.Facies(
-         maximum_growth_rate=100u"m/Myr"/4,
-         extinction_coefficient=0.005u"m^-1",
-         saturation_intensity=60u"W/m^2")]
-
-const INPUT = BS92.Input(
-    tag = "example model BS92",
-    box = CarboKitten.Box{Coast}(grid_size=(100, 1), phys_scale=150.0u"m"),
-    time = TimeProperties(
-        Δt = 200.0u"yr",
-        steps = 5000),
-    sea_level = t -> 4.0u"m" * sin(2π * t / 0.2u"Myr"),
-    initial_topography = (x, y) -> - x / 300.0,
-    subsidence_rate = 50.0u"m/Myr",
-    insolation = 400.0u"W/m^2",
-    facies = FACIES)
-```
-
 ``` julia
 #| file: "runs/production-curves.jl"
 #| classes: ["task"]
@@ -214,11 +188,13 @@ The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the o
 
 The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
 
-For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive.
+For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive. The activation and viability ranges are configurable per facies, but we've found that there is little room for changing these values to retain interesting dynamical behaviour.
 
-Since a dead cell may qualify to become alive for different carbonate factories at the same time, birth priority is rotated every iteration.
+Since a dead cell may qualify to become alive for different carbonate factories at the same time, birth priority is rotated every iteration. As described in @Burgess2013, suppose a dead cell is fit for activation in two different factories, we need a mechanism to prioritize one or the other. To prevent any factory from dominating over another, we rotate this priority every time step. 
 
 In the default configuration we emulate three species, corresponding to the factory species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
+
+@Burgess2013 adds more complications to their CA: moderating production efficiency by a crowding factor, and killing factories if they don't produce enough sediment; but we chose for the purpose of simplicity and research scope to leave out those effects in our current implementation. CarboKitten is written in a modular style, where implementing a different CA or enhancing the existing one can be done with relatively little effort.
 
 ::: hide
 ``` julia
@@ -321,7 +297,7 @@ Script.main()
 
 ![CA](fig/ca-long-term.pdf){.wide}
 
-Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
+Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Each color represents a carbonate factory, but since the CA process is not affected by facies identity we leave out any designation. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
 ## Transport {#sec:model-transport}
 
