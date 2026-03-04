@@ -32,21 +32,25 @@ JH: This reflects more closely how we implemented this in the code.
 
 - [ ] 130 This sketch of the algorithm is helpful. It would be even better if you could be a bit more specific in the following sense: if step 2 is he choice of neighbourhood (5 x 5) and activation/viability ranges (6 ≤ n ≤ 10 and 4 ≤ n ≤ 10, respectively). Are these empirical defaults or user-defined parameters? A short sensitivity check or schematic (showing how cell states evolve under different thresholds) would clarify the model’s behaviour.calculating a RATE that will be time-integrated later, then it would be helpful to describe it as a rate; same with Df in step 3. In step 4, perhaps refer to flux rather than concentration? In step 5, to be consistent with the others, you could give the rate (or thickness?) variable. Also, if the time integration of steps 2-5 is done all at once, then it would be helpful to add a step in which the integration is performed and w, eta, and Cf are updated. @jhidding
 
-> JH: These are several questions: about the CA.
+> JH: These are several questions: about the CA. The purpose of this section is to give a global overview of the model.
 
-- [ ] 144 typo @jhidding
+- [x] 144 typo @jhidding
 
-- [ ] Eq 5: Here and in the following development it would be very helpful to clarify units or dimensions. From equations 5 and 6, qf must have units of velocity times whatever units Cf has. @jhidding
+- [x] Eq 5: Here and in the following development it would be very helpful to clarify units or dimensions. From equations 5 and 6, qf must have units of velocity times whatever units Cf has. @jhidding
 
-- [ ] 163 calling df a diffusivity suggests that it should have dimensions of length squared per time, but if vf is a velocity, then shouldn't df also have dimensions of velocity? I am wondering whether there isn't a 'hidden' length scale, such as active layer thickness. If for example you defined active layer thickness as h, Cf as dimensionless volumetric concentration, and qf as
+> JH: Previously we clarified that Cf has units of m. Our transport coeficient has units of m/Myr.
+
+- [x] 163 calling df a diffusivity suggests that it should have dimensions of length squared per time, but if vf is a velocity, then shouldn't df also have dimensions of velocity? I am wondering whether there isn't a 'hidden' length scale, such as active layer thickness. If for example you defined active layer thickness as h, Cf as dimensionless volumetric concentration, and qf as
 
 qf = -Cf h (df grad(eta) + vf)
 
 then the product h df would be a proper diffusivity, and qf would be either a volume or mass flux per unit width (depending on whether concentration is vol/vol or mass/vol). And multiplying vf by active layer thickness and concentration would make it a proper flux per unit width. In any case, some explanation in the text would help readers make sense of these variables. @jhidding
 
-- [ ] 167 typo @jhidding
+> The active layer thickness does not enter into the equations, just the amount of sediment that is entrained in the active layer.
 
-- [ ] *Moderate* Add appendix with derivation of Eq 7. @jhidding
+- [x] 167 typo @jhidding
+
+- [x] *Moderate* Add appendix with derivation of Eq 7. @jhidding
 
   Eq 7: I tried re-deriving this but failed. I recommend providing a derivation in an appendix or supplement. Probably I'm just being daft, but for what it's worth, here is the source of my reasoning; hopefully the authors can show that I have made a basic mistake in the following:
   
@@ -94,25 +98,37 @@ then the product h df would be a proper diffusivity, and qf would be either a vo
 
   - how you end up with 3 terms with derivatives of w when the form of 5 and 6 suggest there should only be two.
 
-- [ ] 173 not clear to me how/why Cf acts as a proxy for eta @jhidding
+> We provide an appendix with a complete derivation.
 
-- [ ] 194-5 please show the form of this slope function @jhidding
+- [x] 173 not clear to me how/why Cf acts as a proxy for eta @jhidding
+
+- [ ] 194-5 please show the form of this slope function @ejarochowska
 
 - [x] 205-6 I appreciate the honesty of this statement!
 
-- [ ] 208 it would be helpful to remind readers of the variables for disintegration rate coefficient and lithification time parameter.
+- [x] 208 it would be helpful to remind readers of the variables for disintegration rate coefficient and lithification time parameter.
 
   Also, the comment about scaling suggests that presenting either a non dimensional form of the governing equations, or at least of the parameters, could be useful. Presumably something involving the ratio of lithification time and disintegration rate would pop out. Worth considering at least. @jhidding
 
-- [ ] 226 is the upwind advection scheme first or second order, and if second order, linear or nonlinear? @jhidding
+> Added a section explaining the relation of lithification time and disintegration rate in the form of an equilibrium sediment amount in the active layer.
+
+- [x] 226 is the upwind advection scheme first or second order, and if second order, linear or nonlinear? @jhidding
+
+> Added word first-order.
 
 - [x] 232 nice to have the two time-step limiters presented, thank you
 
-- [ ] 234 typo
+- [x] 234 typo
+
+> line was removed in edit.
 
 - [ ] 249 not clear to me what 'no longer an active component' means. Does it imply that if erosion were to eat into previous deposits that the original facies composition of those deposits would be ignored? @jhidding
 
-- [ ] 253-7 it sounds as if the height of each element is constant; if correct, it would be worth saying so explicitly (I have seen other treatments, for example where layers are based on time rather than thickness). @jhidding
+> Removed this by-sentence as it is indeed confusing. We somehow want to emphasise that the buffer is only used for precisely the purpose of retaining facies composition in the face of erosion.
+
+- [x] 253-7 it sounds as if the height of each element is constant; if correct, it would be worth saying so explicitly (I have seen other treatments, for example where layers are based on time rather than thickness). @jhidding
+
+> added a paragraph explaining our reasoning here.
 
 - [x] 302-305 nice touch to show a convergence test.
 
