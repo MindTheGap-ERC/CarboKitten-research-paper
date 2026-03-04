@@ -12,6 +12,8 @@
 
 - [ ] 80 Lack of subsidence correction was surprising at first. It might help to note that eta is defined relative to a reference level in the bedrock column, rather than to say the geoid or current sea level. @jhidding
 
+JH: This reflects more closely how we implemented this in the code. 
+
 - [ ] Eq 3: at some point it would be helpful to state how the case w < 0 is handled. The equation itself implies positive exponential growth, which obviously isn't what's intended. @jhidding
 
 - [ ] 108 It's probably beyond the scope of this paper, but I wonder how this scales with cell size. I suppose larger cells would mean that a given species is effectively competing over a larger territorial area. In any event, the reliance on number of pixels instead of a spatial scale must mean that pixel size is actually a model parameter rather than just a numerical thing. I also wonder whether this could be viewed as a discrete approximation of a continuum formulation. For example, maybe you could view survival and activation as functions of exponentially weighted population density, with a given decay length scale. The cellular algorithm could then be viewed as a discrete approximation of this. But I realize this is kind of a tangential issue for purposes of a model description paper. @jhidding @burgesski
@@ -110,4 +112,4 @@ then the product h df would be a proper diffusivity, and qf would be either a vo
 
 - [x] 313 Wonderful to see the literature programming method used here.
 
-Citation: https://doi.org/10.5194/egusphere-2025-4561-RC2 
+Citation: https://doi.org/10.5194/egusphere-2025-4561-RC2
