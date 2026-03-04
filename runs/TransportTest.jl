@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/TransportTest.jl>>[init]
-#| file: runs/TransportTest.jl
 module TransportTest
 
 include("CustomProductionModel.jl")

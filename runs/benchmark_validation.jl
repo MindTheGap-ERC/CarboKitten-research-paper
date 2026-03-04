@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/benchmark_validation.jl>>[init]
-#| file: runs/benchmark_validation.jl
 module BenchmarkValidation
 
 using CairoMakie

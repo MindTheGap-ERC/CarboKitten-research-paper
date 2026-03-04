@@ -1,12 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/disintegration-vs-lithification.jl>>[init]
-#| file: runs/disintegration-vs-lithification.jl
-#| classes: ["task"]
-#| creates:
-#|   - md/fig/disintegration-vs-lithification.pdf
-#| requires:
-#|   - runs/TransportTest.jl
-#|   - runs/TransportPlots.jl
-#| collect: figures
 module DisintegrationVsCementation
 
 include("TransportPlots.jl")

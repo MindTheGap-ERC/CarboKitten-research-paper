@@ -1,8 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/production-curves.jl>>[init]
-#| file: "runs/production-curves.jl"
-#| classes: ["task"]
-#| creates: ["md/fig/production-curves.pdf"]
-#| collect: figures
 
 module Script
 using CairoMakie
@@ -10,7 +6,6 @@ using CarboKitten
 using CarboKitten.Visualization: production_curve!
 
 # ~/~ begin <<md/paper.md#bs92-input>>[init]
-#| id: bs92-input
 const FACIES = [
     BS92.Facies(
          maximum_growth_rate=500u"m/Myr"/4,

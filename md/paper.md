@@ -8,7 +8,7 @@ author:
       affiliation: 1
     - given_name: Emilia
       surname: Jarochowska
-      # email: e.b.jarochowska@uu.nl
+      email: e.b.jarochowska@uu.nl
       affiliation: 2
     - given_name: Niklas
       surname: Hohmann
@@ -331,7 +331,7 @@ Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid o
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
 
 <!-- In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily. -->
 
@@ -494,10 +494,26 @@ A different approach has been used in the early model `CARBPLAT` by @bosscher_ca
 
 Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of transport coefficient, disintegration rate and lithification time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
 
+That being said, by considering some artificial scenarios we can gain more insight into the behaviour of our main parameters.
+
+### Disintegration versus subsidence
+The chosen disintegration rate will determine wheter our model is on average erosive or accumulative. In the case of a platform morphology, the potential production exceeds the subsidence, meaning that the subsidence rate sets the pace at which the platform grows. At the edge of the platform, there is a transitional region where the maximum production is at pace with the subsidence. If the distintegration rate is higher than the subsidence rate, produced sediment will be immediately disintegrated, stay in the active layer for much longer, and be transported down slope. If the disintegration rate is much lower than the subsidence rate, produced (autochthonous) sediment can accumulate *in sity*, generating steeper morphologies.
+
+### Equilibrium Concentration
+The model parametrizes sediment disintegration (i.e. activation or entrainment of older sediments) by a global constant disintegration rate $r_d$. Entrained sediment is transported by the mechanism described above, and then (re)lithifies by a given percentage every time step. The lithification time is specified as a half-life time $l$. In absence of production, and with infinite available sediment for disintegration, we can see the amount of entrained sediment $C$ reaching an equilibrium:
+
+$$C(t + \Delta t) = C(t) 2^{-\Delta t / l} + r\Delta t,$$
+
+and taking the limit $\Delta t \to 0$, the equilibrium is reached at,
+
+$$\langle C\rangle = \frac{1}{\ln 2}\ r_d\ l.$$
+
+This equilibrium (having units of $\unit{m}$) can be useful when estimating the effects of choosing the disintegration rate and lithification time.
+
 ### Disintegration versus lithification
 Both the disintegration rate and the lithification time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the transport coefficient. However, choosing a high lithification time (thus a slow lithification) over a high disintegration rate can help in transporting only freshly produced sediments.
 
-Note that not setting the lithification rate (which would amount to immediately depositing all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
+Note that not setting the lithification time (which would amount to immediately depositing all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
 
 To understand the relative effects of choosing a certain lithification time and/or disintegration rate, we ran a one-dimensional model where sediment is produced in a central patch. Then we can study the rate at which sediment is dispersed, either by direct transport before lithification happens, or by subsequent disintegration and re-deposition. By carefully choosing the parameters, we can make a slow lithification process look very similar to a high disintegration rate, as shown in Figure @fig:disintegration-vs-lithification.
 
@@ -1121,16 +1137,18 @@ $$
 
 $$
 
-This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable. Since we can compute the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use an upwind scheme.
+This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable.
 
-Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} = d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
+In practice, we compute the transport coefficients, and the maximum resulting advective Courant number. Then we integrate the transport equation adaptively, choosing the minimum number of subdivided time steps that keeps the advection stable. Since we computed the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use an upwind scheme.
+
+Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} \sim d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
 
 $$
 d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.
 
 $$
 
-This means that increasing the resolution of a model by a factor two, may need a time step four times smaller to remain stable. There are ways around this limitation, but our current aims to not necessitate the corresponding investment in development time.
+This means that increasing the resolution of a model by a factor two may need a time step four times smaller for the integration to remain stable.
 
 # Software design
 
@@ -2278,7 +2296,30 @@ CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Git
 :::
 
 :::appendix
+## Derivation of transport equations
+Our basic assumption is that the sediment flux scales linearly with the local bathymetric gradient and the concentration of sediment in the active layer,
 
+$$\vec{q}_f(x) = -C_f(x)\ (d_f\ \vec{\nabla}\eta(x) + \vec{v}_f(w(x)))),$$
+
+where $C_f$ is the active sediment amount per facies (all $f$ suffixes indicate facies dependent quantities), $d_f$ the transport (diffusivity) coefficient, $\eta(x)$ the bathymetry, and $\vec{v}_f$ the wave velocity as a function of water depth $w(x)$. Since the water depth and bathymetry differ at any time by a constant an a minus sign, $\vec{\nabla}w = -\vec{\nabla}\eta$, it is advantageous to write the equation completely in terms of $w$,
+
+$$\vec{q}_f(x) = C_f(x)\ (d_f\ \vec{\nabla}w(x) - \vec{v}_f(w(x))).$$
+
+We can transform this assumption in to an advection equation by considering the continuity equation,
+
+$$\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f(x) + P(x),$$
+
+where $P(x)$ is the sediment production rate (including disintegration). We can leave the production out of consideration for the moment. Using the product rule,
+
+$$\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} C_f(x)\cdot(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))) - C_f(x)\ (d_f\nabla^2 w(x) - \vec{\nabla} \cdot \vec{v}_f(w(x)))).$$
+
+Now, we demand that the user provide the derivative $\vec{s}_f(w) = \vec{v}_f'(w)$, so applying the chain rule we can write,
+
+$$\vec{\nabla}\cdot\vec{v}_f(w(x)) = \vec{\nabla}w(x) \cdot \vec{s}_f(w).$$
+
+Substituting that into the previous equation brings us to Equation [@eq:transport],
+
+$$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))\big)\cdot\vec{\nabla} C_f(x) + \big(\vec{\nabla}w(x) \cdot \vec{s}_f(w(x)) - d_f\nabla^2 w(x))\big)\ C_f(x).$$
 :::
 
 :::author-contribution
