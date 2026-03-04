@@ -38,7 +38,6 @@ firstpage: 1
 dates:
   revised: \today
 ---
-
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
 \renewcommand{\[}{\begin{equation}}
 \renewcommand{\]}{\end{equation}}
@@ -61,17 +60,12 @@ Modeling carbonate depositional systems requires not only accounting for water a
 Of research-driven models operating in more than one dimension, two include a wider range of depositional environment with carbonate production modules: `CARB3D+` [@paterson_accommodation_2006], `SedSimple` [@tetzlaff_stratigraphic_2023] and `Badlands` [@salles_badlands_2016], including its Python interface `pyBadlands` [@salles_pybadlands_2018], but due to their general focus these models do not account for the spatial heterogeneity driven by biological processes.
 Finally, `CarboCAT` [@Burgess2013] is a research-driven 2D model dedicated to stratigraphic forward modeling of carbonate platforms, which includes a cellular automaton that approximates the spatial heterogeneity formed through ecological interactions between carbonate-producing organisms. `CarboCAT` has been used in multiple studies [e.g. @masiero_numerical_2020;@xi_stratigraphic_2022;@hohmann_identification_2024], but having been written in Matlab, it was not accessible to contributions from the entire scientific community. Based on the successful applications of `CarboCAT`, we set out to develop a new generation model with the following specifications:
 
-1.  it should be Open Source and it should be easy for researchers to understand the algorithm, which is a prerequisite to being able to contribute to it or modify it to one's needs,
-
-2.  it should allow for spatial heterogeneity of carbonate facies,
-
-3.  it should include a sediment transport algorithm operating on different carbonate facies and produces realistic results without decreasing the model's performance substantially,
-
-4.  it should allow exporting and plotting multiple types of data users may need, including slices through the model grid, age-depth models, sediment accumulation curves, and stratigraphic columns,
-
-5.  it should be performant, easy to parallelize, and platform-independent,
-
-6.  it should be well documented and easy to use at a level accessible to a geosciences student.
+1. it should be Open Source and it should be easy for researchers to understand the algorithm, which is a prerequisite to being able to contribute to it or modify it to one's needs,
+2. it should allow for spatial heterogeneity of carbonate facies,
+3. it should include a sediment transport algorithm operating on different carbonate facies and produces realistic results without decreasing the model's performance substantially,
+4. it should allow exporting and plotting multiple types of data users may need, including slices through the model grid, age-depth models, sediment accumulation curves, and stratigraphic columns,
+5. it should be performant, easy to parallelize, and platform-independent,
+6. it should be well documented and easy to use at a level accessible to a geosciences student.
 
 The above prerequisites led us to re-designing the original architecture of `CarboCAT` and implementing its successor in Julia. In this article we present CarboKitten, an efficient and accessible Open Source model for stratigraphic forward simulations of carbonate platforms.
 
@@ -80,6 +74,7 @@ The above prerequisites led us to re-designing the original architecture of `Car
 CarboKitten combines the carbonate production model by @Bosscher1992, the cellular automaton from @Burgess2013, and a custom finite difference transport model inspired on an approach by @Paola1992. We describe each of these components in detail in the following sections.
 
 ## Quantities
+
 Since the model describes the accumulation of sediment under a range of variable conditions, a short discussion of different measures in the vertical column is in order.
 
 Subsidence rate
@@ -102,17 +97,26 @@ Water depth
 
 :   The water depth is computed from the current topography, relative sea level and subsidence rate,
 
-$$w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.$$
+$$
+w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.
+
+$$
 
 ## Carbonate Production {#sec:carbonate-production}
 
 The general form of our production model follows that of @Bosscher1992 (BS92). This model finds the sediment accumulation curve by integrating an ODE that outside of the model parameters only depends on the initial topography.
 
-$$\frac{\partial \eta}{\partial t} = P(\eta),$$
+$$
+\frac{\partial \eta}{\partial t} = P(\eta),
+
+$$
 
 where $P$ is the sediment production in $\textrm{m/Myr}$,
 
-$$P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),$$
+$$
+P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),
+
+$$
 
 where $I_0$ is the insolation, $I_k$ is the saturation intensity, $k$ the extinction coefficient and $g_m$ the maximum growth rate.
 
@@ -122,13 +126,17 @@ Here we parametrize $P$ as a function of $w$. Note that $\nabla w = - \nabla \et
 
 Following @Burgess2013, we extend the BS92 model by introducing multiple facies that each have their own growth characteristics (except for insolation $I_0$, which is a global input variable).
 
-$$P(w) = \sum_f P_f(w)$$
+$$
+P(w) = \sum_f P_f(w)
 
-| Factory | $g_m$ $[\unit{m/Myr}]$ | $I_k$ $[\unit{W/m^2}]$ | $k$ $[\unit{m^{-1}}]$ |
-|----|----|----|----|
-| Euphotic | 500.0 | 60.0 | 0.8 |
-| Oligophotic | 400.0 | 60.0 | 0.1 |
-| Aphotic | 100.0 | 60.0 | 0.005 |
+$$
+
+
+| Factory     | $g_m$ $[\unit{m/Myr}]$ | $I_k$ $[\unit{W/m^2}]$ | $k$ $[\unit{m^{-1}}]$ |
+| ------------- | ------------------------ | ------------------------ | ----------------------- |
+| Euphotic    | 500.0                  | 60.0                   | 0.8                   |
+| Oligophotic | 400.0                  | 60.0                   | 0.1                   |
+| Aphotic     | 100.0                  | 60.0                   | 0.005                 |
 
 : Parameters for the production model of the three default carbonate factories. {#tbl:factories}
 
@@ -137,7 +145,8 @@ Our default parameters define three biological facies based on sediment produced
 ![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
 
 ::: hide
-``` julia
+
+```julia
 #| id: bs92-input
 const FACIES = [
     BS92.Facies(
@@ -166,7 +175,7 @@ const INPUT = BS92.Input(
     facies = FACIES)
 ```
 
-``` julia
+```julia
 #| file: "runs/production-curves.jl"
 #| classes: ["task"]
 #| creates: ["md/fig/production-curves.pdf"]
@@ -198,11 +207,21 @@ end
 
 Script.main()
 ```
+
 :::
 
 ## Cellular Automaton
 
-The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in their package CarboCAT.
+
+
+Represent spatial heterogeneity resulting from positive and negative biological interactions in a computationally simple model requires meeting the following conditions:
+
+1. infinite heterogeneity in space and time, i.e. no convergence on stable patterns;
+2. authigenic variation that does not require external drivers;
+3. the approach must be scalable to *n* facies, even if we focus the examples here on 3;
+4. adjustable temporal persistence: it must be possible to set the turnover frequency.
+
+The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in his package CarboCAT.
 
 The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
 
@@ -212,8 +231,11 @@ Since a dead cell may qualify to become alive for different carbonate factories 
 
 In the default configuration we emulate three species, corresponding to the factory species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
 
+Owing to the desirable property of the CA running with the parameters proposed by @Burgess2013 and replicated in CarboKitten, namely the long-term generation of variability without settling 
+
 ::: hide
-``` julia
+
+```julia
 #| classes: ["task"]
 #| creates: ["md/fig/ca-first-steps.pdf"]
 #| collect: figures
@@ -255,7 +277,7 @@ end
 Script.main()
 ```
 
-``` julia
+```julia
 #| classes: ["task"]
 #| creates: ["md/fig/ca-long-term.png"]
 #| collect: figures
@@ -309,6 +331,7 @@ end
 
 Script.main()
 ```
+
 :::
 
 ![CA](fig/ca-long-term.pdf){.wide}
@@ -333,11 +356,11 @@ The actual transport is computed using a finite difference approach that is furt
 
 Putting everything together, we evaluate the model as follows each iteration:
 
-1.  Advance the cellular automaton.
-2.  Compute the production $P_f$.
-3.  Disintegrate sediment $D_f$.
-4.  Transport entrained sediment $C_f$.
-5.  Deposit lithified sediment.
+1. Advance the cellular automaton.
+2. Compute the production $P_f$.
+3. Disintegrate sediment $D_f$.
+4. Transport entrained sediment $C_f$.
+5. Deposit lithified sediment.
 
 Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
 
@@ -359,6 +382,7 @@ CarboKitten generates data in the accessible, binary HDF5 format, thus output ca
 Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic crosssection, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time (Wheeler diagram), (e) dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. {#fig:summary-plot}
 
 :::hide
+
 ```julia
 #| file: runs/standard_example_run.jl
 #| classes: ["task"]
@@ -434,24 +458,32 @@ end
 
 StandardExamplePlot.main()
 ```
+
 :::
 
-
 # Transport {#sec:transport}
+
 In Section @sec:model-transport we discussed how transport is embedded in the larger model.
 Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is considered separately for each facies (as with all quantities with the $f$ subscript). Each iteration of the larger model we supply the active layer with freshly produced (autochthonous) sediment as well as disintegrated older (allochthonous) sediment. We then compute transport of the active layer for as many sub-iterations as is deemed needed for the solver to remain stable. After that, a percentage of the contents in the active layer is deposited on the sea floor. The lithification percentage depends both on the time step taken and the given lithification time, which is configured in terms of a half-life time. There are many ways to compute sediment transport in the active layer. We've opted for a finite difference strategy inspired on @Paola1992.
 
 We assume a local sediment flux proportional to the local gradient,
 
-$$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
+$$
+\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),
+
+$$
 
 where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
 
-$$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
+$$
+\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f
+
+$$
 
 This gives us an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
-$$\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
+$$
+\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
 (\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C_f,
 $${#eq:transport}
 
@@ -487,15 +519,21 @@ The chosen disintegration rate will determine wheter our model is on average ero
 ### Equilibrium Concentration
 The model parametrizes sediment disintegration (i.e. activation or entrainment of older sediments) by a global constant disintegration rate $r_d$. Entrained sediment is transported by the mechanism described above, and then (re)lithifies by a given percentage every time step. The lithification time is specified as a half-life time $l$. In absence of production, and with infinite available sediment for disintegration, we can see the amount of entrained sediment $C$ reaching an equilibrium:
 
-$$C(t + \Delta t) = C(t) 2^{-\Delta t / l} + r\Delta t,$$
+$$C(t + \Delta t) = C(t) 2^{-\Delta t / l} + r\Delta t,
+
+$$
 
 and taking the limit $\Delta t \to 0$, the equilibrium is reached at,
 
-$$\langle C\rangle = \frac{1}{\ln 2}\ r_d\ l.$$
+$$
+\langle C\rangle = \frac{1}{\ln 2}\ r_d\ l.
+
+$$
 
 This equilibrium (having units of $\unit{m}$) can be useful when estimating the effects of choosing the disintegration rate and lithification time.
 
 ### Disintegration versus lithification
+
 Both the disintegration rate and the lithification time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high lithification time (thus a slow lithification) over a high disintegration rate can help in transporting only freshly produced sediments.
 
 Note that not setting the lithification time (which would amount to immediately depositing all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
@@ -508,6 +546,7 @@ Figure: Comparison between lithification and disintegration. The four panes show
 Panels $(a)$ and $(b)$ have a short lithification time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long lithification time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-lithification}
 
 :::hide
+
 ```julia
 #| file: runs/ParameterScan.jl
 module ParameterScan
@@ -776,6 +815,7 @@ end
 
 DisintegrationVsCementation.main()
 ```
+
 :::
 
 ### Diffusivity
@@ -784,7 +824,10 @@ The diffusivity parameter used in CarboKitten is expressed in $\unit{m/Myr}$, be
 
 Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from 1.25 $\times 10^6$ for the sand fraction in the photozoan factory to 50 $\times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5 \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
 
-$$D_{Kaufman}(W) = C_0 \times \exp(-C_1 \times W)$$
+$$
+D_{Kaufman}(W) = C_0 \times \exp(-C_1 \times W)
+
+$$
 
 where $C_0 = 0.005 \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{Kaufman}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
@@ -1104,17 +1147,21 @@ save("data/diffusivity_scan/D_summary.png", fig_summary)
 
 Table: Estimated effective diffusion coefficient $D$ [m² Myr⁻¹] for combinations of cementation time and disintegration rate $d_r$ at facies diffusivity equal to 5 m/yr. {#tbl:diffusivity-scan}
 
+
 | Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
-|:---|---:|---:|---:|---:|
-| 1000 yr | 36,565 | 72,237 | 137,595 | 299,711 |
-| 2500 yr | 84,136 | 165,496 | 301,921 | 540,862 |
-| 5000 yr | 156,904 | 300,574 | 503,548 | 879,985 |
+| :----------------- | ------------------------: | -------------------------: | -------------------------: | -------------------------: |
+| 1000 yr          |                  36,565 |                   72,237 |                  137,595 |                  299,711 |
+| 2500 yr          |                  84,136 |                  165,496 |                  301,921 |                  540,862 |
+| 5000 yr          |                 156,904 |                  300,574 |                  503,548 |                  879,985 |
 
 ## Implementation and limitations
 
 Our implementation of the transport model first computes the gradient of the sea floor (or equivalently the water depth) $\vec{\nabla} w$ using central differences. From this gradient we can compute the advection coefficients in Equation @eq:transport, $\vec{c}_{\textrm{adv}} = d_f \vec{\nabla} \eta + \vec{v}_f(w)$. The maximum advection coefficient sets the Courant number and determines how many time steps we need to take to solve Equation @eq:transport. For an advection equation integrated with the forward Euler method, we need
 
-$$|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.$$
+$$
+|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.
+
+$$
 
 This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable.
 
@@ -1122,7 +1169,10 @@ In practice, we compute the transport coefficients, and the maximum resulting ad
 
 Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} \sim d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
 
-$$d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.$$
+$$
+d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.
+
+$$
 
 This means that increasing the resolution of a model by a factor two may need a time step four times smaller for the integration to remain stable.
 
@@ -1420,14 +1470,17 @@ CarboKitten ships with routines for visualisation and data extraction into CSV f
 Since CarboKitten is written in Julia with performance in mind, it should be efficient to run, even on consumer grade hardware, i.e. an average laptop. We are yet to substantiate this claim. Since Julia is a just-in-time compiled language, the first execution of any code in a new session always takes a bit longer than subsequent runs. Measurements presented in this section do not include this initial overhead.
 
 ### Baseline
+
 Our baseline model is the example included in CarboKitten, grid size $100 \times 50$ with 5000 time steps of 200 years each (results shown in Figure @fig:summary-plot). This model runs in 27 seconds on a Intel Core i7 at $3.0\ \unit{GHz}$.
 
 With regards to memory consumption, CarboKitten allocates a fixed amount of memory at the start of a model run, which scales linearly with the size of the grid. The most significant fraction of the memory is occupied by the sediment buffer. In the example run we have a buffer size of 50. With three facies types being stored this results in an array size of $100 \times 50 \times 50 \times 3$, stored in double precision gives a mere $6 \unit{MB}$. However, for a $300 \times 300$ sized grid this already increases to $108 \unit{MB}$.
 
 ### Scaling
+
 The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mittigated by setting a diffusion coefficient. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we are speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
 
 ### Benchmark
+
 To further quantify these complications in our estimated run-times, we run a model of a single atoll on three different resolutions ($200, 100$, and $50\ \unit{m}$, corresponding to grid sizes of $75^2, 150^2, 300^2$) with three different step sizes ($400, 200$, and $100\ \unit{yr}$, corresponding to 2500, 5000, and 10000 steps), for a total of nine benchmark cases. We set the interval of the cellular automaton to compensate for the number of time steps. This way, runs with the same grid size should have very similar output. The results are shown in Figure @fig:benchmark.
 
 The combination of 2500 time steps with a $300^2$ grid size yields instabilities in the transport model and is left out of the results. Other than that, CarboKitten scaled as predicted from our previous considerations.
@@ -1437,6 +1490,7 @@ The combination of 2500 time steps with a $300^2$ grid size yields instabilities
 Figure: Benchmark with respect to number of time steps and grid size. Panel (a) shows the run-time dependency on the number of time-steps, while panel (b) shows the dependency on the number of grid cells on each axis, both on a log-log scale. This scaling follows the predicted behaviour: linear in both the number of time-steps and total number of grid cells (on this plot being the grid size squared). Note that the run with 2500 time steps and $300^2$ grid size is left out, since the transport model was unstable for that configuration. These numbers were consistent throughout multiple runs. {#fig:benchmark}
 
 ### Validation
+
 We may validate our benchmark by looking at the results of the runs with grid size $150^2$. This is shown in Figure @fig:benchmark-validation. These results show that, when time steps are taken small enough, CarboKitten converges to a consistent result that does not depend on the size of the time step.
 
 ![Benchmark validation](fig/benchmark_validation.png){.wide}
@@ -1654,9 +1708,11 @@ BenchmarkValidation.main()
 :::
 
 ### Potential for GPU optimisation
+
 At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further. Going through the steps of the composed model [Section @sec:composed-model]: the cellular automaton is a stencil operation, production a map, disintegration a stencil, transport is implemented as an iterated stencil, and deposition is a map. Both stencil and map operations are highly localized in memory and are ideal for implementation on a GPU.
 
 ## Documentation
+
 CarboKitten is written entirely using literate programming [@Knuth1984]. This means that the implementation of CarboKitten is written as an integral part of its own documentation, using a system called Entangled [@Hidding2023]. The aim is that interested readers have a direct reference to the code implementing the methods that are explained in the documentation.
 
 # Examples {#sec:examples}
@@ -1672,6 +1728,7 @@ Variables external to the production, which modulate it the most, are the sea le
 The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
 
 ::: hide
+
 ```julia
 #| id: variable_SL
 #| file: runs/variable_sl.jl
@@ -1776,6 +1833,7 @@ end
 result = VariableSL.main()
 VariableSL.plot(result)
 ```
+
 :::
 
 ![variable-sl](fig/variable-sl.png){.wide}
@@ -1791,7 +1849,8 @@ As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equ
 Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
 ::: hide
-``` r
+
+```r
 #| file: runs/extract_insolation.R
 
 if (!require("palinsol")) {
@@ -1827,12 +1886,14 @@ for (t in 1:length(times)) {
 insolation = inso_values <- unlist(insolation)
 write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
 ```
+
 :::
 
 The insolation file can be read into a CarboKitten script defining the model to be run. The alternative is calling R directly from Julia using `RCall.jl`.
 
 ::: hide
-``` julia
+
+```julia
 #| file: runs/insolation_run.jl
 
 module Insolation
@@ -1930,6 +1991,7 @@ end
 result = Insolation.main()
 Insolation.plot(result)
 ```
+
 :::
 
 ![variable-insolation](fig/variable-insolation.png){.wide}
@@ -1948,11 +2010,15 @@ Here we try three different velocity profiles: first no onshore component, secon
 
 The following equation is the well known phase velocity of waves as a function of depth from linear wave theory,
 
-$$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
+$$
+v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),
+
+$$
 
 where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(-kw)$ to account for Stokes drift:
 
-$$v_f = A_f \exp (- k w) \tanh (k w),$${#eq:velocity-profile}
+$$
+v_f = A_f \exp (- k w) \tanh (k w),$${#eq:velocity-profile}
 
 where $A_f$ is the facies-dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
@@ -2259,27 +2325,45 @@ CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Git
 ## Derivation of transport equations
 Our basic assumption is that the sediment flux scales linearly with the local bathymetric gradient and the concentration of sediment in the active layer,
 
-$$\vec{q}_f(x) = -C_f(x)\ (d_f\ \vec{\nabla}\eta(x) + \vec{v}_f(w(x)))),$$
+$$\vec{q}_f(x) = -C_f(x)\ (d_f\ \vec{\nabla}\eta(x) + \vec{v}_f(w(x)))),
+
+$$
 
 where $C_f$ is the active sediment amount per facies (all $f$ suffixes indicate facies dependent quantities), $d_f$ the transport (diffusivity) coefficient, $\eta(x)$ the bathymetry, and $\vec{v}_f$ the wave velocity as a function of water depth $w(x)$. Since the water depth and bathymetry differ at any time by a constant an a minus sign, $\vec{\nabla}w = -\vec{\nabla}\eta$, it is advantageous to write the equation completely in terms of $w$,
 
-$$\vec{q}_f(x) = C_f(x)\ (d_f\ \vec{\nabla}w(x) - \vec{v}_f(w(x))).$$
+$$
+\vec{q}_f(x) = C_f(x)\ (d_f\ \vec{\nabla}w(x) - \vec{v}_f(w(x))).
+
+$$
 
 We can transform this assumption in to an advection equation by considering the continuity equation,
 
-$$\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f(x) + P(x),$$
+$$
+\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f(x) + P(x),
+
+$$
 
 where $P(x)$ is the sediment production rate (including disintegration). We can leave the production out of consideration for the moment. Using the product rule,
 
-$$\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} C_f(x)\cdot(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))) - C_f(x)\ (d_f\nabla^2 w(x) - \vec{\nabla} \cdot \vec{v}_f(w(x)))).$$
+$$
+\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} C_f(x)\cdot(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))) - C_f(x)\ (d_f\nabla^2 w(x) - \vec{\nabla} \cdot \vec{v}_f(w(x)))).
+
+$$
 
 Now, we demand that the user provide the derivative $\vec{s}_f(w) = \vec{v}_f'(w)$, so applying the chain rule we can write,
 
-$$\vec{\nabla}\cdot\vec{v}_f(w(x)) = \vec{\nabla}w(x) \cdot \vec{s}_f(w).$$
+$$
+\vec{\nabla}\cdot\vec{v}_f(w(x)) = \vec{\nabla}w(x) \cdot \vec{s}_f(w).
+
+$$
 
 Substituting that into the previous equation brings us to Equation [@eq:transport],
 
-$$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))\big)\cdot\vec{\nabla} C_f(x) + \big(\vec{\nabla}w(x) \cdot \vec{s}_f(w(x)) - d_f\nabla^2 w(x))\big)\ C_f(x).$$
+$$
+\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))\big)\cdot\vec{\nabla} C_f(x) + \big(\vec{\nabla}w(x) \cdot \vec{s}_f(w(x)) - d_f\nabla^2 w(x))\big)\ C_f(x).
+
+$$
+
 :::
 
 :::author-contribution
