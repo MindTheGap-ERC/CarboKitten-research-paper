@@ -793,7 +793,7 @@ Now consider our transport model in the context of the larger carbonate platform
 
 $$d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.$$
 
-This means that increasing the resolution of a model by a factor two, may need a time step four times smaller to remain stable.
+This means that increasing the resolution of a model by a factor two may need a time step four times smaller to remain stable.
 
 # Software design
 
