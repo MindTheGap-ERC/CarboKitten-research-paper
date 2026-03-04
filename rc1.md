@@ -9,9 +9,16 @@ I recommend several revisions/improvements before publication. Overall, the manu
 The principal issues are
 
 1. insufficient validation -- no comparison with empirical or previously published model results;
+> We've included an extensive validation case, based on Henglai et al (2024) (https://doi.org/10.1016/j.marpetgeo.2024.106763).
+
 2. lack of a systematic sensitivity analysis for key parameters controlling production, lithification, and diffusion;
+> We've included a discussion on the effect of these parameters, as well as performed a parameter scan showing linear behaviour wrt effective dispersion rates.
+
 3. incomplete discussion of numerical stability (CFL limits, time step guidance) and missing automatic checks; and
+> We emphasise the adaptive nature of the transport integration step.
+
 4. incomplete reproducibility: figure-generation scripts and environment files are not yet linked (there is still a “FIXME” placeholder).
+> This was an oversight. The correct repositories and DOIs are linked now.
 
 Once these items are addressed, together with minor editorial corrections (typos, units in tables, full code citation, consistent references), the paper will be suitable for publication. There is a really good online documentation associated with the code and I believe it has strong pedagogical potential and could become a reference implementation for open carbonate platform forward models.
 

@@ -4,6 +4,7 @@ include("Noise.jl")
 module TopologyPeriodic
 
 using CarboKitten
+using CarboKitten.Production
 using CarboKitten.Models: ALCAP as M
 using ..Noise: make_noise
 
@@ -12,19 +13,13 @@ function main()
 
     facies = [
         M.Facies(
-            maximum_growth_rate=500u"m/Myr",
-            extinction_coefficient=0.8u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:euphotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=400u"m/Myr",
-            extinction_coefficient=0.1u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:oligophotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=100u"m/Myr",
-            extinction_coefficient=0.005u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:aphotic],
             diffusion_coefficient=10.0u"m/yr")
     ]
 

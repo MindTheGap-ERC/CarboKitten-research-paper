@@ -33,7 +33,7 @@ function step!(input::Input)
     x, y = box_axes(input.box)
     na = [CartesianIndex()]
     produce(_, wd) = input.production.(x[:,na], y[na,:], wd)[na,:,:]
-    pf = cementation_factor(input)
+    pf = lithification_factor(input)
 
     function (state::State)
         wd = local_water_depth(state)
