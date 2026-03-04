@@ -8,7 +8,7 @@ author:
       affiliation: 1
     - given_name: Emilia
       surname: Jarochowska
-      # email: e.b.jarochowska@uu.nl
+      email: e.b.jarochowska@uu.nl
       affiliation: 2
     - given_name: Niklas
       surname: Hohmann
@@ -319,7 +319,7 @@ Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid o
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain concentration of sediment $C_f$ that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
 
 <!-- In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily. -->
 
@@ -445,7 +445,7 @@ We assume a local sediment flux proportional to the local gradient,
 
 $$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
+where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). Note that we'll refer to $d_f$ as the diffusivity, even though strictly speaking it is an advection coefficient and has units of $\unit{m/Myr}$, we will see that $d_f$ regulates an overall diffusive process. The mass balance (continuity equation) is,
 
 $$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
