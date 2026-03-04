@@ -451,8 +451,7 @@ $$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
 This gives us an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
-$$
-\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
+$$\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
 (\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C_f,
 $${#eq:transport}
 
@@ -771,6 +770,338 @@ end
 DisintegrationVsCementation.main()
 ```
 :::
+
+### Diffusivity
+
+The diffusivity parameter used in CarboKitten is expressed in $\unit{m/Myr}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $D$ would appear in $\partial_t \eta = D \nabla^2 \eta$ and have units $\unit{m^2/Myr}$. In CarboKitten's formulation $\nu_f$ is one dimension of length smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting diffusion coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should such values be available, converting these diffusion coefficients to diffusivity values used in the model.
+
+Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from 1.25 $\times 10^6$ for the sand fraction in the photozoan factory to 50 $\times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5 \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
+
+$$D_{Kaufman}(W) = C_0 \times \exp(-C_1 \times W)$$
+
+where $C_0 = 0.005 \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{Kaufman}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
+
+Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given diffusivity, lithification time and disintegration rate. Values for a diffusivity of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5$ to 8.8 $\times 10^6$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $D$ values obtained using this estimate scale linearly with input diffusivity.
+
+```julia
+#| file: runs/diffusivity_estimation.jl
+
+# Estimate location and width of the production peak
+# using moments of the distribution, based on:
+# https://github.com/MindTheGap-ERC/CarboKitten.jl/issues/110#issuecomment-2754962558
+# https://gist.github.com/jhidding/1c1f0248de722fb26b356e00aa20ff5a
+
+module DiffusivityEstimation
+
+using CarboKitten.Export: read_slice, Header, DataSlice
+using CarboKitten: MemoryOutput
+using CarboKitten.Utility: in_units_of
+using Unitful
+
+trapezoid(t, y) = (t[2:end] .- t[1:end-1]) .* (y[2:end] .+ y[1:end-1]) ./ 2 |> sum
+
+moment(g, t, y) = trapezoid(t, y .* g.(t))
+
+"""
+Compute the location (μ) and width (σ) of a sediment peak from
+the spatial profile `h(x)` using moments.
+
+- `x`: position vector (with units)
+- `h`: sediment thickness vector (with units)
+
+Returns `(μ, σ)` — the center of mass and standard deviation.
+"""
+function peak_moments(x, h)
+    s = moment(t -> 1, x, h)           # zeroth moment (total mass)
+    μ = moment(t -> t, x, h ./ s)      # first moment (mean position)
+    v = moment(t -> (t - μ)^2, x, h ./ s)  # second central moment (variance)
+    σ = √(v)
+    return (μ=μ, σ=σ)
+end
+
+"""
+    peak_evolution(header::Header, data::DataSlice; use_active_layer=true)
+
+Compute peak location and width at each saved time step
+from `Header` and `DataSlice`.
+
+Returns `(t, μ, σ)` vectors.
+"""
+function peak_evolution(header::Header, data::DataSlice; use_active_layer=true)
+    x = header.axes.x
+    t = header.axes.t[1:data.write_interval:end]
+
+    n_t = length(t)
+    Length = typeof(1.0u"m")
+    μ = Vector{Length}(undef, n_t)
+    σ = Vector{Length}(undef, n_t)
+
+    if use_active_layer && data.active_layer !== nothing
+        # active_layer has shape [n_facies, n_x, n_t] — sum over facies
+        al = dropdims(sum(data.active_layer; dims=1); dims=1)
+    else
+        al = nothing
+    end
+
+    for i in 1:n_t
+        h = al !== nothing ? al[:, i] : data.sediment_thickness[:, i]
+        if all(h .<= 0.0u"m")
+            μ[i] = NaN * u"m"
+            σ[i] = NaN * u"m"
+        else
+            m = peak_moments(x, h)
+            μ[i] = m.μ
+            σ[i] = m.σ
+        end
+    end
+
+    return (t=t, μ=μ, σ=σ)
+end
+
+"""
+    peak_evolution(filename, group=:profile; use_active_layer=true)
+
+Read an HDF5 file and compute peak location and width at each saved time step.
+
+Returns `(t, μ, σ)` vectors.
+"""
+function peak_evolution(filename::AbstractString, group=:profile; use_active_layer=true)
+    header, data = read_slice(filename, group)
+    peak_evolution(header, data; use_active_layer)
+end
+
+"""
+    peak_evolution(output::MemoryOutput, group=:profile; use_active_layer=true)
+
+Compute peak location and width at each saved time step
+from MemoryOutput.
+
+Returns `(t, μ, σ)` vectors.
+"""
+function peak_evolution(output::MemoryOutput, group::Symbol=:profile; use_active_layer=true)
+    data = output.data_slices[group]
+    peak_evolution(output.header, data; use_active_layer)
+end
+
+"""
+    linear_fit(x, y)
+
+Ordinary least-squares fit of y = a + b·x.
+Returns `(a, b, R²)`.
+"""
+function linear_fit(x, y)
+    n = length(x)
+    sx = sum(x)
+    sy = sum(y)
+    sxx = sum(x .* x)
+    sxy = sum(x .* y)
+    syy = sum(y .* y)
+    denom = n * sxx - sx^2
+    b = (n * sxy - sx * sy) / denom
+    a = (sy - b * sx) / n
+    ss_res = syy - a * sy - b * sxy
+    ss_tot = syy - sy^2 / n
+    R² = 1 - ss_res / ss_tot
+    return (a=a, b=b, R²=R²)
+end
+
+"""
+    _fit_diffusivity(t, μ, σ; R²_threshold=0.99)
+
+Internal: fit the diffusion coefficient from peak evolution data.
+"""
+function _fit_diffusivity(t, μ, σ; R²_threshold=0.99)
+
+    # Filter out NaN entries (e.g. t=0 with no sediment)
+    valid = .!isnan.(σ)
+    t_v = t[valid]
+    σ_v = σ[valid]
+    μ_v = μ[valid]
+
+    # σ² as a function of time
+    σ² = σ_v .^ 2
+
+    # Fit σ²(t) = σ₀² + 2D·t, trimming saturated tail
+    n = length(t_v)
+    n_fit = n
+    fit = linear_fit(t_v, σ²)
+
+    while fit.R² < R²_threshold && n_fit > 3
+        n_fit -= 1
+        fit = linear_fit(t_v[1:n_fit], σ²[1:n_fit])
+    end
+
+    D = fit.b / 2
+
+    @info "Estimated effective diffusion coefficient: $D"
+    @info "Linear fit R² = $(fit.R²), using $(n_fit)/$(n) valid time steps"
+    @info "Fit range: t = $(t_v[1]) to $(t_v[n_fit])"
+    @info "Peak center at t_first: $(μ_v[1]), t_last: $(μ_v[n_fit])"
+    @info "Peak width σ at t_first: $(σ_v[1]), t_last: $(σ_v[n_fit])"
+
+    return (D=D, R²=fit.R², n_fit=n_fit, t=t, μ=μ, σ=σ)
+end
+
+"""
+    estimate_diffusivity(filename, group=:profile; use_active_layer=true, R²_threshold=0.99)
+
+Estimate the effective diffusion coefficient from an HDF5 file.
+For pure diffusion, σ²(t) = σ₀² + 2Dt,
+so D = slope / 2 from a linear fit of σ²(t).
+
+The fit automatically trims late time steps where σ² saturates
+(e.g. due to boundary effects) by progressively removing points
+from the end until R² exceeds `R²_threshold`.
+
+Returns a named tuple with `D`, `R²`, `n_fit`, `t`, `μ`, `σ`.
+"""
+function estimate_diffusivity(filename::AbstractString, group=:profile; use_active_layer=true, R²_threshold=0.99)
+    t, μ, σ = peak_evolution(filename, group; use_active_layer)
+    _fit_diffusivity(t, μ, σ; R²_threshold)
+end
+
+"""
+    estimate_diffusivity(output::MemoryOutput, group=:profile; use_active_layer=true, R²_threshold=0.99)
+
+Estimate the effective diffusion coefficient from MemoryOutput.
+See the `AbstractString` method for details.
+"""
+function estimate_diffusivity(output::MemoryOutput, group::Symbol=:profile; use_active_layer=true, R²_threshold=0.99)
+    t, μ, σ = peak_evolution(output, group; use_active_layer)
+    _fit_diffusivity(t, μ, σ; R²_threshold)
+end
+
+end # module
+```
+
+```julia
+#| file: runs/diffusivity_scan.jl
+using CarboKitten
+using CarboKitten.Models: ALCAP as M
+using CairoMakie
+using Unitful: ustrip, unit, NoUnits
+using DelimitedFiles
+
+include("diffusivity_estimation.jl")
+
+box = CarboKitten.Box{Periodic{2}}(grid_size=(100, 1), phys_scale=50.0u"m")
+
+t_end = 1.0u"Myr"
+Δt = 50.0u"yr"
+t_steps = t_end / Δt |> ceil |> Int
+peak_centre = box.phys_scale * box.grid_size[1] ÷ 2
+peak_width = 200.0u"m"
+peak_height = 10.0u"m"
+write_interval = max(1, t_steps ÷ 1000)
+
+facies1 = M.Facies(
+	viability_range = (0, 0),
+	activation_range = (0, 0),
+	maximum_growth_rate = 0u"m/Myr",
+	extinction_coefficient = 0u"m^-1",
+	saturation_intensity = 60u"W/m^2",
+	diffusion_coefficient = 5u"m/yr",
+	wave_velocity = _ -> (Vec2(0.0u"m/Myr", 0.0u"m/Myr"), Vec2(0.0u"1/Myr", 0.0u"1/Myr")),
+	initial_sediment = (x, _) -> peak_height * exp(-(x - peak_centre)^2/(2 * peak_width^2)),
+)
+
+function make_input(; cementation_time, disintegration_rate)
+	M.Input(
+		facies = [facies1],
+		box = box,
+		time = TimeProperties(Δt=Δt, steps=t_steps),
+		output = Dict(:profile => OutputSpec(slice=(:, 1), write_interval=write_interval)),
+		cementation_time = cementation_time,
+		disintegration_rate = disintegration_rate,
+		subsidence_rate = 0.0u"m/Myr",
+		sea_level = _ -> 0.0u"m",
+		initial_topography = (_, _) -> -100.0u"m",
+		insolation = 0.0u"W/m^2",
+		transport_solver = Val{:forward_euler},
+		depositional_resolution = 1.0u"km",
+		sediment_buffer_size = 2,
+	)
+end
+
+parameters = Dict(
+	:cementation_time    => [1000, 2500, 5000] .* u"yr",
+	:disintegration_rate => [5.0, 10.0, 20.0, 50.0] .* u"m/Myr",
+)
+
+function cartesian_product(pars::Dict{Key,Vector}) where {Key}
+	if isempty(pars)
+		return [ Dict{Key, Any}() ]
+	end
+	pars = copy(pars)
+	result = []
+	k, vs = first(pairs(pars))
+	for item in cartesian_product(delete!(pars, k))
+		for v in vs
+			push!(result, merge(item, Dict(k => v)))
+		end
+	end
+	return result
+end
+
+ct_values = parameters[:cementation_time]
+dr_values = parameters[:disintegration_rate]
+D_values   = Matrix{Any}(undef, length(ct_values), length(dr_values))
+
+for (i_ct, ct) in enumerate(ct_values)
+	for (i_dr, dr) in enumerate(dr_values)
+		inp    = make_input(cementation_time=ct, disintegration_rate=dr)
+
+		output = run_model(Model{M}, inp, MemoryOutput(inp))
+
+		fig = Figure()
+		ax  = Axis(fig[1, 1])
+		x   = output.header.axes.x |> in_units_of(u"km")
+		y   = output.data_slices[:profile].sediment_thickness |> in_units_of(u"m")
+		for i in [1, 100, 1000]
+			lines!(ax, x, y[:, i])
+		end
+
+		ct_val = round(Int, ustrip(u"yr", ct))
+		dr_val = round(ustrip(u"m/Myr", dr), digits=2)
+		save("data/diffusivity_scan/ct_$(ct_val)yr_dr$(dr_val)mMyr.png", fig)
+
+		est = DiffusivityEstimation.estimate_diffusivity(output, use_active_layer=false)
+		D_values[i_ct, i_dr] = est.D
+	end
+end
+
+# strip units for plotting
+D_unit   = unit(first(D_values))
+D_matrix = ustrip.(D_values)
+ct_axis  = ustrip.(u"yr",   ct_values)
+dr_axis  = ustrip.(u"m/Myr", dr_values)
+
+# save D_matrix to CSV: rows = cementation_time, cols = disintegration_rate
+open("data/diffusivity_scan/D_matrix.csv", "w") do io
+    write(io, "cementation_time_yr," * join(["dr_$(d)mMyr" for d in dr_axis], ",") * "\n")
+    for (i, ct) in enumerate(ct_axis)
+        write(io, "$(ct)," * join(D_matrix[i, :], ",") * "\n")
+    end
+end
+
+fig_summary = Figure()
+ax = Axis(fig_summary[1, 1],
+	xlabel = "cementation time [yr]",
+	ylabel = "disintegration rate [m/Myr]",
+	title  = "Estimated diffusion coefficient for diffusivity = $(facies1.diffusion_coefficient)",
+    aspect = length(ct_axis) / length(dr_axis))
+hm = heatmap!(ax, ct_axis, dr_axis, D_matrix)
+Colorbar(fig_summary[1, 2], hm, label = "D [$D_unit]")
+save("data/diffusivity_scan/D_summary.png", fig_summary)
+```
+
+Table: Estimated effective diffusion coefficient $D$ [m² Myr⁻¹] for combinations of cementation time and disintegration rate $d_r$ at facies diffusivity equal to 5 m/yr. {#tbl:diffusivity-scan}
+
+| Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
+|:---|---:|---:|---:|---:|
+| 1000 yr | 36,565 | 72,237 | 137,595 | 299,711 |
+| 2500 yr | 84,136 | 165,496 | 301,921 | 540,862 |
+| 5000 yr | 156,904 | 300,574 | 503,548 | 879,985 |
 
 ## Implementation and limitations
 
