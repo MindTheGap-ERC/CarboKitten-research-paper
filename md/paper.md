@@ -445,7 +445,7 @@ We assume a local sediment flux proportional to the local gradient,
 
 $$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). Note that we'll refer to $d_f$ as the diffusivity, even though strictly speaking it is an advection coefficient and has units of $\unit{m/Myr}$, we will see that $d_f$ regulates an overall diffusive process. The mass balance (continuity equation) is,
+where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
 
 $$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
@@ -458,7 +458,14 @@ $${#eq:transport}
 
 where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and $4^{th}$ order Runge-Kuta are supported).
 
-Note that, although the transport equation is an advection equation in $C_f$, if we consider that $C_f$ acts as a proxy for $\eta$ through disintegration and lithification, what seems like an innocent reaction term in Equation @eq:transport, turns out to behave as a diffusion equation  in $\eta$. This is why we refer to $d_f$ as the *diffusion coefficient* of a particular facies. Any attempt at modelling sediment transport where there is an effective down-slope flux combined with some form of disintegration will yield diffusive behaviour.
+## Diffusivity
+Note that, although the transport equation is an advection equation in $C_f$, if we consider that $C_f$ acts as a proxy for $\eta$ through disintegration and lithification, what seems like an innocent reaction term in Equation @eq:transport, turns out to behave as a diffusion equation in $\eta$. There is a continual interchange of sediment between the active layer and the sea floor, so $\partial_t C_f$ acts as a proxy for $\partial_t \eta$. Considering the contribution of a single facies $f$,
+
+$$\frac{\partial \eta}{\partial t}|_f \sim d_f C_f \nabla^2 \eta.$$ 
+
+This is why we refer to $d_f$ as the *diffusion coefficient* of a particular facies, even considering its units of $\unit{m/s}$.
+
+Any attempt at modelling sediment transport where there is an effective down-slope flux combined with some form of disintegration will yield diffusive behaviour. Due to the nature of the forward model, and the inescapable presence of this diffusion term we always need to be careful in choosing a small enough global time step. However, we'd like to emphasise that this is necessarily true for all forward carbonate models.
 
 ## Other approaches
 In the critical angle approach developed by @Warrlich2000, sediment is transported from unstable slopes to the nearest down-slope stable region. Stability is defined separately for different grain sizes. This method is motivated by the empirical relationship between grain composition and maximum slope angle [@Kenter1990].
@@ -778,13 +785,15 @@ Our implementation of the transport model first computes the gradient of the sea
 
 $$|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.$$
 
-This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable. Since we can compute the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use an upwind scheme.
+This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable.
 
-Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} = d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
+In practice, we compute the transport coefficients, and the maximum resulting advective Courant number. Then we integrate the transport equation adaptively, choosing the minimum number of subdivided time steps that keeps the advection stable. Since we computed the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use an upwind scheme.
+
+Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} \sim d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
 
 $$d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.$$
 
-This means that increasing the resolution of a model by a factor two, may need a time step four times smaller to remain stable. There are ways around this limitation, but our current aims to not necessitate the corresponding investment in development time.
+This means that increasing the resolution of a model by a factor two, may need a time step four times smaller to remain stable.
 
 # Software design
 
