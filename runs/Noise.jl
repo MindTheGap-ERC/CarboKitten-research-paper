@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/Noise.jl>>[init]
-#| file: runs/Noise.jl
 module Noise
 using FFTW
 

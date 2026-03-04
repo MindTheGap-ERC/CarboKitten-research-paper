@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/CustomProductionModel.jl>>[init]
-#| file: runs/CustomProductionModel.jl
 using CarboKitten
 using CarboKitten.Components.Common
 using CarboKitten.Components:

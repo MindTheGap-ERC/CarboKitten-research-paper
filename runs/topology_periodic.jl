@@ -1,10 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/topology_periodic.jl>>[init]
-#| file: runs/topology_periodic.jl
-#| classes: ["task"]
-#| creates:
-#|   - data/topology_periodic.h5
-#| requires:
-#|   - runs/Noise.jl
 include("Noise.jl")
 
 module TopologyPeriodic

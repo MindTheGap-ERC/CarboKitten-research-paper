@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/ParameterScan.jl>>[init]
-#| file: runs/ParameterScan.jl
 module ParameterScan
 
 function cartesian_product(; pars...)

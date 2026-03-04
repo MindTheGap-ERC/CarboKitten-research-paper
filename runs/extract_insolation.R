@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/extract_insolation.R>>[init]
-#| file: runs/extract_insolation.R
 
 if (!require("palinsol")) {
     install.packages("palinsol", repos = "https://cran.r-project.org")

@@ -1,7 +1,4 @@
 # ~/~ begin <<md/paper.md#variable_SL>>[init]
-#| id: variable_SL
-#| file: runs/variable_sl.jl
-#| creates: md/fig/variable-sl.png
 module VariableSL
 
 using CarboKitten
