@@ -296,7 +296,7 @@ Script.main()
 
 ![CA](fig/ca-long-term.pdf){.wide}
 
-Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Each color represents a carbonate factory, but since the CA process is not affected by facies identity we leave out any designation. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
+Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Each color represents a carbonate facies, but since the CA process is not affected by facies identity we leave out any designation. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
 ## Transport {#sec:model-transport}
 
@@ -1367,7 +1367,7 @@ Panels (c) and (d) schematically illustrate these same box topologies using colo
 
 In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed-size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis. This means that the model output can be much more precise than the depositional resolution of the buffer.
 
-The rows in the buffer represent a constant amount of sediment. An alternative approach is to have rows that represent time slices. In that case, when you want to disintegrate an amount of sediment you need to search the buffer back in time until enough sediment is collected. This can be very slow, and it also means that you need to have the full sedimentation history in memory. A buffer that is discretized on depth however doesn't have those requirements, at the expense of a small amount of facies mixing.
+The rows in the buffer represent a constant amount of sediment. An alternative approach is to have rows that represent time slices. In that case, when the users wish to disintegrate an amount of sediment, they need to search the buffer back in time until enough sediment is collected. This can be very slow, and it also means that one needs to have the full sedimentation history in memory. A buffer that is discretized on depth however does not have those requirements, at the expense of a small amount of facies mixing.
 
 The user can set the size of the buffer as well as the amount of sediment represented by each cell.
 
