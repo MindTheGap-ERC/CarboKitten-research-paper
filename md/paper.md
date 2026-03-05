@@ -793,6 +793,7 @@ where $C_0 = 0.005 \unit{m^2/Myr}$ for carbonates and $C_1$ values considered ar
 
 Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5 \unit{m^2/Myr}$$ to 8.8 $\times 10^6 \unit{m^2/Myr}$$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $d_f$ values obtained using this estimate scale linearly with input transport coefficient.
 
+:::hide
 ```julia
 #| file: runs/diffusivity_estimation.jl
 
@@ -1104,9 +1105,9 @@ hm = heatmap!(ax, ct_axis, dr_axis, D_matrix)
 Colorbar(fig_summary[1, 2], hm, label = "D [$D_unit]")
 save("data/diffusivity_scan/D_summary.png", fig_summary)
 ```
+:::
 
-Table: Estimated effective diffusion coefficient $D$ [m² Myr⁻¹] for combinations of cementation time and disintegration rate $d_r$ at facies transport coefficient equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
-
+Table: Estimated effective diffusion coefficient $D [\unit{m^2 Myr^{-1}}]$ for combinations of cementation time and disintegration rate $d_r$ at facies transport coefficient equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
 
 | Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
 |:---|---:|---:|---:|---:|
@@ -2253,7 +2254,7 @@ CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Git
 :::
 
 :::appendix
-## Derivation of transport equations
+# Derivation of transport equations
 Our basic assumption is that the sediment flux scales linearly with the local bathymetric gradient and the concentration of sediment in the active layer,
 
 $$\vec{q}_f(x) = -C_f(x)\ (d_f\ \vec{\nabla}\eta(x) + \vec{v}_f(w(x)))),$$
@@ -2278,21 +2279,23 @@ Substituting that into the previous equation brings us to Equation [@eq:transpor
 
 $$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))\big)\cdot\vec{\nabla} C_f(x) + \big(\vec{\nabla}w(x) \cdot \vec{s}_f(w(x)) - d_f\nabla^2 w(x))\big)\ C_f(x).$$
 
-## Model parameters
+# Model parameters
 
-### Grid & Time
+## Grid & Time
+
+Table: Grid and time parameters.
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
-| `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (256,256) |
-| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 m |
-| `time.t0` | Simulation start time | `0.0` | Myr | `0.0` |
-| `time.Δt` | Time step | — | Myr | `10 yr` – `0.001 Myr` |
-| `time.steps` | Number of time steps | — | — | 100 – 8000 |
+| `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (512,512) |
+| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 $\unit{m}$ |
+| `time.t0` | Simulation start time | 0.0 | Myr | 0.0 |
+| `time.`$\Delta$`t` | Time step | — | Myr | 10 $\unit{yr}$ – 0.001 $\unit{Myr}$ |
+| `time.steps` | Number of time steps | — | — | 100 – 50000 |
 
----
+## Water Depth and Sea Level
 
-### Water Depth and Sea Level
+Table: Water depth and Sea level
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
@@ -2300,29 +2303,26 @@ $$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x
 | `initial_topography` | Initial seafloor elevation function `f(x,y)` or matrix | `(x,y) -> 0.0` | m | example: ramp slope `-x/300.0` |
 | `subsidence_rate` | Rate of tectonic subsidence | `0.0` | m/Myr | 0.0 – 50.0 m/Myr |
 
----
+## Production
 
-### Production
+Table: Production
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
-| `insolation` | Surface insolation (constant, vector, or function of time) | — | W/m² | 400 W/m² |
+| `insolation` | Surface insolation (constant, vector, or function of time) | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
 | **BenthicProduction** | | | | |
 | `maximum_growth_rate` | Maximum carbonate accumulation rate | `0.0` | m/Myr | 100 – 500 m/Myr |
-| `extinction_coefficient` | Light attenuation coefficient | `0.0` | m⁻¹ | 0.005 – 0.8 m⁻¹ |
-| `saturation_intensity` | Half-saturation light intensity | `1.0` | W/m² | 50 – 60 W/m² |
+| `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.005 – 0.8 $\unit{m^{-1}}$ |
+| `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 50 – 60 $\unit{Wm^{-2}}$ |
 | **PelagicProduction** | | | | |
-| `maximum_growth_rate` | Maximum pelagic growth rate | `0.0` | 1/Myr | 7.0 1/Myr |
-| `extinction_coefficient` | Light attenuation coefficient | `0.0` | m⁻¹ | 0.1 m⁻¹ |
-| `saturation_intensity` | Half-saturation light intensity | `1.0` | W/m² | 60 W/m² |
+| `maximum_growth_rate` | Maximum pelagic growth rate | `0.0` | $\unit{Myr^{-1}}$ | 7.0 $\unit{Myr^{-1}}$ |
+| `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.1 $\unit{m^{-1}}$ |
+| `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 60 $\unit{Wm^{-2}}$ |
 | `maximum_production_depth` | Maximum depth for pelagic production | `200.0` | m | — |
-| **Facies** | | | | |
-| `initial_sediment` | Initial sediment thickness per facies | `0.0` | m | `0.0` |
-| `name` | Facies name label | `nothing` | — | examples: `"euphotic"`, `"aphotic"` |
 
----
+## Cellular Automaton (CA)
 
-### Cellular Automaton (CA)
+Table: CA Parameters. #{tab:ca-parameters}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
@@ -2332,36 +2332,31 @@ $$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x
 | `activation_range` | Min–max neighbour count to be born | `(6, 10)` | — | (6, 10) |
 | `active` | Whether facies participates in CA dynamics | `true` | — | `true`, `false` |
 
----
+## Transport amd Active Layer
 
-### Transport amd Active Layer
+Table: Transport parameters. {#tab:transport-parameters}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
 | `diffusion_coefficient` | Facies-specific sediment diffusivity | `0.0` | m/yr | 1.0 – 50.0 m/yr |
-| `wave_velocity` | Facies advection velocity field `f(t) -> (v, ∇)` | zero | m/Myr, 1/Myr | custom function |
-| `intertidal_zone` | Upward extension of the surf zone | `0.0` | m | 0.0 |
+| `wave_velocity` | Facies advection velocity field `f(t) -> (v, `$\nabla$`)` | zero | m/Myr, 1/Myr | custom function |
+| `intertidal_zone` | Upward extension of the intertidal zone | `0.0` | m | 0.0 |
 | `disintegration_rate` | Max rate at which buried sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
 | `disintegration_transfer` | Function remapping disintegrated sediment across facies | identity | — | custom redistribution |
 | `lithification_time` | Half-life for active-layer settling (`nothing` = instant) | `nothing` | Myr | 100 yr – 5000 yr |
 | `transport_solver` | ODE solver: `:forward_euler` or `:RK4` | `:forward_euler` | — | `:forward_euler`, `:RK4` |
-| `transport_substeps` | Fixed sub-steps per Δt, or `:adaptive` | `:adaptive` | — | `:adaptive` or integer |
+| `transport_substeps` | Fixed sub-steps per $\Delta$t, or `:adaptive` | `:adaptive` | — | `:adaptive` or integer |
 
----
-
-## Sediment Buffer
+Table: Sediment buffer parameters. {#tab:sediment-buffer-parameters}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
 | `sediment_buffer_size` | Number of layers in the stratigraphic buffer | `50` | layers | 2 – 150 |
 | `depositional_resolution` | Thickness of each buffer layer | `0.5` | m | 0.5 – 1.0 m |
 
----
-
 ## Notes
 
 - Parameters marked "—" in the *Default* column are **required** (no default provided in source).
-- `BS92` and `CAP` models place `maximum_growth_rate`, `extinction_coefficient`, and `saturation_intensity` directly on the `Facies` struct. `ALCAP` and `WithDenudation` use a `production = BenthicProduction(...)` or `PelagicProduction(...)` wrapper inside `Facies`.
 
 :::
 
