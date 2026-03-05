@@ -57,6 +57,9 @@ The paper repeatedly notes that many transport/production parameters are poorly 
 
 Provide parameter sweeps for the key parameters (diffusivity df, lithification time ct, disintegration rate dr, factory gm and k). Present results as simple summary metrics (e.g., platform width, slope, facies proportions, or some stratigraphic order metric). This will guide users and justify the defaults. To the very least, the authors should add a table 3 or one in the supplement that summarises the different model parameters, their 1/ definition, 2/ default values in the code, 3/ their possible range as well as 4/ their units. It will greatly help adoption of the code by researchers.
 
+> We have provided a table with parameters following the requests of the reviewe in an appendix. 
+
+
 7. Reproducibility & repository recommendations
 
 The online documentation (mindthegap-erc.github.io) is great and should be referenced in the manuscript. Also, you should mention the license of the code GPL v3. On a side note, that is not that crucial for the paper, the binder server did not work for me when I tried to run the notebooks… so I installed it locally… might be good to have it fixed.
