@@ -38,6 +38,7 @@ firstpage: 1
 dates:
   revised: \today
 ---
+
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
 \renewcommand{\[}{\begin{equation}}
 \renewcommand{\]}{\end{equation}}
@@ -97,26 +98,17 @@ Water depth
 
 :   The water depth is computed from the current topography, relative sea level and subsidence rate,
 
-$$
-w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.
-
-$$
+$$w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.$$
 
 ## Carbonate Production {#sec:carbonate-production}
 
 The general form of our production model follows that of @Bosscher1992 (BS92). This model finds the sediment accumulation curve by integrating an ODE that outside of the model parameters only depends on the initial topography.
 
-$$
-\frac{\partial \eta}{\partial t} = P(\eta),
-
-$$
+$$\frac{\partial \eta}{\partial t} = P(\eta),$$
 
 where $P$ is the sediment production in $\textrm{m/Myr}$,
 
-$$
-P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),
-
-$$
+$$P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),$$
 
 where $I_0$ is the insolation, $I_k$ is the saturation intensity, $k$ the extinction coefficient and $g_m$ the maximum growth rate.
 
@@ -126,17 +118,13 @@ Here we parametrize $P$ as a function of $w$. Note that $\nabla w = - \nabla \et
 
 Following @Burgess2013, we extend the BS92 model by introducing multiple facies that each have their own growth characteristics (except for insolation $I_0$, which is a global input variable).
 
-$$
-P(w) = \sum_f P_f(w)
+$$P(w) = \sum_f P_f(w)$$
 
-$$
-
-
-| Factory     | $g_m$ $[\unit{m/Myr}]$ | $I_k$ $[\unit{W/m^2}]$ | $k$ $[\unit{m^{-1}}]$ |
-| ------------- | ------------------------ | ------------------------ | ----------------------- |
-| Euphotic    | 500.0                  | 60.0                   | 0.8                   |
-| Oligophotic | 400.0                  | 60.0                   | 0.1                   |
-| Aphotic     | 100.0                  | 60.0                   | 0.005                 |
+| Factory | $g_m$ $[\unit{m/Myr}]$ | $I_k$ $[\unit{W/m^2}]$ | $k$ $[\unit{m^{-1}}]$ |
+|----|----|----|----|
+| Euphotic | 500.0 | 60.0 | 0.8 |
+| Oligophotic | 400.0 | 60.0 | 0.1 |
+| Aphotic | 100.0 | 60.0 | 0.005 |
 
 : Parameters for the production model of the three default carbonate factories. {#tbl:factories}
 
@@ -457,31 +445,23 @@ Our transport model supposes that all entrained sediment resides in a layer of c
 
 We assume a local sediment flux proportional to the local gradient,
 
-$$
-\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),
-
-$$
+$$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
 where $d_f$ is a facies-dependent transport coefficient, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
 
-$$
-\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f
-
-$$
+$$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
 This gives us an advection equation for the sediment concentration $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
-$$
-\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
-(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C_f,
-$${#eq:transport}
+$$\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
+(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C_f,$${#eq:transport}
 
 where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and $4^{th}$ order Runge-Kuta are supported).
 
 Note that, although the transport equation is an advection equation in $C_f$, if we consider that $C_f$ acts as a proxy for $\eta$ through disintegration and lithification, what seems like an innocent reaction term in Equation @eq:transport, turns out to behave as a diffusion equation in $\eta$. We refer to $d_f$ as facies-specific *transport coefficient* (see below). Any attempt at modelling sediment transport where there is an effective down-slope flux combined with some form of disintegration will yield diffusive behaviour.
 
-
 ## Other approaches
+
 In the critical angle approach developed by @Warrlich2000, sediment is transported from unstable slopes to the nearest down-slope stable region. Stability is defined separately for different grain sizes. This method is motivated by the empirical relationship between grain composition and maximum slope angle [@Kenter1990].
 
 The problem with this critical angle-based method of transport is that production across an unstable region is deposited on a small strip, where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. Contrasting to that, both our transport model and production model (with the exception of the cellular automaton) are discretisations of otherwise continuous processes. This means that, at least assymptotically (i.e. as long as the time step is small enough), our implementation is independent of the chosen time step.
@@ -799,9 +779,7 @@ The facies-specific transport coefficient used in CarboKitten is expressed in $\
 
 Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from 1.25 $\times 10^6$ for the sand fraction in the photozoan factory to 50 $\times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5 \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
 
-$$D_{Kaufman}(W) = C_0 \times \exp(-C_1 \times W)
-
-$$
+$$D_{Kaufman}(W) = C_0 \times \exp(-C_1 \times W)$$
 
 where $C_0 = 0.005 \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{Kaufman}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
@@ -1123,19 +1101,16 @@ Table: Estimated effective diffusion coefficient $D$ [m² Myr⁻¹] for combinat
 
 
 | Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
-| :----------------- | ------------------------: | -------------------------: | -------------------------: | -------------------------: |
-| 1000 yr          |                  36,565 |                   72,237 |                  137,595 |                  299,711 |
-| 2500 yr          |                  84,136 |                  165,496 |                  301,921 |                  540,862 |
-| 5000 yr          |                 156,904 |                  300,574 |                  503,548 |                  879,985 |
+|:---|---:|---:|---:|---:|
+| 1000 yr | 36,565 | 72,237 | 137,595 | 299,711 |
+| 2500 yr | 84,136 | 165,496 | 301,921 | 540,862 |
+| 5000 yr | 156,904 | 300,574 | 503,548 | 879,985 |
 
 ## Implementation and limitations
 
 Our implementation of the transport model first computes the gradient of the sea floor (or equivalently the water depth) $\vec{\nabla} w$ using central differences. From this gradient we can compute the advection coefficients in Equation @eq:transport, $\vec{c}_{\textrm{adv}} = d_f \vec{\nabla} \eta + \vec{v}_f(w)$. The maximum advection coefficient sets the Courant number and determines how many time steps we need to take to solve Equation @eq:transport. For an advection equation integrated with the forward Euler method, we need
 
-$$
-|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.
-
-$$
+$$|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.$$
 
 This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable.
 
@@ -1143,10 +1118,7 @@ In practice, we compute the transport coefficients, and the maximum resulting ad
 
 Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} \sim d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
 
-$$
-d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.
-
-$$
+$$d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.$$
 
 This means that increasing the resolution of a model by a factor two may need a time step four times smaller for the integration to remain stable.
 
@@ -1984,15 +1956,11 @@ Here we try three different velocity profiles: first no onshore component, secon
 
 The following equation is the well known phase velocity of waves as a function of depth from linear wave theory,
 
-$$
-v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),
-
-$$
+$$v(w) = \sqrt{\frac{\lambda g}k} {\rm tanh} (k w),$$
 
 where $w$ is the water depth, $k$ the wave number ($k = 2\pi / \lambda$), and $g$ is the gravitational acceleration. This velocity is the phase-velocity of surface waves, given the total depth of the water. To evaluate the transport velocity at deeper levels, we  multiply the phase velocity with a factor $\exp(-kw)$ to account for Stokes drift:
 
-$$
-v_f = A_f \exp (- k w) \tanh (k w),$${#eq:velocity-profile}
+$$v_f = A_f \exp (- k w) \tanh (k w),$${#eq:velocity-profile}
 
 where $A_f$ is the facies-dependent maximum transport velocity. The $k$ parameter can be tweaked to set the depth at which the maximum transport velocity is attained. We assume most of the sediment transport happens close to the sea floor. This profile is chosen for its assymptotic properties: at high water depth the transport velocity converges to zero, while the decrease in wave velocity towards shallow depths ensures that there is a net influx of material close to the shore. An example of this profile is shown in Figure @fig:wave-transport-magnitude.
 
