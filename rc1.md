@@ -93,7 +93,9 @@ The online documentation (mindthegap-erc.github.io) is great and should be refer
 
 - [ ] Ln. 319: “FIXME ref to the code” replace with something along those lines: “All scripts used to generate figures are available at https://github.com//CarboKitten-paper, release v1.0 (DOI: 10.5281/zenodo.xxxxxxx). The Julia environment is defined by Project.toml and Manifest.toml files.” @jhidding
 
-- [ ] Ln. 324: Variables external to the production… What do you mean exactly? This is too vague and will need to be reframe. @jhidding
+- [ ] Ln. 324: Variables external to the production… What do you mean exactly? This is too vague and will need to be reframe. 
+
+> We have rephrased it to "Variables external to the model, which modulate the output the most"
 
 - [ ] In Fig. 6, you need to add a colour bar for the elevation range. Also in the caption, you need to explain that the superimposed surfaces represent different time step and specify these times. @jhidding
 
