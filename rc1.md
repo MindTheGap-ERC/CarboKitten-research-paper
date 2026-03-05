@@ -8,6 +8,8 @@ I recommend several revisions/improvements before publication. Overall, the manu
 
 The principal issues are
 
+> First of all, we'd like to emphasise that CarboKitten is in early stages. We aim to have a system that is flexible, and easy to extend; for example with more advanced transport models. We have tried to address the reviewers question with regards to getting to understand the output sensitivity to the parameters controlling transport. When it comes to production, we have opted to use production curves that are well tested in previous publications by Burgess et al.
+
 1. insufficient validation -- no comparison with empirical or previously published model results;
 > We've included an extensive validation case, based on Henglai et al (2024) (https://doi.org/10.1016/j.marpetgeo.2024.106763).
 

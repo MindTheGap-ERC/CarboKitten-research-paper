@@ -117,7 +117,7 @@ g_m \tanh\left(\frac{I_0}{I_k}\ e^{-kw}\right) & \text{if $w \ge 0$}\\
 0 & \text{if $w < 0$}
 \end{cases},$$
 
-where $I_0$ is the insolation, $I_k$ is the saturation intensity, $k$ the extinction coefficient and $g_m$ the maximum growth rate. 
+where $I_0$ is the insolation in units of energy flux, $I_k$ is the saturation intensity and should be provided in the same units as $I_0$, $k$ the extinction coefficient in $\unit{m^{-1}}$ and $g_m$ the maximum growth rate in $m/Myr$. 
 
 This model encapsulates both the exponential extinction of sun light as water depth increases, and the idea that the growth of organisms interpolates between no growth at great depth and saturated growth in shallow waters (i.e. solar input is not the limiting factor at those depths).
 
@@ -303,7 +303,7 @@ Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid o
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is supplied with sediment produced in the production step as well as older sediment through disintegration. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
 
 <!-- In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily. -->
 
@@ -1040,9 +1040,11 @@ Panels (c) and (d) schematically illustrate these same box topologies using colo
 
 In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed-size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis. This means that the model output can be much more precise than the depositional resolution of the buffer.
 
-While the sediment buffer is allocated as a single 4-dimensional array (depth, facies, $x$, $y$), it is best to explain its functioning from the perspective of a single cell in our model. We are left with two dimensions: depth (rows) and facies (columns).
-
 The rows in the buffer represent a constant amount of sediment. An alternative approach is to have rows that represent time slices. In that case, when you want to disintegrate an amount of sediment you need to search the buffer back in time until enough sediment is collected. This can be very slow, and it also means that you need to have the full sedimentation history in memory. A buffer that is discretized on depth however doesn't have those requirements, at the expense of a small amount of facies mixing.
+
+The user can set the size of the buffer as well as the amount of sediment represented by each cell.
+
+While the sediment buffer is allocated as a single 4-dimensional array (depth, facies, $x$, $y$), it is best to explain its functioning from the perspective of a single cell in our model. We are left with two dimensions: depth (rows) and facies (columns).
 
 We choose to have the head of our sediment stack always be at the first row. When sediment out-grows the buffer, the deepest layers are dropped from memory. The head can contain an incomplete amount of sediment, while all rows below the head are either full or empty. When sediment is pushed to the stack and the head row overflows, all rows are copied down one row and the surplus is assigned to the now empty head row. The inverse happens when removing (popping) material from the stack. This process is illustrated below in Figure @fig:sediment-buffer.
 
