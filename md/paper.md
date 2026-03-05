@@ -171,27 +171,35 @@ const INPUT = BS92.Input(
 #| classes: ["task"]
 #| creates: ["md/fig/production-curves.pdf"]
 #| collect: figures
-
 module Script
-using CairoMakie
-using CarboKitten
-using CarboKitten.Visualization: production_curve!
 
-<<bs92-input>>
+using CarboKitten
+using CarboKitten.Production
+using CairoMakie
+
+@kwdef struct Input <: CarboKitten.AbstractInput
+    insolation = 400.0u"W/m^2"
+end
 
 inch = 96
 pt = 4/3
 cm = inch / 2.54
 
 function main()
-  fig = Figure(size=(8.3cm, 9.0cm), fontsize=8pt)
-  ax = Axis(fig[1, 1])
-  production_curve!(ax, INPUT)
-  ax.scene.plots[1].label = "euphotic"
-  ax.scene.plots[2].label = "oligophotic"
-  ax.scene.plots[3].label = "aphotic"
-  axislegend(ax, "factories", valign = :bottom)
-  save("md/fig/production-curves.pdf", fig)
+    water_depth = (0.01:0.1:50.0)u"m"
+    fig = Figure(size=(8.3cm, 9.0cm), fontsize=8pt)
+    input = Input()
+
+    ax = Axis(fig[1, 1], title="production at 400.0 W m⁻²",
+        yreversed=true, ylabel="depth [m]", xlabel="production [m/Myr]")
+    for (k, prod) in pairs(Production.EXAMPLE)
+        f = production_profile(input, prod)
+        p = water_depth .|> (w -> f(input.insolation, w))
+        lines!(ax, p |> in_units_of(u"m/Myr"),
+            water_depth |> in_units_of(u"m"), label = string(k))
+    end
+    axislegend(ax, "factories", valign = :bottom)
+    save("md/fig/production-curves.pdf", fig)
 end
 
 end
@@ -634,7 +642,7 @@ function step!(input::Input)
     x, y = box_axes(input.box)
     na = [CartesianIndex()]
     produce(_, wd) = input.production.(x[:,na], y[na,:], wd)[na,:,:]
-    pf = cementation_factor(input)
+    pf = lithification_factor(input)
 
     function (state::State)
         wd = local_water_depth(state)
@@ -675,7 +683,7 @@ using .CustomProduction: CustomProduction as M
 
 const Time = typeof(1.0u"Myr")
 
-function run_with(;dt, diffusivity, disintegration_rate, cementation_time, patch_width = 2.0u"km")
+function run_with(;dt, diffusivity, disintegration_rate, lithification_time, patch_width = 2.0u"km")
     facies = [
         M.Facies(
             diffusion_coefficient=diffusivity)  # 10u"m/yr"
@@ -711,7 +719,7 @@ function run_with(;dt, diffusivity, disintegration_rate, cementation_time, patch
         disintegration_rate=disintegration_rate,
         sediment_buffer_size=50,
         depositional_resolution=0.5u"m",
-        cementation_time=cementation_time,
+        lithification_time=lithification_time,
         transport_solver=Val{:forward_euler},
         facies=facies,
 
@@ -754,7 +762,7 @@ function main()
         diffusivity = [ 10.0 ] * u"m/yr",
         disintegration_rate = [ 10.0, 500.0 ] * u"m/Myr",
         dt = [ 100.0 ] * u"yr",
-        cementation_time = [ 100.0, 1000.0 ] * u"yr" )
+        lithification_time = [ 100.0, 1000.0 ] * u"yr" )
     cp = cartesian_product(;pars...)
 
     result = Array{Union{Missing, MemoryOutput}}(missing, size(cp)...)
@@ -764,7 +772,7 @@ function main()
 
     fig = plot_matrix(result[1,:,1,:],
             ["dr = $(d.val) m/Myr" for d in pars.disintegration_rate],
-            ["ct = $(d.val) yr" for d in pars.cementation_time];
+            ["ct = $(d.val) yr" for d in pars.lithification_time];
             fontsize = 10) do ax, result
         plot_topography!(ax, result)
     end
@@ -1139,6 +1147,7 @@ This means that increasing the resolution of a model by a factor two may need a 
 module TopologyCoast
 
 using CarboKitten
+using CarboKitten.Production
 using CarboKitten.Models: ALCAP as M
 
 function main()
@@ -1146,19 +1155,13 @@ function main()
 
     facies = [
         M.Facies(
-            maximum_growth_rate=500u"m/Myr",
-            extinction_coefficient=0.8u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:euphotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=400u"m/Myr",
-            extinction_coefficient=0.1u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:oligophotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=100u"m/Myr",
-            extinction_coefficient=0.005u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:aphotic],
             diffusion_coefficient=10.0u"m/yr")
     ]
 
@@ -1255,6 +1258,7 @@ include("Noise.jl")
 module TopologyPeriodic
 
 using CarboKitten
+using CarboKitten.Production
 using CarboKitten.Models: ALCAP as M
 using ..Noise: make_noise
 
@@ -1263,19 +1267,13 @@ function main()
 
     facies = [
         M.Facies(
-            maximum_growth_rate=500u"m/Myr",
-            extinction_coefficient=0.8u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:euphotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=400u"m/Myr",
-            extinction_coefficient=0.1u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:oligophotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=100u"m/Myr",
-            extinction_coefficient=0.005u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:aphotic],
             diffusion_coefficient=10.0u"m/yr")
     ]
 
@@ -1516,7 +1514,7 @@ input(res, steps) = ALCAP.Input(
     sea_level=sea_level,
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
-    cementation_time=100.0u"yr",
+    lithification_time=100.0u"yr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
@@ -1722,25 +1720,22 @@ const TAG = "lisiecki-sea-level"
 
 const FACIES = [
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduciton(
+            maximum_growth_rate=200u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=20.0u"m/yr"),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduciton(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=10.0u"m/yr"),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduciton(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=50.0u"m/yr")
 ]
 
@@ -1867,25 +1862,22 @@ const TAG = "insolation-future"
 
 const FACIES = [
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=200u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=50.0u"m/yr"),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=25.0u"m/yr"),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=12.5u"m/yr")
 ]
 
@@ -2037,27 +2029,24 @@ initial_topography(x, y) =
 
 facies(v) = [
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=20.0u"m/yr",
         wave_velocity=v(-2.0u"m/yr")),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=400u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=400u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=10.0u"m/yr",
         wave_velocity=v(-0.5u"m/yr")),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=50.0u"m/yr",
         wave_velocity=v(-2.0u"m/yr"))
 ]
@@ -2090,7 +2079,7 @@ input(name, res, steps, v) = ALCAP.Input(
     sea_level=sea_level,
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
-    cementation_time=100.0u"yr",
+    lithification_time=100.0u"yr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",

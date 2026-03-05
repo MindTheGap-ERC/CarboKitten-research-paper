@@ -18,7 +18,7 @@ function main()
         diffusivity = [ 10.0 ] * u"m/yr",
         disintegration_rate = [ 10.0, 500.0 ] * u"m/Myr",
         dt = [ 100.0 ] * u"yr",
-        cementation_time = [ 100.0, 1000.0 ] * u"yr" )
+        lithification_time = [ 100.0, 1000.0 ] * u"yr" )
     cp = cartesian_product(;pars...)
 
     result = Array{Union{Missing, MemoryOutput}}(missing, size(cp)...)
@@ -28,7 +28,7 @@ function main()
 
     fig = plot_matrix(result[1,:,1,:],
             ["dr = $(d.val) m/Myr" for d in pars.disintegration_rate],
-            ["ct = $(d.val) yr" for d in pars.cementation_time];
+            ["ct = $(d.val) yr" for d in pars.lithification_time];
             fontsize = 10) do ax, result
         plot_topography!(ax, result)
     end

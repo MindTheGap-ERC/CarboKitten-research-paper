@@ -11,7 +11,7 @@ using .CustomProduction: CustomProduction as M
 
 const Time = typeof(1.0u"Myr")
 
-function run_with(;dt, diffusivity, disintegration_rate, cementation_time, patch_width = 2.0u"km")
+function run_with(;dt, diffusivity, disintegration_rate, lithification_time, patch_width = 2.0u"km")
     facies = [
         M.Facies(
             diffusion_coefficient=diffusivity)  # 10u"m/yr"
@@ -47,7 +47,7 @@ function run_with(;dt, diffusivity, disintegration_rate, cementation_time, patch
         disintegration_rate=disintegration_rate,
         sediment_buffer_size=50,
         depositional_resolution=0.5u"m",
-        cementation_time=cementation_time,
+        lithification_time=lithification_time,
         transport_solver=Val{:forward_euler},
         facies=facies,
 
