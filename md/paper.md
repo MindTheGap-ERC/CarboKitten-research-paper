@@ -1667,7 +1667,7 @@ The third example serves to illustrate the details of how the wave-induced trans
 
 ## Sea level
 
-Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run.
+Variables external to the model, which modulate the output the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run.
 
 The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
 
