@@ -18,9 +18,12 @@ JH: This reflects more closely how we implemented this in the code.
 
 - [ ] 108 It's probably beyond the scope of this paper, but I wonder how this scales with cell size. I suppose larger cells would mean that a given species is effectively competing over a larger territorial area. In any event, the reliance on number of pixels instead of a spatial scale must mean that pixel size is actually a model parameter rather than just a numerical thing. I also wonder whether this could be viewed as a discrete approximation of a continuum formulation. For example, maybe you could view survival and activation as functions of exponentially weighted population density, with a given decay length scale. The cellular algorithm could then be viewed as a discrete approximation of this. But I realize this is kind of a tangential issue for purposes of a model description paper. @jhidding @burgesski
 
+> NH: We agree that for the CA, pixel size is a model parameter reflecting the area the carbonate factories compete over, and CA behavior is independent of the models spatial scale. There is a rich body of literature looking at the approximation of continuous spatiotemporal dynamics via CAs, see e.g. @Dormann2001 for an approximation of Turing patterns via CAs with probabilistic transition rules. We have added this reference and a sentence elaborating on this connection. Conversely, there are ways to construct (systems of) PDEs that emulate CAs (e.g., Omohundro, Stephen. "Modelling cellular automata with partial differential equations." Physica D: Nonlinear Phenomena 10.1-2 (1984): 128-134.) However, the resulting CAs are not easily interpretable as biologically meaningful spatial competition.
+
 - [x] 112 I'm not sure what it means for birth priority to be 'rotated every iteration'. @jhidding
 
 > JH: Added a paragraph to explain what this means.
+> NH: Split that sentence to clarify
 
 - [x] Fig 2: what are each of the colors? @jhidding
 
