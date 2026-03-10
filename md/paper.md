@@ -26,9 +26,9 @@ author:
       # email: h.spreeuw@esciencecenter.nl
       affiliation: 1
 affiliation:
-    - Netherlands eScience Center
-    - Utrecht University, Department of Earth Sciences
-    - University of Liverpool, School of Environmental Sciences
+    - Netherlands eScience Center, Science Park 402 (Matrix THREE), 1098 XH Amsterdam, the Netherlands
+    - Utrecht University, Faculty of Geosciences, Princetonlaan 8a, 3584 CB Utrecht, The Netherlands
+    - University of Liverpool, School of Environmental Sciences, 4 Brownlow Street, Liverpool, L69 3GP, United Kingdom
 numbersections: true
 runningauthor: Hidding et al.
 runningtitle: CarboKitten.jl
@@ -2228,7 +2228,7 @@ CarboKitten offers a powerful tool to ground-truth concepts of how time is repre
 
 
 ::: code-availability
-CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Github](https://github.com/MindTheGap-ERC/CarboKitten.jl). Releases are also made available on Zenodo, see @CarboKitten.
+CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Github](https://github.com/MindTheGap-ERC/CarboKitten.jl). Releases are also made available on Zenodo ([doi:10.5281/zenodo.14051612](https://doi.org/10.5281/zenodo.14051612)), see @CarboKitten.
 :::
 
 :::appendix
