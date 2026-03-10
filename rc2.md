@@ -8,7 +8,9 @@
 
 ## Comments by line or equation number
 
-- [ ] 34-5 Is this really the extent of existing forward stratigraphic models? What about SedSim or Dionysus (albeit both closed source I think), MIDAS, Sequence, etc.? @emiliajarochowska
+- [x] 34-5 Is this really the extent of existing forward stratigraphic models? What about SedSim or Dionysus (albeit both closed source I think), MIDAS, Sequence, etc.? 
+
+> We changed the text to emphasize that siliciclastic models mentioned are selected examples, because we state that these are not the focus of this article, so a comprehensive list of e.g. fluvial models is not relevant for forward modeling of marine carbonates. DIONISOS is mentioned later in the text, but we added a reference to it in the opening fragment. The Reviewer is right that we made an effort to primarily emphasize Open Source models.
 
 - [x] 80 Lack of subsidence correction was surprising at first. It might help to note that eta is defined relative to a reference level in the bedrock column, rather than to say the geoid or current sea level. @jhidding
 
@@ -102,7 +104,9 @@ then the product h df would be a proper diffusivity, and qf would be either a vo
 
 - [x] 173 not clear to me how/why Cf acts as a proxy for eta @jhidding
 
-- [ ] 194-5 please show the form of this slope function @ejarochowska
+- [x] 194-5 please show the form of this slope function 
+
+We interpret this request as a likely result of ambiguous phrasing in our manuscript. By "In this study an exponential slope function was assumed" refers to Bosscher & Southam (1992), not CarboKitten, and is based on empirical observations, as mentioned in the text. CarboKitten's algorithm does not require assumptions on slope shapes, the shapes emerge from the transport mechanism. We have corrected the phrasing to remove the ambiguity.
 
 - [x] 205-6 I appreciate the honesty of this statement!
 
