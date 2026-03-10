@@ -38,7 +38,6 @@ firstpage: 1
 dates:
   revised: \today
 ---
-
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
 \renewcommand{\[}{\begin{equation}}
 \renewcommand{\]}{\end{equation}}
@@ -119,6 +118,7 @@ Here we parametrize $P$ as a function of $w$. Note that $\nabla w = - \nabla \et
 Following @Burgess2013, we extend the BS92 model by introducing multiple facies that each have their own growth characteristics (except for insolation $I_0$, which is a global input variable).
 
 $$P(w) = \sum_f P_f(w)$$
+
 
 | Factory | $g_m$ $[\unit{m/Myr}]$ | $I_k$ $[\unit{W/m^2}]$ | $k$ $[\unit{m^{-1}}]$ |
 |----|----|----|----|
@@ -208,16 +208,24 @@ Script.main()
 
 ## Cellular Automaton
 
-The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in their package CarboCAT.
+Representing spatial heterogeneity resulting from positive and negative biological interactions in a computationally simple model requires meeting the following conditions:
+
+1. infinite heterogeneity in space and time, i.e. no convergence on stable patterns;
+2. authigenic variation that does not require external drivers;
+3. the approach must be scalable to *n* facies, even if we focus the examples here on 3;
+4. adjustable temporal persistence: it must be possible to set the turnover frequency.
+
+These requirements are met by Celullar Automata (CA), as proposed by @drummond_self-organizing_1999, @burgess_sensitive_2004 and @Burgess2013, without substanial computational costs. For this reason we adopt this modeling approach in CarboKitten, directly reimplementing the automaton described by @Burgess2013 in his package CarboCAT. Cellular automata are commonly used to generate spatial heterogeniety in forward modeling, with some models serving as discrete approximations of partial differential equations that can generate complex spatial dynamics such as Turing patterns @Dormann2001 @drummond_self-organizing_1999.
 
 The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
 
-For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive.
+For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive. The neighborhood size and the rules represent a case of Larger than Life family of two-dimensional cellula automata [@evans_larger_1996], but this particular set of rules has been proposed specifically for CarboCAT [@Burgess2013] and, to our knowledge, does not correspond to any documented Larger than Life rules. We examined other sets of rules [@johannes_hidding_2026_18925531], but most lead to rapid stabilization of spatial patterns. 
 
-Since a dead cell may qualify to become alive for different carbonate factories at the same time, birth priority is rotated every iteration.
+The initial CA grid is randomized. A dead cell may qualify to become alive for different carbonate factories at the same time. To resolve this priority collision, facies priority for occupying a dead cell is rotated every iteration using a deterministic cyclic shift (fixed round-robin pattern), which ensures that there is no priority given to any facies. 
 
 In the default configuration we emulate three species, corresponding to the factory species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
 
+The $5\times 5$ neighborhood strikes a balance between small-scale heterogeneity and computational cost. A smaller neighborhood would result in finer-grained spatial patterns, whereas a larger one in spatial smoothing and larger, more coherent patches of each facies. However, it would slow the model down. In a real depositional system, different carbonate producer guilds have their own length scales at which they disperse and interact and one-size-fits-all neihgborhood is clearly a simplification. The size of the neighborhood is fixed in the current version of CarboKitten, but adjustment of granularity of facies distribution generated by the CA can be achieved by users by changing the grid dimensions and the CA interval.
 ::: hide
 
 ```julia
@@ -499,7 +507,8 @@ $$\langle C\rangle = \frac{1}{\ln 2}\ r_d\ l.$$
 This equilibrium (having units of $\unit{m}$) can be useful when estimating the effects of choosing the disintegration rate and lithification time.
 
 ### Disintegration versus lithification
-Both the disintegration rate and the lithification time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the transport coefficient. However, choosing a high lithification time (thus a slow lithification) over a high disintegration rate can help in transporting only freshly produced sediments.
+
+Both the disintegration rate and the lithification time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high lithification time (thus a slow lithification) over a high disintegration rate can help in transporting only freshly produced sediments.
 
 Note that not setting the lithification time (which would amount to immediately depositing all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
 
@@ -511,6 +520,7 @@ Figure: Comparison between lithification and disintegration. The four panes show
 Panels $(a)$ and $(b)$ have a short lithification time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long lithification time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-lithification}
 
 :::hide
+
 ```julia
 #| file: runs/ParameterScan.jl
 module ParameterScan
@@ -779,6 +789,7 @@ end
 
 DisintegrationVsCementation.main()
 ```
+
 :::
 
 ### Facies-specific transport coefficient
@@ -1108,6 +1119,7 @@ save("data/diffusivity_scan/D_summary.png", fig_summary)
 :::
 
 Table: Estimated effective diffusion coefficient $D [\unit{m^2 Myr^{-1}}]$ for combinations of cementation time and disintegration rate $d_r$ at facies transport coefficient equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
+
 
 | Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
 |:---|---:|---:|---:|---:|
