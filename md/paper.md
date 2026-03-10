@@ -26,9 +26,9 @@ author:
       # email: h.spreeuw@esciencecenter.nl
       affiliation: 1
 affiliation:
-    - Netherlands eScience Center
-    - Utrecht University, Department of Earth Sciences
-    - University of Liverpool, School of Environmental Sciences
+    - Netherlands eScience Center, Science Park 402 (Matrix THREE), 1098 XH Amsterdam, the Netherlands
+    - Utrecht University, Faculty of Geosciences, Princetonlaan 8a, 3584 CB Utrecht, The Netherlands
+    - University of Liverpool, School of Environmental Sciences, 4 Brownlow Street, Liverpool, L69 3GP, United Kingdom
 numbersections: true
 runningauthor: Hidding et al.
 runningtitle: CarboKitten.jl
@@ -168,27 +168,35 @@ const INPUT = BS92.Input(
 #| classes: ["task"]
 #| creates: ["md/fig/production-curves.pdf"]
 #| collect: figures
-
 module Script
-using CairoMakie
-using CarboKitten
-using CarboKitten.Visualization: production_curve!
 
-<<bs92-input>>
+using CarboKitten
+using CarboKitten.Production
+using CairoMakie
+
+@kwdef struct Input <: CarboKitten.AbstractInput
+    insolation = 400.0u"W/m^2"
+end
 
 inch = 96
 pt = 4/3
 cm = inch / 2.54
 
 function main()
-  fig = Figure(size=(8.3cm, 9.0cm), fontsize=8pt)
-  ax = Axis(fig[1, 1])
-  production_curve!(ax, INPUT)
-  ax.scene.plots[1].label = "euphotic"
-  ax.scene.plots[2].label = "oligophotic"
-  ax.scene.plots[3].label = "aphotic"
-  axislegend(ax, "factories", valign = :bottom)
-  save("md/fig/production-curves.pdf", fig)
+    water_depth = (0.01:0.1:50.0)u"m"
+    fig = Figure(size=(8.3cm, 9.0cm), fontsize=8pt)
+    input = Input()
+
+    ax = Axis(fig[1, 1], title="production at 400.0 W m⁻²",
+        yreversed=true, ylabel="depth [m]", xlabel="production [m/Myr]")
+    for (k, prod) in pairs(Production.EXAMPLE)
+        f = production_profile(input, prod)
+        p = water_depth .|> (w -> f(input.insolation, w))
+        lines!(ax, p |> in_units_of(u"m/Myr"),
+            water_depth |> in_units_of(u"m"), label = string(k))
+    end
+    axislegend(ax, "factories", valign = :bottom)
+    save("md/fig/production-curves.pdf", fig)
 end
 
 end
@@ -360,11 +368,11 @@ A full list  of input parameters is available in the Appendix.
 
 ## Visualisations
 
-CarboKitten generates data in the accessible, binary HDF5 format, thus output can be visualised with most common tools, e.g. imported into R or a Jupyter notebook. Nevertheless, we provide some routines based on Makie [@DanischKrumbiegel2021] for creating crosssections, Wheeler diagrams and topographic overviews. Some of the most common plot types have been collected into a summary plot, which is shown in Figure @fig:summary-plot.
+CarboKitten generates data in the accessible, binary HDF5 format, thus output can be visualised with most common tools, e.g. imported into R or a Jupyter notebook. Nevertheless, we provide some routines based on Makie [@DanischKrumbiegel2021] for creating cross-sections, Wheeler diagrams and topographic overviews. Some of the most common plot types have been collected into a summary plot, which is shown in Figure @fig:summary-plot.
 
 ![Summary plot](fig/summary-plot.png){.wide}
 
-Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic crosssection, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time (Wheeler diagram), (e) dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. {#fig:summary-plot}
+Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic cross-section, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time (Wheeler diagram), (e) dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. {#fig:summary-plot}
 
 :::hide
 
@@ -455,27 +463,21 @@ We assume a local sediment flux proportional to the local gradient,
 
 $$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-where $d_f$ is a facies dependent diffusivity, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
+where $d_f$ is a facies-dependent transport coefficient, and $v_f(w)$ is a chosen additional velocity as a function of water depth. Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
 
 $$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
-This gives us an advection equation for the sediment concentraiton $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
+This gives us an advection equation for the sediment concentration $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
 $$\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
 (\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C_f,$${#eq:transport}
 
 where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and $4^{th}$ order Runge-Kuta are supported).
 
-## Diffusivity
-Note that, although the transport equation is an advection equation in $C_f$, if we consider that $C_f$ acts as a proxy for $\eta$ through disintegration and lithification, what seems like an innocent reaction term in Equation @eq:transport, turns out to behave as a diffusion equation in $\eta$. There is a continual interchange of sediment between the active layer and the sea floor, so $\partial_t C_f$ acts as a proxy for $\partial_t \eta$. Considering the contribution of a single facies $f$,
-
-$$\frac{\partial \eta}{\partial t}|_f \sim d_f C_f \nabla^2 \eta.$$ 
-
-This is why we refer to $d_f$ as the *diffusion coefficient* of a particular facies, even considering its units of $\unit{m/s}$.
-
-Any attempt at modelling sediment transport where there is an effective down-slope flux combined with some form of disintegration will yield diffusive behaviour. Due to the nature of the forward model, and the inescapable presence of this diffusion term we always need to be careful in choosing a small enough global time step. However, we'd like to emphasise that this is necessarily true for all forward carbonate models.
+Note that, although the transport equation is an advection equation in $C_f$, if we consider that $C_f$ acts as a proxy for $\eta$ through disintegration and lithification, what seems like an innocent reaction term in Equation @eq:transport, turns out to behave as a diffusion equation in $\eta$. We refer to $d_f$ as facies-specific *transport coefficient* (see below). Any attempt at modelling sediment transport where there is an effective down-slope flux combined with some form of disintegration will yield diffusive behaviour.
 
 ## Other approaches
+
 In the critical angle approach developed by @Warrlich2000, sediment is transported from unstable slopes to the nearest down-slope stable region. Stability is defined separately for different grain sizes. This method is motivated by the empirical relationship between grain composition and maximum slope angle [@Kenter1990].
 
 The problem with this critical angle-based method of transport is that production across an unstable region is deposited on a small strip, where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. Contrasting to that, both our transport model and production model (with the exception of the cellular automaton) are discretisations of otherwise continuous processes. This means that, at least assymptotically (i.e. as long as the time step is small enough), our implementation is independent of the chosen time step.
@@ -486,12 +488,12 @@ A different approach has been used in the early model `CARBPLAT` by @bosscher_ca
 
 ## Parameter choices
 
-Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of diffusivity, disintegration rate and lithification time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
+Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of transport coefficient, disintegration rate and lithification time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
 
 That being said, by considering some artificial scenarios we can gain more insight into the behaviour of our main parameters.
 
 ### Disintegration versus subsidence
-The chosen disintegration rate will determine wheter our model is on average erosive or accumulative. In the case of a platform morphology, the potential production exceeds the subsidence, meaning that the subsidence rate sets the pace at which the platform grows. At the edge of the platform, there is a transitional region where the maximum production is at pace with the subsidence. If the distintegration rate is higher than the subsidence rate, produced sediment will be immediately disintegrated, stay in the active layer for much longer, and be transported down slope. If the disintegration rate is much lower than the subsidence rate, produced (autochthonous) sediment can accumulate *in sity*, generating steeper morphologies.
+The chosen disintegration rate will determine wheter our model is on average erosive or accumulative. In the case of a platform morphology, the potential production exceeds the subsidence, meaning that the subsidence rate sets the pace at which the platform grows. At the edge of the platform, there is a transitional region where the maximum production is at pace with the subsidence. If the distintegration rate is higher than the subsidence rate, produced sediment will be immediately disintegrated, stay in the active layer for much longer, and be transported down slope. If the disintegration rate is much lower than the subsidence rate, produced (autochthonous) sediment can accumulate *in situ*, generating steeper morphologies.
 
 ### Equilibrium Concentration
 The model parametrizes sediment disintegration (i.e. activation or entrainment of older sediments) by a global constant disintegration rate $r_d$. Entrained sediment is transported by the mechanism described above, and then (re)lithifies by a given percentage every time step. The lithification time is specified as a half-life time $l$. In absence of production, and with infinite available sediment for disintegration, we can see the amount of entrained sediment $C$ reaching an equilibrium:
@@ -514,7 +516,7 @@ To understand the relative effects of choosing a certain lithification time and/
 
 ![Comparison between lithification and disintegration](fig/disintegration-vs-lithification.pdf){.wide}
 
-Figure: Comparison between lithification and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps), and the diffusivity was set to $10\ \unit{m/Myr}$.
+Figure: Comparison between lithification and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps), and the transport coefficient was set to $10\ \unit{m/Myr}$.
 Panels $(a)$ and $(b)$ have a short lithification time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long lithification time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-lithification}
 
 :::hide
@@ -645,7 +647,7 @@ function step!(input::Input)
     x, y = box_axes(input.box)
     na = [CartesianIndex()]
     produce(_, wd) = input.production.(x[:,na], y[na,:], wd)[na,:,:]
-    pf = cementation_factor(input)
+    pf = lithification_factor(input)
 
     function (state::State)
         wd = local_water_depth(state)
@@ -686,7 +688,7 @@ using .CustomProduction: CustomProduction as M
 
 const Time = typeof(1.0u"Myr")
 
-function run_with(;dt, diffusivity, disintegration_rate, cementation_time, patch_width = 2.0u"km")
+function run_with(;dt, diffusivity, disintegration_rate, lithification_time, patch_width = 2.0u"km")
     facies = [
         M.Facies(
             diffusion_coefficient=diffusivity)  # 10u"m/yr"
@@ -722,7 +724,7 @@ function run_with(;dt, diffusivity, disintegration_rate, cementation_time, patch
         disintegration_rate=disintegration_rate,
         sediment_buffer_size=50,
         depositional_resolution=0.5u"m",
-        cementation_time=cementation_time,
+        lithification_time=lithification_time,
         transport_solver=Val{:forward_euler},
         facies=facies,
 
@@ -765,7 +767,7 @@ function main()
         diffusivity = [ 10.0 ] * u"m/yr",
         disintegration_rate = [ 10.0, 500.0 ] * u"m/Myr",
         dt = [ 100.0 ] * u"yr",
-        cementation_time = [ 100.0, 1000.0 ] * u"yr" )
+        lithification_time = [ 100.0, 1000.0 ] * u"yr" )
     cp = cartesian_product(;pars...)
 
     result = Array{Union{Missing, MemoryOutput}}(missing, size(cp)...)
@@ -775,7 +777,7 @@ function main()
 
     fig = plot_matrix(result[1,:,1,:],
             ["dr = $(d.val) m/Myr" for d in pars.disintegration_rate],
-            ["ct = $(d.val) yr" for d in pars.cementation_time];
+            ["ct = $(d.val) yr" for d in pars.lithification_time];
             fontsize = 10) do ax, result
         plot_topography!(ax, result)
     end
@@ -790,9 +792,9 @@ DisintegrationVsCementation.main()
 
 :::
 
-### Diffusivity
+### Facies-specific transport coefficient
 
-The diffusivity parameter used in CarboKitten is expressed in $\unit{m/Myr}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $D$ would appear in $\partial_t \eta = D \nabla^2 \eta$ and have units $\unit{m^2/Myr}$. In CarboKitten's formulation $\nu_f$ is one dimension of length smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting diffusion coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should such values be available, converting these diffusion coefficients to diffusivity values used in the model.
+The facies-specific transport coefficient used in CarboKitten is expressed in $\unit{m/Myr}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $d_f$ appears in $\partial_t \eta = d_f \nabla^2 \eta$ and have units $\unit{m^2/Myr}$. In CarboKitten's formulation $\nu_f$ is one dimension of length smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting transport coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should empirically justified diffusion coefficients for carbonate sediment be available, converting these diffusion coefficients to values of the transport coefficient used in the model.
 
 Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from 1.25 $\times 10^6$ for the sand fraction in the photozoan factory to 50 $\times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5 \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
 
@@ -800,8 +802,9 @@ $$D_{Kaufman}(W) = C_0 \times \exp(-C_1 \times W)$$
 
 where $C_0 = 0.005 \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{Kaufman}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
-Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given diffusivity, lithification time and disintegration rate. Values for a diffusivity of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5$ to 8.8 $\times 10^6$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $D$ values obtained using this estimate scale linearly with input diffusivity.
+Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5 \unit{m^2/Myr}$$ to 8.8 $\times 10^6 \unit{m^2/Myr}$$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $d_f$ values obtained using this estimate scale linearly with input transport coefficient.
 
+:::hide
 ```julia
 #| file: runs/diffusivity_estimation.jl
 
@@ -1113,8 +1116,9 @@ hm = heatmap!(ax, ct_axis, dr_axis, D_matrix)
 Colorbar(fig_summary[1, 2], hm, label = "D [$D_unit]")
 save("data/diffusivity_scan/D_summary.png", fig_summary)
 ```
+:::
 
-Table: Estimated effective diffusion coefficient $D$ [m² Myr⁻¹] for combinations of cementation time and disintegration rate $d_r$ at facies diffusivity equal to 5 m/yr. {#tbl:diffusivity-scan}
+Table: Estimated effective diffusion coefficient $D [\unit{m^2 Myr^{-1}}]$ for combinations of cementation time and disintegration rate $d_r$ at facies transport coefficient equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
 
 
 | Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
@@ -1152,6 +1156,7 @@ This means that increasing the resolution of a model by a factor two may need a 
 module TopologyCoast
 
 using CarboKitten
+using CarboKitten.Production
 using CarboKitten.Models: ALCAP as M
 
 function main()
@@ -1159,19 +1164,13 @@ function main()
 
     facies = [
         M.Facies(
-            maximum_growth_rate=500u"m/Myr",
-            extinction_coefficient=0.8u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:euphotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=400u"m/Myr",
-            extinction_coefficient=0.1u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:oligophotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=100u"m/Myr",
-            extinction_coefficient=0.005u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:aphotic],
             diffusion_coefficient=10.0u"m/yr")
     ]
 
@@ -1268,6 +1267,7 @@ include("Noise.jl")
 module TopologyPeriodic
 
 using CarboKitten
+using CarboKitten.Production
 using CarboKitten.Models: ALCAP as M
 using ..Noise: make_noise
 
@@ -1276,19 +1276,13 @@ function main()
 
     facies = [
         M.Facies(
-            maximum_growth_rate=500u"m/Myr",
-            extinction_coefficient=0.8u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:euphotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=400u"m/Myr",
-            extinction_coefficient=0.1u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:oligophotic],
             diffusion_coefficient=10.0u"m/yr"),
         M.Facies(
-            maximum_growth_rate=100u"m/Myr",
-            extinction_coefficient=0.005u"m^-1",
-            saturation_intensity=60u"W/m^2",
+            production=Production.EXAMPLE[:aphotic],
             diffusion_coefficient=10.0u"m/yr")
     ]
 
@@ -1533,7 +1527,7 @@ input(res, steps) = ALCAP.Input(
     sea_level=sea_level,
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
-    cementation_time=100.0u"yr",
+    lithification_time=100.0u"yr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
@@ -1686,7 +1680,7 @@ The third example serves to illustrate the details of how the wave-induced trans
 
 ## Sea level
 
-Variables external to the production, which modulate it the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run.
+Variables external to the model, which modulate the output the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run.
 
 The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
 
@@ -1742,25 +1736,22 @@ const TAG = "lisiecki-sea-level"
 
 const FACIES = [
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduciton(
+            maximum_growth_rate=200u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=20.0u"m/yr"),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduciton(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=10.0u"m/yr"),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduciton(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=50.0u"m/yr")
 ]
 
@@ -1809,7 +1800,7 @@ The relationship between production and insolation can be modified with user-pro
 
 As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production.
 
-Incoming Solar Radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
+Incoming solar radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
 ::: hide
 
@@ -1891,25 +1882,22 @@ const TAG = "insolation-future"
 
 const FACIES = [
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=200u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=50.0u"m/yr"),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=25.0u"m/yr"),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=12.5u"m/yr")
 ]
 
@@ -2062,27 +2050,24 @@ initial_topography(x, y) =
 
 facies(v) = [
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=20.0u"m/yr",
         wave_velocity=v(-2.0u"m/yr")),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=400u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=400u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=10.0u"m/yr",
         wave_velocity=v(-0.5u"m/yr")),
     ALCAP.Facies(
-        viability_range=(4, 10),
-        activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
+        production=BenthicProduction(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=50.0u"m/yr",
         wave_velocity=v(-2.0u"m/yr"))
 ]
@@ -2115,7 +2100,7 @@ input(name, res, steps, v) = ALCAP.Input(
     sea_level=sea_level,
     subsidence_rate=50.0u"m/Myr",
     disintegration_rate=50.0u"m/Myr",
-    cementation_time=100.0u"yr",
+    lithification_time=100.0u"yr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
@@ -2255,11 +2240,11 @@ Figure: Topography and sediment profiles of an atoll. We ran the same model thre
 Small differences in water depth may get amplified exponentially by the production model, so we see some stark differences in the outcomes for the different velocity profiles. Comparing the first (without additional transport vector) and second case (flat profile), we see little change in the overall shape of the atoll, but there is a clear difference in the facies composition at the transition between oligophotic (yellow) and aphotic (green) dominated areas. In the third case we see the topography changed significantly between the leeward and windward sides of the atoll, where the slope is much steeper. Also the facies composition changed further: most notably we see a relative prominence of euphotic (blue) facies on the windward side of the island. {#fig:atoll}
 
 We model the formation of an atoll for three cases: no wave transport, constant transport directed west-ward (along the x-axis), and a depth dependent velocity profile.
-The results of this experiment are shown in Figure @fig:atoll. Velocity functions are configured for each facies separately. We found that it was quite easy to create an unstable model by choosing on-shore velocities too high, particularly in the case where the velocity shear is non-zero. Build-up of material due to high on-shore velocity can be compensated by setting a higher facies diffusion coefficient.
+The results of this experiment are shown in Figure @fig:atoll. Velocity functions are configured for each facies separately. We found that it was quite easy to create an unstable model by choosing on-shore velocities too high, particularly in the case where the velocity shear is non-zero. Build-up of material due to high on-shore velocity can be compensated by setting a higher facies transport coefficient.
 
-If we assume that both the facies specific diffusivity and the wave velocity are both some constant times a hypothetical carrying water velocity, it would be fitting to make sure that for each facies the diffusivity and velocity have a similar proportion. In our experiment we took the values listed in Table @tbl:transport-coefficients. It is very hard to find proper motivation for any of these values, but by changing them we can learn more about the mechanisms and systematic behaviours of the model and by extension possibly learn more about the formation of carbonate platforms and study sensitivities in their observed stratigraphic patterns.
+If we assume that both the facies transport coefficient and the wave velocity are some constant times a hypothetical carrying water velocity, it would be fitting to make sure that for each facies the transport coefficient and velocity have a similar proportion. In our experiment we took the values listed in Table @tbl:transport-coefficients. It is very hard to find proper motivation for any of these values, but by changing them we can learn more about the mechanisms and systematic behaviours of the model and by extension possibly learn more about the formation of carbonate platforms and study sensitivities in their observed stratigraphic patterns.
 
-| facies | diffusivity $[\unit{m/yr}]$ | velocity $[\unit{m/yr}]$ |
+| facies | transport coefficient $[\unit{m/yr}]$ | velocity $[\unit{m/yr}]$ |
 |:---|:---|:---|
 | euphotic | 20.0 | 2.0 |
 | oligophotic   | 10.0 | 0.5 |
@@ -2277,11 +2262,11 @@ CarboKitten offers a powerful tool to ground-truth concepts of how time is repre
 
 
 ::: code-availability
-CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Github](https://github.com/MindTheGap-ERC/CarboKitten.jl). Releases are also made available on Zenodo, see @CarboKitten.
+CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Github](https://github.com/MindTheGap-ERC/CarboKitten.jl). Releases are also made available on Zenodo ([doi:10.5281/zenodo.14051612](https://doi.org/10.5281/zenodo.14051612)), see @CarboKitten.
 :::
 
 :::appendix
-## Derivation of transport equations
+# Derivation of transport equations
 Our basic assumption is that the sediment flux scales linearly with the local bathymetric gradient and the concentration of sediment in the active layer,
 
 $$\vec{q}_f(x) = -C_f(x)\ (d_f\ \vec{\nabla}\eta(x) + \vec{v}_f(w(x)))),$$
@@ -2306,6 +2291,85 @@ Substituting that into the previous equation brings us to Equation [@eq:transpor
 
 $$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))\big)\cdot\vec{\nabla} C_f(x) + \big(\vec{\nabla}w(x) \cdot \vec{s}_f(w(x)) - d_f\nabla^2 w(x))\big)\ C_f(x).$$
 
+# Model parameters
+
+## Grid & Time
+
+Table: Grid and time parameters.
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (512,512) |
+| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 $\unit{m}$ |
+| `time.t0` | Simulation start time | 0.0 | Myr | 0.0 |
+| `time.`$\Delta$`t` | Time step | — | Myr | 10 $\unit{yr}$ – 0.001 $\unit{Myr}$ |
+| `time.steps` | Number of time steps | — | — | 100 – 50000 |
+
+## Water Depth and Sea Level
+
+Table: Water depth and Sea level
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `sea_level` | Relative sea-level function `f(t)` or constant | `t -> 0.0` | m | user functions |
+| `initial_topography` | Initial seafloor elevation function `f(x,y)` or matrix | `(x,y) -> 0.0` | m | example: ramp slope `-x/300.0` |
+| `subsidence_rate` | Rate of tectonic subsidence | `0.0` | m/Myr | 0.0 – 50.0 m/Myr |
+
+## Production
+
+Table: Production
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `insolation` | Surface insolation (constant, vector, or function of time) | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
+| **BenthicProduction** | | | | |
+| `maximum_growth_rate` | Maximum carbonate accumulation rate | `0.0` | m/Myr | 100 – 500 m/Myr |
+| `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.005 – 0.8 $\unit{m^{-1}}$ |
+| `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 50 – 60 $\unit{Wm^{-2}}$ |
+| **PelagicProduction** | | | | |
+| `maximum_growth_rate` | Maximum pelagic growth rate | `0.0` | $\unit{Myr^{-1}}$ | 7.0 $\unit{Myr^{-1}}$ |
+| `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.1 $\unit{m^{-1}}$ |
+| `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 60 $\unit{Wm^{-2}}$ |
+| `maximum_production_depth` | Maximum depth for pelagic production | `200.0` | m | — |
+
+## Cellular Automaton (CA)
+
+Table: CA Parameters. #{tab:ca-parameters}
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `ca_interval` | Update CA every N time steps | `1` | steps | 1 |
+| `ca_random_seed` | Random seed for initial CA state | `0` | — | 0 |
+| `viability_range` | Min–max neighbour count to stay alive | `(4, 10)` | — | (4, 10) |
+| `activation_range` | Min–max neighbour count to be born | `(6, 10)` | — | (6, 10) |
+| `active` | Whether facies participates in CA dynamics | `true` | — | `true`, `false` |
+
+## Transport amd Active Layer
+
+Table: Transport parameters. {#tab:transport-parameters}
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `diffusion_coefficient` | Facies-specific sediment diffusivity | `0.0` | m/yr | 1.0 – 50.0 m/yr |
+| `wave_velocity` | Facies advection velocity field `f(t) -> (v, `$\nabla$`)` | zero | m/Myr, 1/Myr | custom function |
+| `intertidal_zone` | Upward extension of the intertidal zone | `0.0` | m | 0.0 |
+| `disintegration_rate` | Max rate at which buried sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
+| `disintegration_transfer` | Function remapping disintegrated sediment across facies | identity | — | custom redistribution |
+| `lithification_time` | Half-life for active-layer settling (`nothing` = instant) | `nothing` | Myr | 100 yr – 5000 yr |
+| `transport_solver` | ODE solver: `:forward_euler` or `:RK4` | `:forward_euler` | — | `:forward_euler`, `:RK4` |
+| `transport_substeps` | Fixed sub-steps per $\Delta$t, or `:adaptive` | `:adaptive` | — | `:adaptive` or integer |
+
+Table: Sediment buffer parameters. {#tab:sediment-buffer-parameters}
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `sediment_buffer_size` | Number of layers in the stratigraphic buffer | `50` | layers | 2 – 150 |
+| `depositional_resolution` | Thickness of each buffer layer | `0.5` | m | 0.5 – 1.0 m |
+
+## Notes
+
+- Parameters marked "—" in the *Default* column are **required** (no default provided in source).
+
 :::
 
 :::author-contribution
@@ -2322,3 +2386,5 @@ We thank Joris Eggenhuisen for discussions on the transport model and Charlotte 
 Funded by the European Union (ERC, MindTheGap, StG project no 101041077).
 Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them.
 :::
+
+$$
