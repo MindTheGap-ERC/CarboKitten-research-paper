@@ -17,7 +17,7 @@ The principal issues are
 > We've included a discussion on the effect of these parameters, as well as performed a parameter scan showing linear behaviour wrt effective dispersion rates.
 
 3. incomplete discussion of numerical stability (CFL limits, time step guidance) and missing automatic checks; and
-> We emphasise the adaptive nature of the transport integration step.
+> We've changed the text to emphasise the adaptive nature of the transport integration step, as well as implemented an additional diagnostic to check the global CFL condition during a debug run.
 
 4. incomplete reproducibility: figure-generation scripts and environment files are not yet linked (there is still a “FIXME” placeholder).
 > This was an oversight. The correct repositories and DOIs are linked now.
