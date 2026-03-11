@@ -314,6 +314,10 @@ The actual transport is computed using a finite difference approach that is furt
 
 ## Composed model {#sec:composed-model}
 
+![Diagram showing flow control of the model](fig/flowchart.pdf)
+
+Figure: Flow chart of model control. The shaded areas show where the internal states of the *CA*, *sediment buffer* and *active layer* are affected. We can follow the model, starting from the *time step* node. The time step implies a change in external control factors like sea level, subsidence and insolation. Together with the sediment buffer, those factors determine *water depth* which in turn affects both production and transport. The CA *evolves* by itself (there is an option for feedback from the production step, but we left it out of the diagram for simplicity), but determines which facies are produced where. We then *produce* and *disintegrate* sediment that is added to the active layer for *transport*. The transport step is adaptive, so it can loop several times before we *lithify* a fraction of the active layer. After lithification, we increment the *time step*, completing the loop. {#fig:flowchart}
+
 Putting everything together, we evaluate the model as follows each iteration:
 
 1. Advance the cellular automaton.
@@ -322,7 +326,7 @@ Putting everything together, we evaluate the model as follows each iteration:
 4. Transport entrained sediment $C_f$.
 5. Deposit lithified sediment.
 
-Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability.
+Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability. The complete loop is illustrated in Figure @fig:flowchart.
 
 ## Input parameters
 
