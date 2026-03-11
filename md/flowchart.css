@@ -5,13 +5,13 @@
 }
 
 #arrow {
-    fill: rgb(0, 115, 179);
+    fill: rgb(50, 115, 179);
 }
 
 .edge {
     stroke-width: 2pt;
     fill: none;
-    stroke: rgb(0, 115, 179);
+    stroke: rgb(50, 115, 179);
 }
 
 .node rect {
@@ -30,7 +30,7 @@
 }
 
 .state .top-state-box {
-    fill: rgb(241, 228, 67);
+    fill: rgb(230, 220, 170);
     stroke: none;
 }
 
