@@ -8,6 +8,8 @@ I recommend several revisions/improvements before publication. Overall, the manu
 
 The principal issues are
 
+> First of all, we'd like to emphasise that CarboKitten is in early stages. We aim to have a system that is flexible, and easy to extend; for example with more advanced transport models. We have tried to address the reviewers question with regards to getting to understand the output sensitivity to the parameters controlling transport. When it comes to production, we have opted to use production curves that are well tested in previous publications by Burgess et al.
+
 1. insufficient validation -- no comparison with empirical or previously published model results;
 > We've included an extensive validation case, based on Henglai et al (2024) (https://doi.org/10.1016/j.marpetgeo.2024.106763).
 
@@ -15,7 +17,7 @@ The principal issues are
 > We've included a discussion on the effect of these parameters, as well as performed a parameter scan showing linear behaviour wrt effective dispersion rates.
 
 3. incomplete discussion of numerical stability (CFL limits, time step guidance) and missing automatic checks; and
-> We emphasise the adaptive nature of the transport integration step.
+> We've changed the text to emphasise the adaptive nature of the transport integration step, as well as implemented an additional diagnostic to check the global CFL condition during a debug run.
 
 4. incomplete reproducibility: figure-generation scripts and environment files are not yet linked (there is still a “FIXME” placeholder).
 > This was an oversight. The correct repositories and DOIs are linked now.
@@ -79,33 +81,39 @@ The online documentation (mindthegap-erc.github.io) is great and should be refer
 
 ## Line-level revision suggestions
 
-- [ ] Ln. 40 to 50: regarding models specifically looking at carbonate platform development, the authors might want to add in 1D pyReef-core (https://doi.org/10.5194/gmd-11-2093-2018) and the 2D model from Pastier et al. (https://doi.org/10.1029/2019GC008239). @emiliajarochowska
+- [x] Ln. 40 to 50: regarding models specifically looking at carbonate platform development, the authors might want to add in 1D pyReef-core (https://doi.org/10.5194/gmd-11-2093-2018) and the 2D model from Pastier et al. (https://doi.org/10.1029/2019GC008239). 
 
-- [ ] Eq. 3: you are providing the units for the different variables in Table 1 but I would also recommend adding them in text below the eq. @jhidding
+> These references have been added.
 
-- [ ] In Figure 1. What is the value of I0? It needs to be specified. @jhidding
+- [x] Eq. 3: you are providing the units for the different variables in Table 1 but I would also recommend adding them in text below the eq. @jhidding
+
+- [x] In Figure 1. What is the value of I0? It needs to be specified. @jhidding
+
+> The value of $I_0 = 400 W/m^2$ is written in the title of the plot.
 
 - [ ] In section 2.3. The reference to Fig. 2 missing. @jhidding
 
-- [ ] In Fig. 2: missing colour bar to explain the fig. (each colour corresponds to one type of carbonate) @jhidding
+- [x] In Fig. 2: missing colour bar to explain the fig. (each colour corresponds to one type of carbonate) @jhidding
 
-- [ ] Ln. 103: Change Celullar to Cellular @jhidding
+- [x] Ln. 103: Change Celullar to Cellular @jhidding
 
-- [ ] Ln. 122: rewrite this sentence: “Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment” and fix distintegrated to disintegrated @jhidding
+- [x] Ln. 122: rewrite this sentence: “Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment” and fix distintegrated to disintegrated @jhidding
 
-- [ ] Ln 123: “After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as lithification, being the process of turning loose sediment into rock”: missing comma after transport; change in process to a process. Also I think you should at least modify the end of this sentence. How about rewriting it as: “Once transported, some of the suspended sediment is deposited on the seafloor, where it becomes incorporated into the substrate through lithification (i.e., the conversion of loose sediment into cohesive rock).” @jhidding
+- [x] Ln 123: “After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as lithification, being the process of turning loose sediment into rock”: missing comma after transport; change in process to a process. Also I think you should at least modify the end of this sentence. How about rewriting it as: “Once transported, some of the suspended sediment is deposited on the seafloor, where it becomes incorporated into the substrate through lithification (i.e., the conversion of loose sediment into cohesive rock).” @jhidding
 
-- [ ] Ln 139: I think a formal academic tone will require you to remove all contractions like we’ve, it’s, don’t. So on this line we’ve needs to become we have. There are other instances in the manuscript (e.g., lines 80 and 190 with don’t). @jhidding
+> With this sentence we want to emphasise our exact use of the term *lithification*, which is here coerced to mean a specific interaction in the model, rather than describing the process itself which should be well familiar to the reader.
+ 
+- [x] Ln 139: I think a formal academic tone will require you to remove all contractions like we’ve, it’s, don’t. So on this line we’ve needs to become we have. There are other instances in the manuscript (e.g., lines 80 and 190 with don’t). @jhidding
 
-- [ ] Ln. 149: change crosssection to cross-section @jhidding
+- [x] Ln. 149: change crosssection to cross-section @jhidding
 
 - [ ] In Fig. 7, the description of the push and pop amount is difficult to understand and will need some additional information. More specifically, could you explain the relationship between the light blue colours and the size of the parcel (3/4 and 1/2 that you push and pop respectively). @jhidding
 
-- [ ] Ln 289 change mittigated to mitigated @jhidding
+- [x] Ln 289 change mittigated to mitigated @jhidding
 
-- [ ] Fig. 4 caption change crosssection to cross-section @jhidding
+- [x] Fig. 4 caption change crosssection to cross-section @jhidding
 
-- [ ] Fig. 9 caption change crosssection to cross-section @jhidding
+- [x] Fig. 9 caption change crosssection to cross-section @jhidding
 
 - [ ] Ln. 319: “FIXME ref to the code” replace with something along those lines: “All scripts used to generate figures are available at https://github.com//CarboKitten-paper, release v1.0 (DOI: 10.5281/zenodo.xxxxxxx). The Julia environment is defined by Project.toml and Manifest.toml files.” @jhidding
 
@@ -114,6 +122,8 @@ The online documentation (mindthegap-erc.github.io) is great and should be refer
 > We have rephrased it to "Variables external to the model, which modulate the output the most"
 
 - [ ] In Fig. 6, you need to add a colour bar for the elevation range. Also in the caption, you need to explain that the superimposed surfaces represent different time step and specify these times. @jhidding
+
+> The figure is provided to illustate CarboKittens capability to handle different input topologies and their typical use. The elevation levels are also indicated on the z-axis. We refrain from going into too much detail as it would distract from the purpose of the figure.
 
 - [ ] In Figs. 9, 10., 11 and 13d,e,f: you will need to add a colour bar like the one in Fig. 4 for the dominant facies. Also, for each simulation include grid size and time steps in the captions to make it easier for the reader. @jhidding
 

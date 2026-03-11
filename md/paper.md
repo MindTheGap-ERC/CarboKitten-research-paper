@@ -54,9 +54,9 @@ CarboKitten addresses a gap in available carbonate modeling tools by providing a
 
 # Introduction
 
-Stratigraphic forward modelling is well established as a means of examining our understanding of the formation of stratal architectures [@burgess_numerical_2001;@paterson_accommodation_2006;@schlager_record_2009;@ding_quantitative_2019;@jean_borgomano_quantitative_2020;@liu_formation_2022], prediction, correlation and imputation of architectures from incomplete data [@Warrlich2008;@masiero_syn-rift_2021], and testing hypotheses on the structure of the geological record [e.g., @kemp_stratigraphic_2018;@masiero_numerical_2020;@liu_estimating_2021] and the preservation of proxies [@curtis_natural_2025], fossils [@holland_quality_2000;@hannisdal_phenotypic_2006;@hohmann_identification_2024], or forcing mechanisms [@kemp_investigating_2016;@kemp_metre-scale_2019;@burgess_big_2019]. Owing to their economic interest, most such models are proprietary to exploration companies and their availability to researchers is limited. Some older models developed by researchers share the fate of many other research software packages and their maintenance ceases, e.g. when a project ends [@Warrlich2000]. It is not always possible to resuscitate such models, especially if documentation or license are lacking or code has not been shared [e.g., @strobel_interactive_1989;@demicco_cycopath_1998;@barrett_reef_2017]. As a result, the choice of stratigraphic forward models available to researchers at the moment is narrow and shifted towards siliciclastic [@hutton_sedflux_2008;@sylvester_stratigraphy_2024] or specifically fluvial depositional systems [@wild_sedsim_2019;@falivene_three-dimensional_2019], to the point that researchers may resort to these models to create simulations of carbonate sections [@zimmt_recognizing_2021].
+Stratigraphic forward modelling is well established as a means of examining our understanding of the formation of stratal architectures [@granjeon_concepts_1999;@burgess_numerical_2001;@paterson_accommodation_2006;@schlager_record_2009;@ding_quantitative_2019;@jean_borgomano_quantitative_2020;@liu_formation_2022], prediction, correlation and imputation of architectures from incomplete data [@Warrlich2008;@masiero_syn-rift_2021], and testing hypotheses on the structure of the geological record [e.g., @kemp_stratigraphic_2018;@masiero_numerical_2020;@liu_estimating_2021] and the preservation of proxies [@curtis_natural_2025], fossils [@holland_quality_2000;@hannisdal_phenotypic_2006;@hohmann_identification_2024], or forcing mechanisms [@kemp_investigating_2016;@kemp_metre-scale_2019;@burgess_big_2019]. Owing to their economic interest, most such models are proprietary to exploration companies and their availability to researchers is limited. Some older models developed by researchers share the fate of many other research software packages and their maintenance ceases, e.g. when a project ends [@Warrlich2000]. It is not always possible to resuscitate such models, especially if documentation or license are lacking or code has not been shared [e.g., @strobel_interactive_1989;@demicco_cycopath_1998;@barrett_reef_2017]. As a result, the choice of stratigraphic forward models available to researchers at the moment is narrow and shifted towards siliciclastic [e.g., @hutton_sedflux_2008;@sylvester_stratigraphy_2024] or specifically fluvial depositional systems [@wild_sedsim_2019;@falivene_three-dimensional_2019], to the point that researchers may resort to these models to create simulations of carbonate sections [@zimmt_recognizing_2021].
 
-Modeling carbonate depositional systems requires not only accounting for water and atmospheric processes, but also for the biological character of sediment production and dispersal. Ecological processes, such as facilitation, competition and dispersal, may on one hand confound the relationships between sediment composition and water depth [e.g. @granjeon_concepts_1999;@dyer_quantifying_2018;@weij_limited_2019] and, on the other hand, lead to creation of complex facies patterns under stable sea level conditions [@drummond_self-organizing_1999;@purkis_spatial_2016;@xi_stratigraphic_2022]. Complex models accounting for it have been mostly developed for exploration, e.g. `Carbonate 3D` [@warrlich_quantifying_2002;@Warrlich2008], `DIONISOS` [@granjeon_concepts_1999] and `Carbonate GPM` [@hill_modeling_2009].
+Modeling carbonate depositional systems requires not only accounting for water and atmospheric processes, but also for the biological character of sediment production and dispersal. Ecological processes, such as facilitation, competition and dispersal, may on one hand confound the relationships between sediment composition and water depth [e.g. @granjeon_concepts_1999;@dyer_quantifying_2018;@salles_exploring_2018;@pastier_genesis_2019;@weij_limited_2019] and, on the other hand, lead to creation of complex facies patterns under stable sea level conditions [@drummond_self-organizing_1999;@purkis_spatial_2016;@xi_stratigraphic_2022]. Complex models accounting for it have been mostly developed for exploration, e.g. `Carbonate 3D` [@warrlich_quantifying_2002;@Warrlich2008], `DIONISOS` [@granjeon_concepts_1999] and `Carbonate GPM` [@hill_modeling_2009].
 Of research-driven models operating in more than one dimension, two include a wider range of depositional environment with carbonate production modules: `CARB3D+` [@paterson_accommodation_2006], `SedSimple` [@tetzlaff_stratigraphic_2023] and `Badlands` [@salles_badlands_2016], including its Python interface `pyBadlands` [@salles_pybadlands_2018], but due to their general focus these models do not account for the spatial heterogeneity driven by biological processes.
 Finally, `CarboCAT` [@Burgess2013] is a research-driven 2D model dedicated to stratigraphic forward modeling of carbonate platforms, which includes a cellular automaton that approximates the spatial heterogeneity formed through ecological interactions between carbonate-producing organisms. `CarboCAT` has been used in multiple studies [e.g. @masiero_numerical_2020;@xi_stratigraphic_2022;@hohmann_identification_2024], but having been written in Matlab, it was not accessible to contributions from the entire scientific community. Based on the successful applications of `CarboCAT`, we set out to develop a new generation model with the following specifications:
 
@@ -109,7 +109,7 @@ where $P$ is the sediment production in $\textrm{m/Myr}$,
 
 $$P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),$$
 
-where $I_0$ is the insolation, $I_k$ is the saturation intensity, $k$ the extinction coefficient and $g_m$ the maximum growth rate.
+where $I_0$ is the insolation in units of energy flux, $I_k$ is the saturation intensity and should be provided in the same units as $I_0$, $k$ the extinction coefficient in $\unit{m^{-1}}$ and $g_m$ the maximum growth rate in $m/Myr$. 
 
 This model encapsulates both the exponential extinction of sun light as water depth increases, and the idea that the growth of organisms interpolates between no growth at great depth and saturated growth in shallow waters (i.e. solar input is not the limiting factor at those depths).
 
@@ -133,37 +133,7 @@ Our default parameters define three biological facies based on sediment produced
 ![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
 
 ::: hide
-
-```julia
-#| id: bs92-input
-const FACIES = [
-    BS92.Facies(
-         maximum_growth_rate=500u"m/Myr"/4,
-         extinction_coefficient=0.8u"m^-1",
-         saturation_intensity=60u"W/m^2"),
-    BS92.Facies(
-         maximum_growth_rate=400u"m/Myr"/4,
-         extinction_coefficient=0.1u"m^-1",
-         saturation_intensity=60u"W/m^2"),
-    BS92.Facies(
-         maximum_growth_rate=100u"m/Myr"/4,
-         extinction_coefficient=0.005u"m^-1",
-         saturation_intensity=60u"W/m^2")]
-
-const INPUT = BS92.Input(
-    tag = "example model BS92",
-    box = CarboKitten.Box{Coast}(grid_size=(100, 1), phys_scale=150.0u"m"),
-    time = TimeProperties(
-        Δt = 200.0u"yr",
-        steps = 5000),
-    sea_level = t -> 4.0u"m" * sin(2π * t / 0.2u"Myr"),
-    initial_topography = (x, y) -> - x / 300.0,
-    subsidence_rate = 50.0u"m/Myr",
-    insolation = 400.0u"W/m^2",
-    facies = FACIES)
-```
-
-```julia
+``` julia
 #| file: "runs/production-curves.jl"
 #| classes: ["task"]
 #| creates: ["md/fig/production-curves.pdf"]
@@ -226,6 +196,7 @@ The initial CA grid is randomized. A dead cell may qualify to become alive for d
 In the default configuration we emulate three species, corresponding to the factory species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
 
 The $5\times 5$ neighborhood strikes a balance between small-scale heterogeneity and computational cost. A smaller neighborhood would result in finer-grained spatial patterns, whereas a larger one in spatial smoothing and larger, more coherent patches of each facies. However, it would slow the model down. In a real depositional system, different carbonate producer guilds have their own length scales at which they disperse and interact and one-size-fits-all neihgborhood is clearly a simplification. The size of the neighborhood is fixed in the current version of CarboKitten, but adjustment of granularity of facies distribution generated by the CA can be achieved by users by changing the grid dimensions and the CA interval.
+
 ::: hide
 
 ```julia
@@ -329,13 +300,13 @@ Script.main()
 
 ![CA](fig/ca-long-term.pdf){.wide}
 
-Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
+Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid of $50\times50$. Each color represents a carbonate facies, but since the CA process is not affected by facies identity we leave out any designation. Starting with random noise, we first iterate 1000 times to get into a typical state. The top row shows iterations 1000 to 1003, the bottom row 2000 to 2003. This shows that the patterns keep reasonably stable on the short term, while evolving more extensively over the long term. {#fig:ca}
 
 ## Transport {#sec:model-transport}
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is supplied with sediment produced in the production step as well as older sediment through disintegration. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
 
 <!-- In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily. -->
 
@@ -359,11 +330,11 @@ Advancing the CA can be configured to happen one-in-$n$ iterations to slow it do
 
 ## Input parameters
 
-CarboKitten has many input parameters: box geometry, time parameters, a list of facies properties, transport model intrinsics and external conditions: initial topography, relative sea level and insolation. We've already discussed the facies properties in Section @sec:carbonate-production, and the transport model is discussed in Section @sec:transport. That leaves us the external conditions that should be considered the driving forces of carbonate platform formation.
+CarboKitten has many input parameters: box geometry, time parameters, a list of facies properties, transport model intrinsics and external conditions: initial topography, relative sea level and insolation. We have already discussed the facies properties in Section @sec:carbonate-production, and the transport model is discussed in Section @sec:transport. That leaves us the external conditions that should be considered the driving forces of carbonate platform formation.
 
 The initial topography, sea level and insolation can all be entered in three different ways: a given constant, a Julia function or an array exactly matching the box size or number of time steps.
 
-In Section @sec:examples We provide two examples where we use external sources to drive the sea level and insolation curves.
+In Section @sec:examples we provide two examples where we use external sources to drive the sea level and insolation curves.
 A full list  of input parameters is available in the Appendix.
 
 ## Visualisations
@@ -457,7 +428,7 @@ StandardExamplePlot.main()
 # Transport {#sec:transport}
 
 In Section @sec:model-transport we discussed how transport is embedded in the larger model.
-Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is considered separately for each facies (as with all quantities with the $f$ subscript). Each iteration of the larger model we supply the active layer with freshly produced (autochthonous) sediment as well as disintegrated older (allochthonous) sediment. We then compute transport of the active layer for as many sub-iterations as is deemed needed for the solver to remain stable. After that, a percentage of the contents in the active layer is deposited on the sea floor. The lithification percentage depends both on the time step taken and the given lithification time, which is configured in terms of a half-life time. There are many ways to compute sediment transport in the active layer. We've opted for a finite difference strategy inspired on @Paola1992.
+Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ is considered separately for each facies (as with all quantities with the $f$ subscript). Each iteration of the larger model we supply the active layer with freshly produced (autochthonous) sediment as well as disintegrated older (allochthonous) sediment. We then compute transport of the active layer for as many sub-iterations as is deemed needed for the solver to remain stable. After that, a percentage of the contents in the active layer is deposited on the sea floor. The lithification percentage depends both on the time step taken and the given lithification time, which is configured in terms of a half-life time. There are many ways to compute sediment transport in the active layer. We have opted for a finite difference strategy inspired on @Paola1992.
 
 We assume a local sediment flux proportional to the local gradient,
 
@@ -482,9 +453,9 @@ In the critical angle approach developed by @Warrlich2000, sediment is transport
 
 The problem with this critical angle-based method of transport is that production across an unstable region is deposited on a small strip, where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. Contrasting to that, both our transport model and production model (with the exception of the cellular automaton) are discretisations of otherwise continuous processes. This means that, at least assymptotically (i.e. as long as the time step is small enough), our implementation is independent of the chosen time step.
 
-One aspect of critical angle theory that we do use is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and we don't need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
+One aspect of critical angle theory that we do use is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and there is no need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
 
-A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including @adams_basic_2000) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In this study an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms [e.g., @schlager_submarine_1986;@Kenter1990;@adams_basic_2000]. This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
+A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including @adams_basic_2000) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In the study by @bosscher_carbplatcomputer_1992 an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms [e.g., @schlager_submarine_1986;@Kenter1990;@adams_basic_2000]. This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
 
 ## Parameter choices
 
@@ -1135,13 +1106,13 @@ $$|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.$$
 
 This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable.
 
-In practice, we compute the transport coefficients, and the maximum resulting advective Courant number. Then we integrate the transport equation adaptively, choosing the minimum number of subdivided time steps that keeps the advection stable. Since we computed the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use an upwind scheme.
+In practice, we compute the transport coefficients, and the maximum resulting advective Courant number. Then we integrate the transport equation adaptively, choosing the minimum number of subdivided time steps that keeps the advection stable. Since we computed the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use a first-order upwind scheme.
 
 Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} \sim d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
 
 $$d_f C_f \frac{\Delta t}{(\Delta x)^2} \le 1.$$
 
-This means that increasing the resolution of a model by a factor two may need a time step four times smaller for the integration to remain stable.
+This means that increasing the resolution of a model by a factor two may need a time step four times smaller for the integration to remain stable. CarboKitten has a diagnostic mode where this condition is checked against, allowing the user to make informed changes to the input parameters. Because the sediment concentration is not known in advance, it is not possible to make this check in advance.
 
 # Software design
 
@@ -1397,12 +1368,16 @@ In another case, where we want to simulate an entire island, or even an archipel
 
 ![Different topologies, 3d view and boundaries](fig/topologies.png){.wide}
 
-Figure: Model topologies. CarboKitten allows the user to choose different topologies for the spatial modelling. In panel (a) we see a group of reef islands that were modelled on a fully periodic grid of size $250 \times 250$, using a randomly generated initial topography. A more common use case is shown in panel (b), where the $x$ coordinate is reflected at the boundaries, while the $y$ coordinate is periodic, thus modelling a small strip of coastline. Here the grid size is $250 \times 50$, and the initial topography is a linearly declining slope of $0.3\%$ (with the exception of the shore, which is steeper).
+Figure: Model topologies. CarboKitten allows the user to choose different topologies for the spatial modelling. In panel (a) we see a group of reef islands that were modelled on a fully periodic grid of size $250 \times 250$, using a randomly generated initial topography. A more common use case is shown in panel (b), where the $x$ coordinate is reflected at the boundaries, while the $y$ coordinate is periodic, thus modelling a small strip of coastline. Here the grid size is $250 \times 50$, and the initial topography is a linearly declining slope of $0.3\%$ (with the exception of the shore, which is steeper). The superimposed surfaces represent different equidistant time steps in the same runs, while the colors indicate the elevation along with the values on the $z$-axis, here provided to guide the viewer.
 Panels (c) and (d) schematically illustrate these same box topologies using coloured arrows. {#fig:box-topologies}
 
 ## The sediment buffer
 
-In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed-size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis, but is no longer an active component in the model. This means that the model output can be much more precise than the depositional resolution of the buffer.
+In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed-size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis. This means that the model output can be much more precise than the depositional resolution of the buffer.
+
+The rows in the buffer represent a constant amount of sediment. An alternative approach is to have rows that represent time slices. In that case, when the users wish to disintegrate an amount of sediment, they need to search the buffer back in time until enough sediment is collected. This can be very slow, and it also means that one needs to have the full sedimentation history in memory. A buffer that is discretized on depth however does not have those requirements, at the expense of a small amount of facies mixing.
+
+The user can set the size of the buffer as well as the amount of sediment represented by each cell.
 
 While the sediment buffer is allocated as a single 4-dimensional array (depth, facies, $x$, $y$), it is best to explain its functioning from the perspective of a single cell in our model. We are left with two dimensions: depth (rows) and facies (columns).
 
@@ -1433,8 +1408,7 @@ Our baseline model is the example included in CarboKitten, grid size $100 \times
 With regards to memory consumption, CarboKitten allocates a fixed amount of memory at the start of a model run, which scales linearly with the size of the grid. The most significant fraction of the memory is occupied by the sediment buffer. In the example run we have a buffer size of 50. With three facies types being stored this results in an array size of $100 \times 50 \times 50 \times 3$, stored in double precision gives a mere $6 \unit{MB}$. However, for a $300 \times 300$ sized grid this already increases to $108 \unit{MB}$.
 
 ### Scaling
-
-The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mittigated by setting a diffusion coefficient. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we are speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
+The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mitigated by setting a diffusion coefficient. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we are speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
 
 ### Benchmark
 
@@ -1452,7 +1426,7 @@ We may validate our benchmark by looking at the results of the runs with grid si
 
 ![Benchmark validation](fig/benchmark_validation.png){.wide}
 
-Figure: Benchmark validation. This shows a crosssection of the runs with a grid size of $150^2$. Looking at the first output, using only 2500 time steps, we see a wave like pattern even where the deep sea facies dominate. These waves are not physical, but a result from taking the time step too large. When we look at the results from 5000 and 10000 time steps, they look so similar that we can conclude that in this case 5000 steps was enough to get accurate results. {#fig:benchmark-validation}
+Figure: Benchmark validation. This shows a cross-section of the runs with a grid size of $150^2$. Looking at the first output, using only 2500 time steps, we see a wave like pattern even where the deep sea facies dominate. These waves are not physical, but a result from taking the time step too large. When we look at the results from 5000 and 10000 time steps, they look so similar that we can conclude that in this case 5000 steps was enough to get accurate results. {#fig:benchmark-validation}
 
 ::: hide
 
