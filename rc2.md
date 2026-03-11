@@ -8,7 +8,9 @@
 
 ## Comments by line or equation number
 
-- [ ] 34-5 Is this really the extent of existing forward stratigraphic models? What about SedSim or Dionysus (albeit both closed source I think), MIDAS, Sequence, etc.? @emiliajarochowska
+- [x] 34-5 Is this really the extent of existing forward stratigraphic models? What about SedSim or Dionysus (albeit both closed source I think), MIDAS, Sequence, etc.? 
+
+> We changed the text to emphasize that siliciclastic models mentioned are selected examples, because we state that these are not the focus of this article, so a comprehensive list of e.g. fluvial models is not relevant for forward modeling of marine carbonates. DIONISOS is mentioned later in the text, but we added a reference to it in the opening fragment. The Reviewer is right that we made an effort to primarily emphasize Open Source models.
 
 - [x] 80 Lack of subsidence correction was surprising at first. It might help to note that eta is defined relative to a reference level in the bedrock column, rather than to say the geoid or current sea level. @jhidding
 
@@ -18,9 +20,12 @@ JH: This reflects more closely how we implemented this in the code.
 
 - [ ] 108 It's probably beyond the scope of this paper, but I wonder how this scales with cell size. I suppose larger cells would mean that a given species is effectively competing over a larger territorial area. In any event, the reliance on number of pixels instead of a spatial scale must mean that pixel size is actually a model parameter rather than just a numerical thing. I also wonder whether this could be viewed as a discrete approximation of a continuum formulation. For example, maybe you could view survival and activation as functions of exponentially weighted population density, with a given decay length scale. The cellular algorithm could then be viewed as a discrete approximation of this. But I realize this is kind of a tangential issue for purposes of a model description paper. @jhidding @burgesski
 
+> NH: We agree that for the CA, pixel size is a model parameter reflecting the area the carbonate factories compete over, and CA behavior is independent of the model's spatial scale. There is a rich body of literature looking at the approximation of continuous spatiotemporal dynamics via CAs, see e.g. @Dormann2001 for an approximation of Turing patterns via CAs with probabilistic transition rules. We have added this reference and a sentence elaborating on this connection. Conversely, there are ways to construct (systems of) PDEs that emulate CAs (e.g., Omohundro, Stephen. "Modelling cellular automata with partial differential equations." Physica D: Nonlinear Phenomena 10.1-2 (1984): 128-134.) However, the resulting CAs are not easily interpretable as biologically meaningful spatial competition.
+
 - [x] 112 I'm not sure what it means for birth priority to be 'rotated every iteration'. @jhidding
 
 > JH: Added a paragraph to explain what this means.
+> NH: Split that sentence to clarify
 
 - [x] Fig 2: what are each of the colors? @jhidding
 
@@ -102,7 +107,9 @@ then the product h df would be a proper diffusivity, and qf would be either a vo
 
 - [x] 173 not clear to me how/why Cf acts as a proxy for eta @jhidding
 
-- [ ] 194-5 please show the form of this slope function @ejarochowska
+- [x] 194-5 please show the form of this slope function 
+
+We interpret this request as a likely result of ambiguous phrasing in our manuscript. By "In this study an exponential slope function was assumed" refers to Bosscher & Southam (1992), not CarboKitten, and is based on empirical observations, as mentioned in the text. CarboKitten's algorithm does not require assumptions on slope shapes, the shapes emerge from the transport mechanism. We have corrected the phrasing to remove the ambiguity.
 
 - [x] 205-6 I appreciate the honesty of this statement!
 

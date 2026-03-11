@@ -17,7 +17,7 @@ The principal issues are
 > We've included a discussion on the effect of these parameters, as well as performed a parameter scan showing linear behaviour wrt effective dispersion rates.
 
 3. incomplete discussion of numerical stability (CFL limits, time step guidance) and missing automatic checks; and
-> We emphasise the adaptive nature of the transport integration step.
+> We've changed the text to emphasise the adaptive nature of the transport integration step, as well as implemented an additional diagnostic to check the global CFL condition during a debug run.
 
 4. incomplete reproducibility: figure-generation scripts and environment files are not yet linked (there is still a “FIXME” placeholder).
 > This was an oversight. The correct repositories and DOIs are linked now.
@@ -32,9 +32,15 @@ Once these items are addressed, together with minor editorial corrections (typos
 
 The description of the CA in Sect. 2.3 provides a quick overview of how ecological succession is emulated, but several aspects would benefit from clarification. First, the implementation is said to be a “direct reimplementation of Burgess (2013) CarboCAT,” yet no details are given about whether any modifications were introduced or tested (e.g., neighbourhood size, rule thresholds, asynchronous vs synchronous updating). It would be helpful to state explicitly whether the algorithm reproduces Burgess’s rules verbatim or if adjustments were made for computational or ecological reasons.
 
+> The "direct reimplementation" implies reproducing the rules proposed in Burgess (2013) verbatim. Specific questions are addressed below, but we have tested and confirmed that this set of rules is rare in that it does not saturate on a constant pattern but continues generating new patterns over long term (Fig. 2 in the manuscript). In the course of implementation, we developed an interactive simulation that allows changing the properties of the CA and observe live how they affect the patterns it produces (https://doi.org/10.5281/zenodo.18925531). This simulation supported our choice of rules as proposed by Burgess (2013), so we added a reference to it for readers interested in exploring other settings. We note that for most users the current rules will be the best and modifying the automaton would fall beyond the typical use case CarboKitten is designed for.
+
 In addition, please justify the choice of neighbourhood (5 x 5) and activation/viability ranges (6 ≤ n ≤ 10 and 4 ≤ n ≤ 10, respectively). Are these empirical defaults or user-defined parameters? A short sensitivity check or schematic (showing how cell states evolve under different thresholds) would clarify the model’s behaviour.
 
+> We clarified that the size of the neighborhood is currently hard-coded and selected as a compromise between degree of spatial complexity and computational costs.
+
 Finally, consider clarifying how birth priority rotation among factories is implemented (e.g., cyclic randomisation vs deterministic shift) and how this influences facies patterns or convergence. These details would improve transparency and reproducibility of the CA module.
+
+> The text now contains precise information how birth priority is assigned (deterministic shift). As proposed by the Reviewer, an alternative approach would be to use cyclic randomisation. Given that the priority rule only comes into play when a dead cell simultaneously qualifies for activation by multiple facies, which is a relatively rare case once the CA reaches quasi-equilibrium, we did not think a detailed discussion would be of interest for the general audience, as it relatively easy to anticipate the differences: the current approach (deterministic shift) eliminates the risk that one facies will accidentally disappear or dominate the run, which could happen if we assigned birth priority with a permutation. Permutation would, however, be aperiodic, and we did not know what "cyclic randomisation" would mean, but probably multiple implementations can be considered. The current approach introduces subtle periodicity. The current approach ensures fairness (each facies gets exactly one "first priority" turn per n_facies steps); random permutation only guarantees fairness in expectation. We did not include this level of detail in the main text to avoid making the paper more lengthy, but we added a discussion to CarboKitten's documentation.
 
 2. Comment on sediment buffer depth
 
@@ -75,7 +81,9 @@ The online documentation (mindthegap-erc.github.io) is great and should be refer
 
 ## Line-level revision suggestions
 
-- [ ] Ln. 40 to 50: regarding models specifically looking at carbonate platform development, the authors might want to add in 1D pyReef-core (https://doi.org/10.5194/gmd-11-2093-2018) and the 2D model from Pastier et al. (https://doi.org/10.1029/2019GC008239). @emiliajarochowska
+- [x] Ln. 40 to 50: regarding models specifically looking at carbonate platform development, the authors might want to add in 1D pyReef-core (https://doi.org/10.5194/gmd-11-2093-2018) and the 2D model from Pastier et al. (https://doi.org/10.1029/2019GC008239). 
+
+> These references have been added.
 
 - [x] Eq. 3: you are providing the units for the different variables in Table 1 but I would also recommend adding them in text below the eq. @jhidding
 
