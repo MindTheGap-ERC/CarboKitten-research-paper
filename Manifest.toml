@@ -2,7 +2,7 @@
 
 julia_version = "1.12.5"
 manifest_format = "2.0"
-project_hash = "bcb92f26b99075c535144e19c3863353556bfdcd"
+project_hash = "0688e9d4634411b91dd37d65ed2a9989443b19d4"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -878,11 +878,6 @@ deps = ["Artifacts", "JLLWrappers", "Libdl"]
 git-tree-sha1 = "b6893345fd6658c8e475d40155789f4860ac3b21"
 uuid = "aacddb02-875f-59d6-b918-886e6ef4fbf8"
 version = "3.1.4+0"
-
-[[deps.JuliaSyntaxHighlighting]]
-deps = ["StyledStrings"]
-uuid = "ac6e5ff7-fb65-4e79-a425-ec3bc9c03011"
-version = "1.12.0"
 
 [[deps.JuliaSyntaxHighlighting]]
 deps = ["StyledStrings"]

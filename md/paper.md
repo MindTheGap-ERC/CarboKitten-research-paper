@@ -38,7 +38,6 @@ firstpage: 1
 dates:
   revised: \today
 ---
-
 \newcommand{\term}[1]{\left(\frac{\partial \eta}{\partial t}\right)_{\textrm{#1}}}
 \renewcommand{\[}{\begin{equation}}
 \renewcommand{\]}{\end{equation}}
@@ -88,7 +87,7 @@ Initial topography
 
 Topography
 
-:   The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below), so it should be considered relative to a bedrock reference. This definition matches how coordinates are handled in CarboKitten internally.
+:   The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below).
 
 Relative sea level
 
@@ -108,10 +107,7 @@ $$\frac{\partial \eta}{\partial t} = P(\eta),$$
 
 where $P$ is the sediment production in $\textrm{m/Myr}$,
 
-$$P(w) = \begin{cases}
-g_m \tanh\left(\frac{I_0}{I_k}\ e^{-kw}\right) & \text{if $w \ge 0$}\\
-0 & \text{if $w < 0$}
-\end{cases},$$
+$$P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),$$
 
 where $I_0$ is the insolation in units of energy flux, $I_k$ is the saturation intensity and should be provided in the same units as $I_0$, $k$ the extinction coefficient in $\unit{m^{-1}}$ and $g_m$ the maximum growth rate in $m/Myr$. 
 
@@ -123,6 +119,7 @@ Following @Burgess2013, we extend the BS92 model by introducing multiple facies 
 
 $$P(w) = \sum_f P_f(w)$$
 
+
 | Factory | $g_m$ $[\unit{m/Myr}]$ | $I_k$ $[\unit{W/m^2}]$ | $k$ $[\unit{m^{-1}}]$ |
 |----|----|----|----|
 | Euphotic | 500.0 | 60.0 | 0.8 |
@@ -133,7 +130,7 @@ $$P(w) = \sum_f P_f(w)$$
 
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A)) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
-![Production curves for three default carbonate factories, and as an example a facies with a pelagic production profile.](fig/production-curves.pdf){#fig:factories width="8.3cm"}
+![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
 
 ::: hide
 ``` julia
@@ -181,18 +178,24 @@ Script.main()
 
 ## Cellular Automaton
 
-The Celullar Automaton (CA) in CarboKitten is a direct reimplementation of the one described by @Burgess2013 in their package CarboCAT.
+Representing spatial heterogeneity resulting from positive and negative biological interactions in a computationally simple model requires meeting the following conditions:
+
+1. infinite heterogeneity in space and time, i.e. no convergence on stable patterns;
+2. authigenic variation that does not require external drivers;
+3. the approach must be scalable to *n* facies, even if we focus the examples here on 3;
+4. adjustable temporal persistence: it must be possible to set the turnover frequency.
+
+These requirements are met by Celullar Automata (CA), as proposed by @drummond_self-organizing_1999, @burgess_sensitive_2004 and @Burgess2013, without substanial computational costs. For this reason we adopt this modeling approach in CarboKitten, directly reimplementing the automaton described by @Burgess2013 in his package CarboCAT. Cellular automata are commonly used to generate spatial heterogeniety in forward modeling, with some models serving as discrete approximations of partial differential equations that can generate complex spatial dynamics such as Turing patterns @Dormann2001 @drummond_self-organizing_1999.
 
 The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
 
-For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive. The activation and viability ranges are configurable per facies, but we have found that there is little room for changing these values to retain interesting dynamical behaviour.
+For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive. The neighborhood size and the rules represent a case of Larger than Life family of two-dimensional cellula automata [@evans_larger_1996], but this particular set of rules has been proposed specifically for CarboCAT [@Burgess2013] and, to our knowledge, does not correspond to any documented Larger than Life rules. We examined other sets of rules [@johannes_hidding_2026_18925531], but most lead to rapid stabilization of spatial patterns. 
 
-Since a dead cell may qualify to become alive for different carbonate factories at the same time, birth priority is rotated every iteration. As described in @Burgess2013, suppose a dead cell is fit for activation in two different factories, we need a mechanism to prioritize one or the other. To prevent any factory from dominating over another, we rotate this priority every time step. 
+The initial CA grid is randomized. A dead cell may qualify to become alive for different carbonate factories at the same time. To resolve this priority collision, facies priority for occupying a dead cell is rotated every iteration using a deterministic cyclic shift (fixed round-robin pattern), which ensures that there is no priority given to any facies. 
 
 In the default configuration we emulate three species, corresponding to the factory species discussed in the section on carbonate production. The state of the CA determines which carbonate factory is switched on for each cell in the grid.
 
-@Burgess2013 adds more complications to their CA: moderating production efficiency by a crowding factor, and killing factories if they do not produce enough sediment; but we chose for the purpose of simplicity and research scope to leave out those effects in our current implementation. CarboKitten is written in a modular style, where implementing a different CA or enhancing the existing one can be done with relatively little effort.
-
+The $5\times 5$ neighborhood strikes a balance between small-scale heterogeneity and computational cost. A smaller neighborhood would result in finer-grained spatial patterns, whereas a larger one in spatial smoothing and larger, more coherent patches of each facies. However, it would slow the model down. In a real depositional system, different carbonate producer guilds have their own length scales at which they disperse and interact and one-size-fits-all neihgborhood is clearly a simplification. The size of the neighborhood is fixed in the current version of CarboKitten, but adjustment of granularity of facies distribution generated by the CA can be achieved by users by changing the grid dimensions and the CA interval.
 ::: hide
 
 ```julia
@@ -474,7 +477,8 @@ $$\langle C\rangle = \frac{1}{\ln 2}\ r_d\ l.$$
 This equilibrium (having units of $\unit{m}$) can be useful when estimating the effects of choosing the disintegration rate and lithification time.
 
 ### Disintegration versus lithification
-Both the disintegration rate and the lithification time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the transport coefficient. However, choosing a high lithification time (thus a slow lithification) over a high disintegration rate can help in transporting only freshly produced sediments.
+
+Both the disintegration rate and the lithification time modulate how long sediment resides in the active layer. By carefully scaling one or the other, the effective diffusion of material can be controlled without changing the specific diffusivity. However, choosing a high lithification time (thus a slow lithification) over a high disintegration rate can help in transporting only freshly produced sediments.
 
 Note that not setting the lithification time (which would amount to immediately depositing all of the active layer on every iteration) results in models that depend heavily on a chosen time step.
 
@@ -486,6 +490,7 @@ Figure: Comparison between lithification and disintegration. The four panes show
 Panels $(a)$ and $(b)$ have a short lithification time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long lithification time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-lithification}
 
 :::hide
+
 ```julia
 #| file: runs/ParameterScan.jl
 module ParameterScan
@@ -754,6 +759,7 @@ end
 
 DisintegrationVsCementation.main()
 ```
+
 :::
 
 ### Facies-specific transport coefficient
@@ -1083,6 +1089,7 @@ save("data/diffusivity_scan/D_summary.png", fig_summary)
 :::
 
 Table: Estimated effective diffusion coefficient $D [\unit{m^2 Myr^{-1}}]$ for combinations of cementation time and disintegration rate $d_r$ at facies transport coefficient equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
+
 
 | Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
 |:---|---:|---:|---:|---:|
