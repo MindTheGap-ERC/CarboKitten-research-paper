@@ -147,7 +147,7 @@ function _fit_diffusivity(t, μ, σ; R²_threshold=0.99)
 
     D = fit.b / 2
 
-    @info "Estimated diffusivity: $D"
+    @info "Estimated effective diffusion coefficient: $D"
     @info "Linear fit R² = $(fit.R²), using $(n_fit)/$(n) valid time steps"
     @info "Fit range: t = $(t_v[1]) to $(t_v[n_fit])"
     @info "Peak center at t_first: $(μ_v[1]), t_last: $(μ_v[n_fit])"

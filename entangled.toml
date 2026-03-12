@@ -1,5 +1,5 @@
 version="2.0"
-watch_list=["md/*.md"]
+watch_list=["md/*.md", "tools/xml-gen/README.md"]
 hooks=["shebang", "quarto_attributes", "brei"]
 
 [markers]

@@ -1,4 +1,4 @@
-.PHONY: all debug clean daemon manuscript copy-figures
+.PHONY: all debug clean daemon manuscript copy-figures flowchart
 
 pandoc_args += -fmarkdown+latex_macros
 pandoc_args += --lua-filter pandoc/hide.lua
@@ -65,3 +65,8 @@ clean:
 daemon:
 	@julia --project=. -t 4 --startup-file=no -e 'using DaemonMode; serve()'
 
+flowchart: md/fig/flowchart.pdf
+
+md/fig/flowchart.pdf: md/flowchart.scm md/flowchart.css
+	@echo "Rendering flow chart"
+	@guile3.0 --r6rs tools/xml-gen/xml-gen.scm < md/flowchart.scm 2> /dev/null | rsvg-convert -f pdf1.5 -o $@
