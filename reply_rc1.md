@@ -20,10 +20,7 @@ This was an oversight. The correct repositories and DOIs are linked now.
 
 ## General comments
 
-> These comments are converted into issues already. - JH
-
- 1. Comment on CA
-
+> ### CA
 > The description of the CA in Sect. 2.3 provides a quick overview of how ecological succession is emulated, but several aspects would benefit from clarification. First, the implementation is said to be a “direct reimplementation of Burgess (2013) CarboCAT,” yet no details are given about whether any modifications were introduced or tested (e.g., neighbourhood size, rule thresholds, asynchronous vs synchronous updating). It would be helpful to state explicitly whether the algorithm reproduces Burgess’s rules verbatim or if adjustments were made for computational or ecological reasons.
 
 The "direct reimplementation" implies reproducing the rules proposed in Burgess (2013) verbatim. Specific questions are addressed below, but we have tested and confirmed that this set of rules is rare in that it does not saturate on a constant pattern but continues generating new patterns over long term (Fig. 2 in the manuscript). In the course of implementation, we developed an interactive simulation that allows changing the properties of the CA and observe live how they affect the patterns it produces (https://doi.org/10.5281/zenodo.18925531). This simulation supported our choice of rules as proposed by Burgess (2013), so we added a reference to it for readers interested in exploring other settings. We note that for most users the current rules will be the best and modifying the automaton would fall beyond the typical use case CarboKitten is designed for.
@@ -44,13 +41,7 @@ All these remarks are correct and have been worked into the text of Section 4.2.
 > ### Comment on the transport model physical justification and limitations
 > The active-layer finite difference transport is novel for carbonates here; the authors should more explicitly discuss the assumptions and limits (e.g., treatment of grain size, cohesive vs. non-cohesive sediments, role of storms vs background transport, lateral advection vs slope diffusion, no explicit hydrodynamics). The claims that the method “imitates” wave transport at 100-yr timesteps must be framed cautiously: specify what processes are intentionally neglected and where results should not be trusted (e.g., short-term storm driven redistribution). Consider adding a schematic summarising what physical processes are resolved vs parameterised.
 
-The topic of sediment transport is both complex and has a long history. Our intent is to provide a transport model that is both simple and efficient. The sediment grain size enters our model in the form of the facies-dependent transport coeficient. With regards to your other comment on parameter definition and choices, we have added a section that discusses how the chosen transport parameters can be linked to an effective diffusivity. We like to refrain from too deep a discussion on transport physics as it would detract from the larger aim of presenting the CarboKitten model as a whole.
-
-With regards to wave transport, we forego any claims on realism. We've added the following sentences to Section 5.3 to clarify:
-
-    In this analysis we forego claims on any level of realism with respect to the true long term effects of wave transport, rather we study the behaviour of the model under an imposed additional velocity component. Our use of the term *wave transport* should also be understood as such. 
-
-We refrain from explaining this in Section 3.0, as it would detract from the more formal mathematical narrative in that section.
+We have modified the text to open the description of the transport with the intended scope and assumptions. We emphasize now that the imitation is of the **effects** of the wave tranport, not of the process of wave transport itself. The text list the processes that are not modeled individually. From that text, we hope, it will appear that a schematic summary is difficult to offer, because there is no one-to-one mapping between physical processes and model terms, since the diffusion term in our model represents combined effects of many processes. However, we added in the revision an estimation of the effective diffusion coefficient of sediment in CarboKitten and compared it with estimates of this coefficient from empirical data. Just as diffusion coefficients are difficult to obtain from real-world measurements for timesteps of minutes, parameters of individual physical processes such as wave transport are mutatis mutandis difficult to obtain for timesteps of centuries and we would face the same challenge of assuming time-averaged parameter values for processes that operate at short timescales.
 
 > ### Comment on numerical stability and time stepping
 > The transport scheme has CFL / diffusion constraints (Eqs 8 & 9) and the authors note instabilities for some combos (they dropped one run). The manuscript should state clearly the numerical stability limits and their dependency on grid spacing and concentration Cf (with recommended safe Δt relative to Δx for typical parameter ranges).
