@@ -1,3 +1,11 @@
+local function make_set(lst)
+    local result = {}
+    for _, v in ipairs(lst) do
+        result[v] = true
+    end
+    return result
+end
+
 local function join(lst, sep)
     if #lst == 0 then
         return ""
@@ -10,6 +18,7 @@ local function join(lst, sep)
 end
 
 function Table(el)
+    cls = make_set(el.classes)
     local caption_tex = pandoc.write(pandoc.Pandoc{ table.unpack(el.caption.long) }, "latex")
     local col_spec = ""
     local align_table = {
@@ -23,7 +32,7 @@ function Table(el)
     for _, h in ipairs(el.head.rows[1].cells) do
         table.insert(header, pandoc.write(pandoc.Pandoc{ table.unpack(h.content) }, "latex"))
     end
-    
+
     local body = {}
     for _, row in ipairs(el.bodies[1].body) do
         local row_items = {}
@@ -33,7 +42,17 @@ function Table(el)
         table.insert(body, join(row_items, " & ") .. "\\\\")
     end
 
-    return pandoc.RawBlock("latex", "\\begin{table}\n" ..
+    local open_tag
+    local close_tag
+    if not cls["wide-table"] then
+        open_tag = "\\begin{table}"
+        close_tag = "\\end{table}"
+    else
+        open_tag = "\\begin{table*}[t]"
+        close_tag = "\\end{table*}"
+    end
+
+    return pandoc.RawBlock("latex", open_tag .. "\n" ..
         "\\caption{" .. caption_tex .. "}\n" ..
         "\\label{" .. el.identifier .. "}\n" ..
         "\\begin{tabular}{" .. col_spec .. "}\n" ..
@@ -43,5 +62,5 @@ function Table(el)
         join(body, "\n") .. "\n" ..
         "\\bottomhline\n" ..
         "\\end{tabular}\n" ..
-        "\\end{table}")
+        close_tag)
 end

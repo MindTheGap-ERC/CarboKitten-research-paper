@@ -771,11 +771,11 @@ DisintegrationVsCementation.main()
 
 The facies-specific transport coefficient used in CarboKitten is expressed in $\unit{m/Myr}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $d_f$ appears in $\partial_t \eta = d_f \nabla^2 \eta$ and have units $\unit{m^2/Myr}$. In CarboKitten's formulation $\nu_f$ is one dimension of length smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting transport coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should empirically justified diffusion coefficients for carbonate sediment be available, converting these diffusion coefficients to values of the transport coefficient used in the model.
 
-Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from 1.25 $\times 10^6$ for the sand fraction in the photozoan factory to 50 $\times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5 \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
+Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from $1.25 \times 10^6$ for the sand fraction in the photozoan factory to $50 \times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5\ \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
 
-$$D_{Kaufman}(W) = C_0 \times \exp(-C_1 \times W)$$
+$$D_{\textrm{Kaufman}}(W) = C_0 \exp(-C_1 W)$$
 
-where $C_0 = 0.005 \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{Kaufman}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
+where $C_0 = 0.005\ \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{\textrm{Kaufman}}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
 Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5 \unit{m^2/Myr}$$ to 8.8 $\times 10^6 \unit{m^2/Myr}$$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $d_f$ values obtained using this estimate scale linearly with input transport coefficient.
 
@@ -1093,14 +1093,15 @@ save("data/diffusivity_scan/D_summary.png", fig_summary)
 ```
 :::
 
+:::wide-table
 Table: Estimated effective diffusion coefficient $D [\unit{m^2 Myr^{-1}}]$ for combinations of cementation time and disintegration rate $d_r$ at facies transport coefficient equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
-
 
 | Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
 |:---|---:|---:|---:|---:|
 | 1000 yr | 36,565 | 72,237 | 137,595 | 299,711 |
 | 2500 yr | 84,136 | 165,496 | 301,921 | 540,862 |
 | 5000 yr | 156,904 | 300,574 | 503,548 | 879,985 |
+:::
 
 ## Implementation and limitations
 
@@ -2271,79 +2272,6 @@ $$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x
 
 # Model parameters
 
-## Grid & Time
-
-Table: Grid and time parameters.
-
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
-| `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (512,512) |
-| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 $\unit{m}$ |
-| `time.t0` | Simulation start time | 0.0 | Myr | 0.0 |
-| `time.`$\Delta$`t` | Time step | — | Myr | 10 $\unit{yr}$ – 0.001 $\unit{Myr}$ |
-| `time.steps` | Number of time steps | — | — | 100 – 50000 |
-
-## Water Depth and Sea Level
-
-Table: Water depth and Sea level
-
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
-| `sea_level` | Relative sea-level function `f(t)` or constant | `t -> 0.0` | m | user functions |
-| `initial_topography` | Initial seafloor elevation function `f(x,y)` or matrix | `(x,y) -> 0.0` | m | example: ramp slope `-x/300.0` |
-| `subsidence_rate` | Rate of tectonic subsidence | `0.0` | m/Myr | 0.0 – 50.0 m/Myr |
-
-## Production
-
-Table: Production
-
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
-| `insolation` | Surface insolation (constant, vector, or function of time) | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
-| **BenthicProduction** | | | | |
-| `maximum_growth_rate` | Maximum carbonate accumulation rate | `0.0` | m/Myr | 100 – 500 m/Myr |
-| `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.005 – 0.8 $\unit{m^{-1}}$ |
-| `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 50 – 60 $\unit{Wm^{-2}}$ |
-| **PelagicProduction** | | | | |
-| `maximum_growth_rate` | Maximum pelagic growth rate | `0.0` | $\unit{Myr^{-1}}$ | 7.0 $\unit{Myr^{-1}}$ |
-| `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.1 $\unit{m^{-1}}$ |
-| `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 60 $\unit{Wm^{-2}}$ |
-| `maximum_production_depth` | Maximum depth for pelagic production | `200.0` | m | — |
-
-## Cellular Automaton (CA)
-
-Table: CA Parameters. #{tab:ca-parameters}
-
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
-| `ca_interval` | Update CA every N time steps | `1` | steps | 1 |
-| `ca_random_seed` | Random seed for initial CA state | `0` | — | 0 |
-| `viability_range` | Min–max neighbour count to stay alive | `(4, 10)` | — | (4, 10) |
-| `activation_range` | Min–max neighbour count to be born | `(6, 10)` | — | (6, 10) |
-| `active` | Whether facies participates in CA dynamics | `true` | — | `true`, `false` |
-
-## Transport amd Active Layer
-
-Table: Transport parameters. {#tab:transport-parameters}
-
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
-| `diffusion_coefficient` | Facies-specific sediment diffusivity | `0.0` | m/yr | 1.0 – 50.0 m/yr |
-| `wave_velocity` | Facies advection velocity field `f(t) -> (v, `$\nabla$`)` | zero | m/Myr, 1/Myr | custom function |
-| `intertidal_zone` | Upward extension of the intertidal zone | `0.0` | m | 0.0 |
-| `disintegration_rate` | Max rate at which buried sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
-| `disintegration_transfer` | Function remapping disintegrated sediment across facies | identity | — | custom redistribution |
-| `lithification_time` | Half-life for active-layer settling (`nothing` = instant) | `nothing` | Myr | 100 yr – 5000 yr |
-| `transport_solver` | ODE solver: `:forward_euler` or `:RK4` | `:forward_euler` | — | `:forward_euler`, `:RK4` |
-| `transport_substeps` | Fixed sub-steps per $\Delta$t, or `:adaptive` | `:adaptive` | — | `:adaptive` or integer |
-
-Table: Sediment buffer parameters. {#tab:sediment-buffer-parameters}
-
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
-| `sediment_buffer_size` | Number of layers in the stratigraphic buffer | `50` | layers | 2 – 150 |
-| `depositional_resolution` | Thickness of each buffer layer | `0.5` | m | 0.5 – 1.0 m |
-
 ## Notes
 
 - Parameters marked "—" in the *Default* column are **required** (no default provided in source).
@@ -2365,4 +2293,79 @@ Funded by the European Union (ERC, MindTheGap, StG project no 101041077).
 Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them.
 :::
 
-$$
+\appendixtables
+
+:::wide-table
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (512,512) |
+| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 $\unit{m}$ |
+| `time.t0` | Simulation start time | 0.0 | Myr | 0.0 |
+| `time.`$\Delta$`t` | Time step | — | Myr | 10 $\unit{yr}$ – 0.001 $\unit{Myr}$ |
+| `time.steps` | Number of time steps | — | — | 100 – 50000 |
+
+Table: Grid and time parameters. {#table:grid-and-time .wide}
+:::
+
+:::wide-table
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `sea_level` | Relative sea-level function `f(t)` or constant | `t -> 0.0` | m | user functions |
+| `initial_topography` | Initial seafloor elevation function `f(x,y)` or matrix | `(x,y) -> 0.0` | m | example: ramp slope `-x/300.0` |
+| `subsidence_rate` | Rate of tectonic subsidence | `0.0` | m/Myr | 0.0 – 50.0 m/Myr |
+
+Table: Water depth and Sea level
+:::
+
+:::wide-table
+Table: Production
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `insolation` | Surface insolation (constant, vector, or function of time) | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
+| **BenthicProduction** | | | | |
+| `maximum_growth_rate` | Maximum carbonate accumulation rate | `0.0` | m/Myr | 100 – 500 m/Myr |
+| `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.005 – 0.8 $\unit{m^{-1}}$ |
+| `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 50 – 60 $\unit{Wm^{-2}}$ |
+| **PelagicProduction** | | | | |
+| `maximum_growth_rate` | Maximum pelagic growth rate | `0.0` | $\unit{Myr^{-1}}$ | 7.0 $\unit{Myr^{-1}}$ |
+| `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.1 $\unit{m^{-1}}$ |
+| `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 60 $\unit{Wm^{-2}}$ |
+| `maximum_production_depth` | Maximum depth for pelagic production | `200.0` | m | — |
+:::
+
+:::wide-table
+Table: CA Parameters. #{tab:ca-parameters}
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `ca_interval` | Update CA every N time steps | `1` | steps | 1 |
+| `ca_random_seed` | Random seed for initial CA state | `0` | — | 0 |
+| `viability_range` | Min–max neighbour count to stay alive | `(4, 10)` | — | (4, 10) |
+| `activation_range` | Min–max neighbour count to be born | `(6, 10)` | — | (6, 10) |
+| `active` | Whether facies participates in CA dynamics | `true` | — | `true`, `false` |
+:::
+
+:::wide-table
+Table: Transport parameters. {#tab:transport-parameters}
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `diffusion_coefficient` | Facies-specific sediment diffusivity | `0.0` | m/yr | 1.0 – 50.0 m/yr |
+| `wave_velocity` | Facies advection velocity field `f(t) -> (v, `$\nabla$`)` | zero | m/Myr, 1/Myr | custom function |
+| `intertidal_zone` | Upward extension of the intertidal zone | `0.0` | m | 0.0 |
+| `disintegration_rate` | Max rate at which buried sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
+| `disintegration_transfer` | Function remapping disintegrated sediment across facies | identity | — | custom redistribution |
+| `lithification_time` | Half-life for active-layer settling (`nothing` = instant) | `nothing` | Myr | 100 yr – 5000 yr |
+| `transport_solver` | ODE solver: `:forward_euler` or `:RK4` | `:forward_euler` | — | `:forward_euler`, `:RK4` |
+| `transport_substeps` | Fixed sub-steps per $\Delta$t, or `:adaptive` | `:adaptive` | — | `:adaptive` or integer |
+:::
+
+:::wide-table
+Table: Sediment buffer parameters. {#tab:sediment-buffer-parameters}
+
+| Parameter | Description | Default | Unit | Tested range |
+|---|---|---|---|---|
+| `sediment_buffer_size` | Number of layers in the stratigraphic buffer | `50` | layers | 2 – 150 |
+| `depositional_resolution` | Thickness of each buffer layer | `0.5` | m | 0.5 – 1.0 m |
+:::

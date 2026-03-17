@@ -6,6 +6,7 @@ pandoc_args += --lua-filter pandoc/special-divs.lua
 pandoc_args += --lua-filter pandoc/eqnos.lua
 pandoc_args += --lua-filter pandoc/fignos.lua
 pandoc_args += --lua-filter pandoc/figref.lua
+pandoc_args += --lua-filter pandoc/wide_tables.lua
 pandoc_args += --lua-filter pandoc/plain_tables.lua
 pandoc_args += --lua-filter pandoc/wide_figures.lua
 pandoc_args += --lua-filter pandoc/special-headers.lua
