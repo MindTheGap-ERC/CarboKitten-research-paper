@@ -777,7 +777,7 @@ $$D_{\textrm{Kaufman}}(W) = C_0 \exp(-C_1 W)$$
 
 where $C_0 = 0.005\ \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{\textrm{Kaufman}}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
-Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of 5 $\unit{m/Myr}$ lie in the range of 3.7 $\times 10^5 \unit{m^2/Myr}$$ to 8.8 $\times 10^6 \unit{m^2/Myr}$$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $d_f$ values obtained using this estimate scale linearly with input transport coefficient.
+Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of $5\ \unit{m/Myr}$ lie in the range of $3.7\ \times 10^5 \unit{m^2/Myr}$ to $8.8\ \times 10^6 \unit{m^2/Myr}$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $d_f$ values obtained using this estimate scale linearly with input transport coefficient.
 
 :::hide
 ```julia
@@ -1378,11 +1378,13 @@ Panels (c) and (d) schematically illustrate these same box topologies using colo
 
 ## The sediment buffer
 
-In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed-size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. We emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis. This means that the model output can be much more precise than the depositional resolution of the buffer.
+In our models of sediment transport and denudation it is important to remember the sedimentation history for all produced facies for some time into the past. We keep a three-dimensional fixed-size buffer, where two dimensions represent the $x$ and $y$ coordinates of the system, and the third dimension discretizes the amount of deposited material. Each cell in the buffer represents a parcel of sediment, where we store the relative fractions of each contributing facies. The data-structure acts like a stack, working on a First-In-First-Out (FIFO) basis.
 
-The rows in the buffer represent a constant amount of sediment. An alternative approach is to have rows that represent time slices. In that case, when the users wish to disintegrate an amount of sediment, they need to search the buffer back in time until enough sediment is collected. This can be very slow, and it also means that one needs to have the full sedimentation history in memory. A buffer that is discretized on depth however does not have those requirements, at the expense of a small amount of facies mixing.
+We emphasise that this buffer is only used to determine the facies composition of disintegrated sediment. The sediment output of the overall model is written to disk at each iteration for post-analysis. This means that the model output can be much more precise than the depositional resolution of the buffer.
 
-The user can set the size of the buffer as well as the amount of sediment represented by each cell.
+The user can set the size of the buffer as well as the amount of sediment represented by each cell. The depth of the buffer is controlled by an input parameter `sediment_buffer_size`, while the resolution is set through the `depositional_resolution` parameter in units of $\unit{m}$ of sediment. 
+
+The rows in the buffer represent a constant amount of sediment. An alternative approach is to have rows that represent time slices. In that case, when we need to disintegrate an amount of sediment, we need to search the buffer back in time until enough sediment is collected. This can be very slow, and it also means that one needs to have the full sedimentation history in memory. A buffer that is discretized on depth however does not have those requirements, at the expense of a small amount of facies mixing.
 
 While the sediment buffer is allocated as a single 4-dimensional array (depth, facies, $x$, $y$), it is best to explain its functioning from the perspective of a single cell in our model. We are left with two dimensions: depth (rows) and facies (columns).
 
@@ -1930,7 +1932,7 @@ Figure: Platform generated using the daily mean insolation during June solstice 
 
 ## Wave induced transport {#sec:wave-induced-transport}
 
-We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport.
+We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. In this analysis we forego claims on any level of realism with respect to the true long term effects of wave transport, rather we study the behaviour of the model under an imposed additional velocity component. Our use of the term *wave transport* should also be understood as such. 
 
 Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
 
