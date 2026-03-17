@@ -64,19 +64,17 @@ Corrected.
 > *Moderate* Add appendix with derivation of Eq 7. 
 
 >  Eq 7: I tried re-deriving this but failed. I recommend providing a derivation in an appendix or supplement. Probably I'm just being daft, but for what it's worth, here is the source of my reasoning; hopefully the authors can show that I have made a basic mistake in the following:
-  
+>  
 > The right side of (6) has div(q) (I am leaving off the f subscripts, and using capital D for derivatives).
-  
+>  
 >  -dC/dt = D(q)
 >  = D(C d D(eta) + C v)
 >  = D(C d D(eta)) + D(C v)
 >  Assume d != f(x,y)
 >  = d D(C D(eta)) + D(C v)
-  
-  
-  
+> 
 >  Apply the product rule to both terms:
-  
+>  
 >  = d C D^2(eta)
 >  + d D(eta) D(C)
 >  + C D(v)
@@ -86,49 +84,46 @@ Corrected.
 >  + d D(w) D(C)
 >  - s C D(w)
 >  + v D(C)
-  
+>  
 >  As I say, I am doing this quickly and there is a good chance I have made a mistake in the above, but it would be helpful to include (either in main text, appendix, or supplement) material that clarifies:
-
+>
 >  - the origin of s(w) (which is described as a derivative with respect to water depth, but presumably the divergence operator in 6 is with respect to horizontal coordinates given that eta and w are both functions of (x,y,t) and not vertical coordinate z, so it is not clear where this comes from.)
-
+>
 >  - the signs of the terms (my quick derivation suggests there may be a sign error; for example the diffusion term should be positive when written in terms of eta, and it should therefore become negative when w is substituted)
-
+>
 >  - how you end up with 3 terms with derivatives of w when the form of 5 and 6 suggest there should only be two.
 
-We provide an appendix with a complete derivation.
+We provide an appendix with a complete derivation. The three terms appear as follows: one by chain-rule on the velocity profile, and two by product rule on d C D(w).
 
 > 173 not clear to me how/why Cf acts as a proxy for eta 
+
+We added an explanation how the cycle of disintegration, transport and lithification links topography and sediment concentration such that, to a first order D(C, t) ~ D(eta, t).
 
 > 194-5 please show the form of this slope function 
 
 We interpret this request as a likely result of ambiguous phrasing in our manuscript. By "In this study an exponential slope function was assumed" refers to Bosscher & Southam (1992), not CarboKitten, and is based on empirical observations, as mentioned in the text. CarboKitten's algorithm does not require assumptions on slope shapes, the shapes emerge from the transport mechanism. We have corrected the phrasing to remove the ambiguity.
 
-- [x] 208 it would be helpful to remind readers of the variables for disintegration rate coefficient and lithification time parameter.
+> - [x] 208 it would be helpful to remind readers of the variables for disintegration rate coefficient and lithification time parameter.
+> Also, the comment about scaling suggests that presenting either a non dimensional form of the governing equations, or at least of the parameters, could be useful. Presumably something involving the ratio of lithification time and disintegration rate would pop out. Worth considering at least. 
 
-  Also, the comment about scaling suggests that presenting either a non dimensional form of the governing equations, or at least of the parameters, could be useful. Presumably something involving the ratio of lithification time and disintegration rate would pop out. Worth considering at least. 
+Added a section explaining the relation of lithification time and disintegration rate in the form of an equilibrium sediment amount in the active layer. In absence of production we get an equilibrium sediment concentration of <C> = r l / sqrt(2), where r is the disintegration rate and l the lithification time. Taking our transport coefficient we can then derive an effective diffusivity d <C>.
 
-> Added a section explaining the relation of lithification time and disintegration rate in the form of an equilibrium sediment amount in the active layer.
+> - [x] 226 is the upwind advection scheme first or second order, and if second order, linear or nonlinear? 
 
-- [x] 226 is the upwind advection scheme first or second order, and if second order, linear or nonlinear? 
+Added word first-order.
 
-> Added word first-order.
+> - [x] 232 nice to have the two time-step limiters presented, thank you
+> - [x] 234 typo
 
-- [x] 232 nice to have the two time-step limiters presented, thank you
+line was removed in edit.
 
-- [x] 234 typo
+> - [x] 249 not clear to me what 'no longer an active component' means. Does it imply that if erosion were to eat into previous deposits that the original facies composition of those deposits would be ignored? 
 
-> line was removed in edit.
+Removed this by-sentence as it is indeed confusing. We somehow want to emphasise that the buffer is only used for precisely the purpose of retaining facies composition in the face of erosion.
 
-- [ ] 249 not clear to me what 'no longer an active component' means. Does it imply that if erosion were to eat into previous deposits that the original facies composition of those deposits would be ignored? 
+> - [x] 253-7 it sounds as if the height of each element is constant; if correct, it would be worth saying so explicitly (I have seen other treatments, for example where layers are based on time rather than thickness). 
 
-> Removed this by-sentence as it is indeed confusing. We somehow want to emphasise that the buffer is only used for precisely the purpose of retaining facies composition in the face of erosion.
+added a paragraph explaining our reasoning here.
 
-- [x] 253-7 it sounds as if the height of each element is constant; if correct, it would be worth saying so explicitly (I have seen other treatments, for example where layers are based on time rather than thickness). 
-
-> added a paragraph explaining our reasoning here.
-
-- [x] 302-305 nice touch to show a convergence test.
-
-- [x] 313 Wonderful to see the literature programming method used here.
-
-Citation: https://doi.org/10.5194/egusphere-2025-4561-RC2
+> - [x] 302-305 nice touch to show a convergence test.
+> - [x] 313 Wonderful to see the literature programming method used here.
