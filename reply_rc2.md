@@ -48,77 +48,60 @@ Corrected.
 
 > Eq 5: Here and in the following development it would be very helpful to clarify units or dimensions. From equations 5 and 6, qf must have units of velocity times whatever units Cf has.
 
+> 163 calling df a diffusivity suggests that it should have dimensions of length squared per time, but if vf is a velocity, then shouldn't df also have dimensions of velocity? I am wondering whether there isn't a 'hidden' length scale, such as active layer thickness. If for example you defined active layer thickness as h, Cf as dimensionless volumetric concentration, and qf as
 
+> qf = -Cf h (df grad(eta) + vf)
 
-> JH: Previously we clarified that Cf has units of m. Our transport coeficient has units of m/Myr.
+> then the product h df would be a proper diffusivity, and qf would be either a volume or mass flux per unit width (depending on whether concentration is vol/vol or mass/vol). And multiplying vf by active layer thickness and concentration would make it a proper flux per unit width. In any case, some explanation in the text would help readers make sense of these variables. 
 
-- [x] 163 calling df a diffusivity suggests that it should have dimensions of length squared per time, but if vf is a velocity, then shouldn't df also have dimensions of velocity? I am wondering whether there isn't a 'hidden' length scale, such as active layer thickness. If for example you defined active layer thickness as h, Cf as dimensionless volumetric concentration, and qf as
+Following this feedback we renamed diffusivity to transfport_coefficient in the software, documentation and the manuscript. Hopefully this will prevent ambiguity.
+The active layer thickness does not enter into the equations, just the amount of sediment that is entrained in the active layer.
 
-qf = -Cf h (df grad(eta) + vf)
+> 167 typo 
 
-then the product h df would be a proper diffusivity, and qf would be either a volume or mass flux per unit width (depending on whether concentration is vol/vol or mass/vol). And multiplying vf by active layer thickness and concentration would make it a proper flux per unit width. In any case, some explanation in the text would help readers make sense of these variables. @jhidding
+Corrected.
 
-> The active layer thickness does not enter into the equations, just the amount of sediment that is entrained in the active layer.
+> *Moderate* Add appendix with derivation of Eq 7. @jhidding
 
-- [x] 167 typo @jhidding
+>  Eq 7: I tried re-deriving this but failed. I recommend providing a derivation in an appendix or supplement. Probably I'm just being daft, but for what it's worth, here is the source of my reasoning; hopefully the authors can show that I have made a basic mistake in the following:
+  
+> The right side of (6) has div(q) (I am leaving off the f subscripts, and using capital D for derivatives).
+  
+>  -dC/dt = D(q)
+>  = D(C d D(eta) + C v)
+>  = D(C d D(eta)) + D(C v)
+>  Assume d != f(x,y)
+>  = d D(C D(eta)) + D(C v)
+  
+  
+  
+>  Apply the product rule to both terms:
+  
+>  = d C D^2(eta)
+>  + d D(eta) D(C)
+>  + C D(v)
+>  + v D(C)
+>  The equivalents in (7), if you factor out the -1, are:
+>  d C D^2(w)
+>  + d D(w) D(C)
+>  - s C D(w)
+>  + v D(C)
+  
+>  As I say, I am doing this quickly and there is a good chance I have made a mistake in the above, but it would be helpful to include (either in main text, appendix, or supplement) material that clarifies:
 
-- [x] *Moderate* Add appendix with derivation of Eq 7. @jhidding
+>  - the origin of s(w) (which is described as a derivative with respect to water depth, but presumably the divergence operator in 6 is with respect to horizontal coordinates given that eta and w are both functions of (x,y,t) and not vertical coordinate z, so it is not clear where this comes from.)
 
-  Eq 7: I tried re-deriving this but failed. I recommend providing a derivation in an appendix or supplement. Probably I'm just being daft, but for what it's worth, here is the source of my reasoning; hopefully the authors can show that I have made a basic mistake in the following:
-  
-  The right side of (6) has div(q) (I am leaving off the f subscripts, and using capital D for derivatives).
-  
-  -dC/dt = D(q)
-  
-  = D(C d D(eta) + C v)
-  
-  = D(C d D(eta)) + D(C v)
-  
-  Assume d != f(x,y)
-  
-  = d D(C D(eta)) + D(C v)
-  
-  
-  
-  Apply the product rule to both terms:
-  
-  = d C D^2(eta)
-  
-  + d D(eta) D(C)
-  
-  + C D(v)
-  
-  + v D(C)
-  
-  The equivalents in (7), if you factor out the -1, are:
-  
-  d C D^2(w)
-  
-  + d D(w) D(C)
-  
-  - s C D(w)
-  
-  + v D(C)
-  
-  
-  
-  As I say, I am doing this quickly and there is a good chance I have made a mistake in the above, but it would be helpful to include (either in main text, appendix, or supplement) material that clarifies:
+>  - the signs of the terms (my quick derivation suggests there may be a sign error; for example the diffusion term should be positive when written in terms of eta, and it should therefore become negative when w is substituted)
 
-  - the origin of s(w) (which is described as a derivative with respect to water depth, but presumably the divergence operator in 6 is with respect to horizontal coordinates given that eta and w are both functions of (x,y,t) and not vertical coordinate z, so it is not clear where this comes from.)
+>  - how you end up with 3 terms with derivatives of w when the form of 5 and 6 suggest there should only be two.
 
-  - the signs of the terms (my quick derivation suggests there may be a sign error; for example the diffusion term should be positive when written in terms of eta, and it should therefore become negative when w is substituted)
+We provide an appendix with a complete derivation.
 
-  - how you end up with 3 terms with derivatives of w when the form of 5 and 6 suggest there should only be two.
+> 173 not clear to me how/why Cf acts as a proxy for eta 
 
-> We provide an appendix with a complete derivation.
-
-- [x] 173 not clear to me how/why Cf acts as a proxy for eta @jhidding
-
-- [x] 194-5 please show the form of this slope function 
+> 194-5 please show the form of this slope function 
 
 We interpret this request as a likely result of ambiguous phrasing in our manuscript. By "In this study an exponential slope function was assumed" refers to Bosscher & Southam (1992), not CarboKitten, and is based on empirical observations, as mentioned in the text. CarboKitten's algorithm does not require assumptions on slope shapes, the shapes emerge from the transport mechanism. We have corrected the phrasing to remove the ambiguity.
-
-- [x] 205-6 I appreciate the honesty of this statement!
 
 - [x] 208 it would be helpful to remind readers of the variables for disintegration rate coefficient and lithification time parameter.
 
