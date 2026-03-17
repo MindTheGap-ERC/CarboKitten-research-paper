@@ -107,7 +107,7 @@ $$\frac{\partial \eta}{\partial t} = P(\eta),$$
 
 where $P$ is the sediment production in $\textrm{m/Myr}$,
 
-$$P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),$$
+$$P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),$${#eq:production}
 
 where $I_0$ is the insolation in units of energy flux, $I_k$ is the saturation intensity and should be provided in the same units as $I_0$, $k$ the extinction coefficient in $\unit{m^{-1}}$ and $g_m$ the maximum growth rate in $m/Myr$. 
 
@@ -130,7 +130,11 @@ $$P(w) = \sum_f P_f(w)$$
 
 Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A)) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
 
-![Production curves for three default carbonate factories](fig/production-curves.pdf){#fig:factories width="8.3cm"}
+We also provide the option of specifying pelagic production curves. Here the production is computed as the integral of Equation @eq:production over the entire water column.
+
+![Production curves](fig/production-curves.pdf){width=8.3cm}
+
+Figure: Production curves for our three default carbonate factories. Additionaly, we show the production curve for a pelagic facies with the same extinction coefficient and saturation intensity as the oligophotic facies, and a maximum growth rate of $5\ \unit{Myr^{-1}}$. All of these production curves were computed with an insolation of $400\ \unit{Wm^{-2}}.$ {#fig:factories}
 
 ::: hide
 ``` julia
@@ -189,7 +193,7 @@ These requirements are met by Celullar Automata (CA), as proposed by @drummond_s
 
 The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
 
-For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive. The neighborhood size and the rules represent a case of Larger than Life family of two-dimensional cellula automata [@evans_larger_1996], but this particular set of rules has been proposed specifically for CarboCAT [@Burgess2013] and, to our knowledge, does not correspond to any documented Larger than Life rules. We examined other sets of rules [@johannes_hidding_2026_18925531], but most lead to rapid stabilization of spatial patterns. 
+For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive. The neighborhood size and the rules represent a case of Larger than Life family of two-dimensional cellula automata [@evans_larger_1996], but this particular set of rules has been proposed specifically for CarboCAT [@Burgess2013] and, to our knowledge, does not correspond to any documented Larger than Life rules. We examined other sets of rules [@johannes_hidding_2026_18925531], but most lead to rapid stabilization of spatial patterns. In Figure @fig:ca we illustrate the long-term and short-term behaviour of our default CA rule set.
 
 The initial CA grid is randomized. A dead cell may qualify to become alive for different carbonate factories at the same time. To resolve this priority collision, facies priority for occupying a dead cell is rotated every iteration using a deterministic cyclic shift (fixed round-robin pattern), which ensures that there is no priority given to any facies. 
 
@@ -1394,7 +1398,7 @@ We choose to have the head of our sediment stack always be at the first row. Whe
 
 ![Sediment buffer diagram](fig/sediment-buffer.pdf)
 
-Figure: Above we see a buffer. First we push a parcel of size $3/4$, then we pop an amount of $1/2$. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
+Figure: Above we see a buffer. Suppose we first produce some sediment amounting to $3/4$ of the buffer resolution, and after that an amount of $1/2$ gets disintegrated for further transport. In the beginning, the top cell of our buffer is $1/2$ full. First we push a parcel of (relative) size $3/4$. The remaining $1/4$ overflows to the next cell. Then we pop an amount of $1/2$. The first $1/4$ of this amount is retrieved from the top cell, and the second $1/4$ from the cell below that. This popped parcel will have different fractions from the pushed one, since it also draws from the half filled row that was in the stack before pushing. In this sense, a small amount of facies mixing will take place, depending on the depositional resolution chosen. {#fig:sediment-buffer}
 
 <!--
 Our implementation is such that each cell in the buffer is contiguous in memory. Thus, copying rows of unstrided memory should be very efficient, although the performance remains to be tested (FIXME).
