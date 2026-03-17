@@ -2298,47 +2298,37 @@ Views and opinions expressed are however those of the author(s) only and do not 
 :::wide-table
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
-| `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (512,512) |
-| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 $\unit{m}$ |
+| **Time parameters** | | | | |
 | `time.t0` | Simulation start time | 0.0 | Myr | 0.0 |
 | `time.`$\Delta$`t` | Time step | — | Myr | 10 $\unit{yr}$ – 0.001 $\unit{Myr}$ |
 | `time.steps` | Number of time steps | — | — | 100 – 50000 |
-
-Table: Grid and time parameters. {#table:grid-and-time .wide}
-:::
-
-:::wide-table
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
+| **Box parameters** | | | | |
+| `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (512,512) |
+| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 $\unit{m}$ |
+| **Water depth** | | | | |
 | `sea_level` | Relative sea-level function `f(t)` or constant | `t -> 0.0` | m | user functions |
 | `initial_topography` | Initial seafloor elevation function `f(x,y)` or matrix | `(x,y) -> 0.0` | m | example: ramp slope `-x/300.0` |
 | `subsidence_rate` | Rate of tectonic subsidence | `0.0` | m/Myr | 0.0 – 50.0 m/Myr |
+| **Insolation** | | | | |
+| `insolation` | Surface insolation (constant, vector, or function of time) | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
 
-Table: Water depth and Sea level
+Table: Grid and time parameters. {#tab:grid-and-time-param}
 :::
 
 :::wide-table
-Table: Production
+Table: Facies parameters. {#tab:facies-param}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
-| `insolation` | Surface insolation (constant, vector, or function of time) | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
-| **BenthicProduction** | | | | |
+| **Benthic Production** | | | | |
 | `maximum_growth_rate` | Maximum carbonate accumulation rate | `0.0` | m/Myr | 100 – 500 m/Myr |
 | `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.005 – 0.8 $\unit{m^{-1}}$ |
 | `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 50 – 60 $\unit{Wm^{-2}}$ |
-| **PelagicProduction** | | | | |
+| **Pelagic Production** | | | | |
 | `maximum_growth_rate` | Maximum pelagic growth rate | `0.0` | $\unit{Myr^{-1}}$ | 7.0 $\unit{Myr^{-1}}$ |
 | `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.1 $\unit{m^{-1}}$ |
 | `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 60 $\unit{Wm^{-2}}$ |
-| `maximum_production_depth` | Maximum depth for pelagic production | `200.0` | m | — |
-:::
-
-:::wide-table
-Table: CA Parameters. #{tab:ca-parameters}
-
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
+| **Cellular Automaton** | | | | |
 | `ca_interval` | Update CA every N time steps | `1` | steps | 1 |
 | `ca_random_seed` | Random seed for initial CA state | `0` | — | 0 |
 | `viability_range` | Min–max neighbour count to stay alive | `(4, 10)` | — | (4, 10) |
@@ -2351,21 +2341,18 @@ Table: Transport parameters. {#tab:transport-parameters}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
+| **Transport coefficients** | | | | |
 | `diffusion_coefficient` | Facies-specific sediment diffusivity | `0.0` | m/yr | 1.0 – 50.0 m/yr |
 | `wave_velocity` | Facies advection velocity field `f(t) -> (v, `$\nabla$`)` | zero | m/Myr, 1/Myr | custom function |
+| **Control parameters** | | | | |
 | `intertidal_zone` | Upward extension of the intertidal zone | `0.0` | m | 0.0 |
 | `disintegration_rate` | Max rate at which buried sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
 | `disintegration_transfer` | Function remapping disintegrated sediment across facies | identity | — | custom redistribution |
 | `lithification_time` | Half-life for active-layer settling (`nothing` = instant) | `nothing` | Myr | 100 yr – 5000 yr |
+| **Transport solver** | | | | |
 | `transport_solver` | ODE solver: `:forward_euler` or `:RK4` | `:forward_euler` | — | `:forward_euler`, `:RK4` |
 | `transport_substeps` | Fixed sub-steps per $\Delta$t, or `:adaptive` | `:adaptive` | — | `:adaptive` or integer |
-:::
-
-:::wide-table
-Table: Sediment buffer parameters. {#tab:sediment-buffer-parameters}
-
-| Parameter | Description | Default | Unit | Tested range |
-|---|---|---|---|---|
+| **Sediment buffer** | | | | |
 | `sediment_buffer_size` | Number of layers in the stratigraphic buffer | `50` | layers | 2 – 150 |
 | `depositional_resolution` | Thickness of each buffer layer | `0.5` | m | 0.5 – 1.0 m |
 :::
