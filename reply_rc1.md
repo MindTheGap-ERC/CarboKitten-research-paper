@@ -1,18 +1,18 @@
+We thank the Reviewer for constructive and encouraging feedback, which helped us improve the manuscript.
+
 > The principal issues are
 
 > 1. insufficient validation -- no comparison with empirical or previously published model results;
 
-First of all, we'd like to emphasise that CarboKitten is in early stages. We aim to have a system that is flexible, and easy to extend; for example with more advanced transport models. We have tried to address the reviewers question with regards to getting to understand the output sensitivity to the parameters controlling transport. When it comes to production, we have opted to use production curves that are well tested in previous publications by Burgess et al.
-
-We've included an extensive validation case, based on Henglai et al (2024) (https://doi.org/10.1016/j.marpetgeo.2024.106763).
+We have included an extensive validation case in the revised version, based on Henglai et al (2024) (https://doi.org/10.1016/j.marpetgeo.2024.106763).
 
 > 2. lack of a systematic sensitivity analysis for key parameters controlling production, lithification, and diffusion;
  
-We've included a discussion on the effect of these parameters, as well as performed a parameter scan showing linear behaviour wrt effective dispersion rates. These rates were compared with those found in literature.
+We have included a discussion on the effect of these parameters. We explored the parts of the model that are novel and not used previously, for instance with a parameter scan showing linear behaviour with respect to effective dispersion rates. These rates were compared with those found in literature. More established parameters, such as production, have been used in previous models and we dedicated less space to them. A comprehensive analysis would warrant a geological interpretation and would effectively be worth a separate manuscript, which we hope to follow up with. We hope that for now the focus on the novel aspect, the transport model, will satisfy the users and invite them to explore the model.
 
 > 3. incomplete discussion of numerical stability (CFL limits, time step guidance) and missing automatic checks; and
 
-We've changed the text to emphasise the adaptive nature of the transport integration step, as well as implemented an additional diagnostic to check the global CFL condition during a diagnostic run.
+We have changed the text to emphasise the adaptive nature of the transport integration step, as well as implemented an additional diagnostic to check the global CFL condition during a diagnostic run.
 
 > 4. incomplete reproducibility: figure-generation scripts and environment files are not yet linked (there is still a “FIXME” placeholder).
 
@@ -50,7 +50,7 @@ We have modified the text to open the description of the transport with the inte
 >
 > Other approaches (implicit solver, operator splitting, adaptive substepping, filtering) could be relatively easily implemented to partially circumvent this problem. This could help novice users avoid the non-physical oscillations apparently visible in Figure 9.
 
-In Section 3.3 we already have an entire section dedicated to the CFL limits of the transport model. Because CarboKitten is a forward model that is not completely governed by a single set of PDEs, we are limited to a forward Euler method for the outermost integration scheme, which we argue is diffusive in nature. In our opinion, all forward models should account for this. Because the effective diffusivity can not be predicted apriori (it depends on sediment concentrations in the active layer), all we can do is check the global CFL at run-time. Because this incurs some computational overhead, this functionality is only available when CarboKitten is run in diagnostic mode. We add the following sentence to the end of Section 3.3: 
+In Section 3.3 we present a section dedicated to the CFL limits of the transport model. Because CarboKitten is a forward model that is not completely governed by a single set of PDEs, we are limited to a forward Euler method for the outermost integration scheme, which we argue is diffusive in nature. In our opinion, all forward models should account for this. Because the effective diffusivity can not be predicted a priori (it depends on sediment concentrations in the active layer), all we can do is check the global CFL at run-time. Because this incurs some computational overhead, this functionality is only available when CarboKitten is run in diagnostic mode. We add the following sentence to the end of Section 3.3: 
 
     CarboKitten has a diagnostic mode where this condition is checked against, allowing the user to make informed changes to the input parameters. Because the sediment concentration is not known in advance, it is not possible to make this check in advance.
 
@@ -63,7 +63,7 @@ We are not convinced that implementing more advanced approaches like implicit so
 >
 > Similarly, would it be possible to provide a more in-depth sensitivity analysis for key parameters controlling production, lithification, and diffusion. At the moment, Fig. 5 is the only one illustrating this important concept. This will substantially strengthen claims about realism and utility.
 
-We've included an extensive validation case, based on Henglai et al (2024) (https://doi.org/10.1016/j.marpetgeo.2024.106763).
+We have included an extensive validation case, based on Henglai et al (2024) (https://doi.org/10.1016/j.marpetgeo.2024.106763).
 
 > ### Comments on model parameters definition and choices
 > The paper repeatedly notes that many transport/production parameters are poorly constrained and that results are sensitive to them (e.g., diffusivity, lithification half-life, disintegration rate, wave velocities). Table 2 and the text note that values are hard to motivate. But there is only one short sensitivity exploration (Figure 5). In my view, for users to adopt the code, the manuscript should present a clearer sensitivity analysis: which parameters strongly control (i) morphology, (ii) facies patterns, (iii) stability (CFL constraints).
@@ -78,37 +78,37 @@ We have provided a table with parameters following the requests of the reviewer 
 These are mentioned in the *code-availability* section.
 
 ## Line-level revision suggestions
-We have applied your suggestions.
+We have applied the suggestions listed below.
 
-> - [x] Ln. 40 to 50: regarding models specifically looking at carbonate platform development, the authors might want to add in 1D pyReef-core (https://doi.org/10.5194/gmd-11-2093-2018) and the 2D model from Pastier et al. (https://doi.org/10.1029/2019GC008239). 
-> - [x] Eq. 3: you are providing the units for the different variables in Table 1 but I would also recommend adding them in text below the eq.
-> - [x] In Figure 1. What is the value of I0? It needs to be specified.
+> Ln. 40 to 50: regarding models specifically looking at carbonate platform development, the authors might want to add in 1D pyReef-core (https://doi.org/10.5194/gmd-11-2093-2018) and the 2D model from Pastier et al. (https://doi.org/10.1029/2019GC008239). 
+> Eq. 3: you are providing the units for the different variables in Table 1 but I would also recommend adding them in text below the eq.
+> In Figure 1. What is the value of I0? It needs to be specified.
 
 The value of $I_0 = 400 W/m^2$ is written in the title of the plot. We've added the same information to the figure caption.
 
-> - [x] In section 2.3. The reference to Fig. 2 missing. 
-> - [x] In Fig. 2: missing colour bar to explain the fig. (each colour corresponds to one type of carbonate) 
-> - [x] Ln. 103: Change Celullar to Cellular 
-> - [x] Ln. 122: rewrite this sentence: “Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment” and fix distintegrated to disintegrated 
-> - [x] Ln 123: “After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as lithification, being the process of turning loose sediment into rock”: missing comma after transport; change in process to a process. Also I think you should at least modify the end of this sentence. How about rewriting it as: “Once transported, some of the suspended sediment is deposited on the seafloor, where it becomes incorporated into the substrate through lithification (i.e., the conversion of loose sediment into cohesive rock).” 
+> In section 2.3. The reference to Fig. 2 missing. 
+> In Fig. 2: missing colour bar to explain the fig. (each colour corresponds to one type of carbonate) 
+> Ln. 103: Change Celullar to Cellular 
+> Ln. 122: rewrite this sentence: “Every time step the active layer is fed with freshly produced sediment and distintegrated older sediment” and fix distintegrated to disintegrated 
+> Ln 123: “After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as lithification, being the process of turning loose sediment into rock”: missing comma after transport; change in process to a process. Also I think you should at least modify the end of this sentence. How about rewriting it as: “Once transported, some of the suspended sediment is deposited on the seafloor, where it becomes incorporated into the substrate through lithification (i.e., the conversion of loose sediment into cohesive rock).” 
 
 With this sentence we want to emphasise our exact use of the term *lithification*, which is here coerced to mean a specific interaction in the model, rather than describing the process itself which should be well familiar to the reader.
  
-> - [x] Ln 139: I think a formal academic tone will require you to remove all contractions like we’ve, it’s, don’t. So on this line we’ve needs to become we have. There are other instances in the manuscript (e.g., lines 80 and 190 with don’t). 
-> - [x] Ln. 149: change crosssection to cross-section 
-> - [x] In Fig. 7, the description of the push and pop amount is difficult to understand and will need some additional information. More specifically, could you explain the relationship between the light blue colours and the size of the parcel (3/4 and 1/2 that you push and pop respectively). 
-> - [x] Ln 289 change mittigated to mitigated 
-> - [x] Fig. 4 caption change crosssection to cross-section 
-> - [x] Fig. 9 caption change crosssection to cross-section 
-> - [x] Ln. 319: “FIXME ref to the code” replace with something along those lines: “All scripts used to generate figures are available at https://github.com//CarboKitten-paper, release v1.0 (DOI: 10.5281/zenodo.xxxxxxx). The Julia environment is defined by Project.toml and Manifest.toml files.” 
-> - [x] Ln. 324: Variables external to the production… What do you mean exactly? This is too vague and will need to be reframe. 
+> Ln 139: I think a formal academic tone will require you to remove all contractions like we’ve, it’s, don’t. So on this line we’ve needs to become we have. There are other instances in the manuscript (e.g., lines 80 and 190 with don’t). 
+> Ln. 149: change crosssection to cross-section 
+> In Fig. 7, the description of the push and pop amount is difficult to understand and will need some additional information. More specifically, could you explain the relationship between the light blue colours and the size of the parcel (3/4 and 1/2 that you push and pop respectively). 
+> Ln 289 change mittigated to mitigated 
+> Fig. 4 caption change crosssection to cross-section 
+> Fig. 9 caption change crosssection to cross-section 
+> Ln. 319: “FIXME ref to the code” replace with something along those lines: “All scripts used to generate figures are available at https://github.com//CarboKitten-paper, release v1.0 (DOI: 10.5281/zenodo.xxxxxxx). The Julia environment is defined by Project.toml and Manifest.toml files.” 
+> Ln. 324: Variables external to the production… What do you mean exactly? This is too vague and will need to be reframe. 
 
 We have rephrased it to "Variables external to the model, which modulate the output the most"
 
-> - [x] In Fig. 6, you need to add a colour bar for the elevation range. Also in the caption, you need to explain that the superimposed surfaces represent different time step and specify these times. 
+> In Fig. 6, you need to add a colour bar for the elevation range. Also in the caption, you need to explain that the superimposed surfaces represent different time step and specify these times. 
 
 The figure is provided to illustate CarboKittens capability to handle different input topologies and their typical use. The elevation levels are also indicated on the z-axis. We refrain from going into too much detail as it would distract from the purpose of the figure. We did add a remark explaining the meaning of the superimposed surface plots.
 
-- [x] In Figs. 9, 10., 11 and 13d,e,f: you will need to add a colour bar like the one in Fig. 4 for the dominant facies. Also, for each simulation include grid size and time steps in the captions to make it easier for the reader. 
+> In Figs. 9, 10., 11 and 13d,e,f: you will need to add a colour bar like the one in Fig. 4 for the dominant facies. Also, for each simulation include grid size and time steps in the captions to make it easier for the reader. 
 
 Citation: https://doi.org/10.5194/egusphere-2025-4561-RC1
