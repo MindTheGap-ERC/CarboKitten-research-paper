@@ -87,7 +87,7 @@ Initial topography
 
 Topography
 
-:   The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below).
+:   The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below), so it should be considered relative to a bedrock reference. This definition matches how coordinates are handled in CarboKitten internally.
 
 Relative sea level
 
@@ -107,7 +107,10 @@ $$\frac{\partial \eta}{\partial t} = P(\eta),$$
 
 where $P$ is the sediment production in $\textrm{m/Myr}$,
 
-$$P(w) = g_m \tanh\left(\frac{I_0 e^{-kw}}{I_k}\right),$${#eq:production}
+$$P(w) = \begin{cases}
+g_m \tanh\left(\frac{I_0}{I_k}\ e^{-kw}\right) & \text{if $w \ge 0$}\\
+0 & \text{if $w < 0$}
+\end{cases},$${#eq:production}
 
 where $I_0$ is the insolation in units of energy flux, $I_k$ is the saturation intensity and should be provided in the same units as $I_0$, $k$ the extinction coefficient in $\unit{m^{-1}}$ and $g_m$ the maximum growth rate in $m/Myr$. 
 
