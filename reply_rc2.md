@@ -61,7 +61,7 @@ The active layer thickness does not enter into the equations, just the amount of
 
 Corrected.
 
-> *Moderate* Add appendix with derivation of Eq 7. @jhidding
+> *Moderate* Add appendix with derivation of Eq 7. 
 
 >  Eq 7: I tried re-deriving this but failed. I recommend providing a derivation in an appendix or supplement. Probably I'm just being daft, but for what it's worth, here is the source of my reasoning; hopefully the authors can show that I have made a basic mistake in the following:
   
@@ -105,11 +105,11 @@ We interpret this request as a likely result of ambiguous phrasing in our manusc
 
 - [x] 208 it would be helpful to remind readers of the variables for disintegration rate coefficient and lithification time parameter.
 
-  Also, the comment about scaling suggests that presenting either a non dimensional form of the governing equations, or at least of the parameters, could be useful. Presumably something involving the ratio of lithification time and disintegration rate would pop out. Worth considering at least. @jhidding
+  Also, the comment about scaling suggests that presenting either a non dimensional form of the governing equations, or at least of the parameters, could be useful. Presumably something involving the ratio of lithification time and disintegration rate would pop out. Worth considering at least. 
 
 > Added a section explaining the relation of lithification time and disintegration rate in the form of an equilibrium sediment amount in the active layer.
 
-- [x] 226 is the upwind advection scheme first or second order, and if second order, linear or nonlinear? @jhidding
+- [x] 226 is the upwind advection scheme first or second order, and if second order, linear or nonlinear? 
 
 > Added word first-order.
 
@@ -119,11 +119,11 @@ We interpret this request as a likely result of ambiguous phrasing in our manusc
 
 > line was removed in edit.
 
-- [ ] 249 not clear to me what 'no longer an active component' means. Does it imply that if erosion were to eat into previous deposits that the original facies composition of those deposits would be ignored? @jhidding
+- [ ] 249 not clear to me what 'no longer an active component' means. Does it imply that if erosion were to eat into previous deposits that the original facies composition of those deposits would be ignored? 
 
 > Removed this by-sentence as it is indeed confusing. We somehow want to emphasise that the buffer is only used for precisely the purpose of retaining facies composition in the face of erosion.
 
-- [x] 253-7 it sounds as if the height of each element is constant; if correct, it would be worth saying so explicitly (I have seen other treatments, for example where layers are based on time rather than thickness). @jhidding
+- [x] 253-7 it sounds as if the height of each element is constant; if correct, it would be worth saying so explicitly (I have seen other treatments, for example where layers are based on time rather than thickness). 
 
 > added a paragraph explaining our reasoning here.
 
