@@ -83,11 +83,11 @@ Subsidence rate
 
 Initial topography
 
-:   The model starts at an initial topography $\eta_0(x) = \eta(x, t_0)$, consisting of impenetrable bedrock. A more complex topography can be provided as an input array, e.g. by running a previous model and extracting the height of sediment.
+:   The model starts at an initial topography $\eta_0(x) = \eta(x, t_0)$, consisting of impenetrable bedrock. A more complex topography can be provided as an input array, e.g. by running a previous model and extracting the height of sediment. 
 
 Topography
 
-:   The present topography $\eta(x, t)$ is given as the initial topgraphy plus any amount of sediment accumulated over time. In our definition of $\eta$ we don't correct for subsidence (see also the definition for water depth below), so it should be considered relative to a bedrock reference. This definition matches how coordinates are handled in CarboKitten internally.
+:   The present topography $\eta(x, t)$ is given as the initial topography plus any amount of sediment accumulated over time. In our definition of $\eta$ we do not correct for subsidence (see also the definition for water depth below), so it should be considered relative to a bedrock reference. This definition matches how coordinates are handled in CarboKitten internally.
 
 Relative sea level
 
@@ -116,7 +116,7 @@ where $I_0$ is the insolation in units of energy flux, $I_k$ is the saturation i
 
 This model encapsulates both the exponential extinction of sun light as water depth increases, and the idea that the growth of organisms interpolates between no growth at great depth and saturated growth in shallow waters (i.e. solar input is not the limiting factor at those depths).
 
-Here we parametrize $P$ as a function of $w$. Note that $\nabla w = - \nabla \eta$, but otherwise we'll use $w$ and $\eta$ wherever one or the other is more convenient.
+Here we parametrize $P$ as a function of $w$ for $w > 0$. Note that $\nabla w = - \nabla \eta$, but otherwise we will use $w$ and $\eta$ wherever one or the other is more convenient.
 
 Following @Burgess2013, we extend the BS92 model by introducing multiple facies that each have their own growth characteristics (except for insolation $I_0$, which is a global input variable).
 
@@ -313,9 +313,7 @@ Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid o
 
 Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
-We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is supplied with sediment produced in the production step as well as older sediment through disintegration. After transport a fraction of the entrained sediment is deposited on the sea floor in process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
-
-<!-- In reality, cementation is the process of sediment stabilization and is the first step of lithification, i.e. the process of turning sediment into a rock. As a result of cementation, grains are connected with each other by growing crystals and cannot be entrained easily. -->
+We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is supplied with sediment produced in the production step as well as older sediment through disintegration. After transport a fraction of the entrained sediment is deposited on the sea floor as the transported version of the original (donor) facies in a process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
 
 ![Diagram showing concepts of production, lithification and disintegration](fig/active-layer-diagram.pdf)
 
