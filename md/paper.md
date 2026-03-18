@@ -1652,6 +1652,39 @@ BenchmarkValidation.main()
 
 :::
 
+We further validated the model against an atoll case in Central Luconia, offshore Malaysia (Cycle IV to Cycle Lower V). Choosing this area is because this atoll has been extensively studied [@Henglai2024], and this means that the interpreted seismic profiles and reconstructed sea-level curves were all publicly reported (the sea-level data is obtained from Figure 2 of [@Henglai2024]). In addition, the tectonic settings in the region of this period (around 15.48 Ma to 11 Ma) are believed to be monotonic and simple  [@FathiyahJamaludin2025]. Four wells were drilled into the atoll providing discontinous cores and thus providing geological facies information.
+
+This atoll has a 'pinnacle' shape, with the dimension of $5\ \unit{km}$, suggesting it was drawned in during this time period. The core suggested the top of carbonate platform is dominated by carbonate coral boundstones that is produced by coral. Although the sampling in the lower part of the cores are discontinous, the cores suggested that the facies are dominated by pack/wackestones and interbeded by coral boundstones, bioclastic boundstones and argillaceous carbonate. We related the geological facies to the carbonate producers via the following table:
+
+| Geological Facies | Producers | Model Producer |
+|-------------------|-----------|----------------|
+| Coral boundstones | Euphotic coral (T factory) | Facies 1 |
+| Bioclastic boundstone| Transported coral | Facies 4 |
+| Pack/wackestone | Oligraphic algae (M factory) | Facies 2 |
+| Argillaceous carbonate | Pelagic (P factory) | Facies 3 |
+
+Four carbonate producers are fed into the model (see ablve table), corresponding to four geological facies/ producers. We used the production rate for the euphotic coral of $1800\ \unit{m/Ma}$, oligraphic algae of $800\ \unit{m/Ma}$, and pelagic of $8\ \unit{1/Ma}$. The fourth facies is transported facies of euphotic coal. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set before the actual run in order to generate an atoll-like initial topography. 
+s
+The major comparing points between the modelled results and the interpreted seismic profiles are: 
+- the number of parasequences.
+- the 'pinnacle' shape.
+- total thickness of atoll.
+- Presence of slope.
+
+The results are listed in figure @fig. We compared the features in the figure and the interpreted seimic profile:
+- The interpreted seismic profiles suggested four zones (thus four parasequences), and this is captured in the resultant figure (four parasequences).
+- The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
+- The total thickness (~$550\ \unit{m/Ma}$) is comparable to the data suggested by well penetration (~$600\ \unit{m/Ma}$).
+- The slope is presented in the modelled results, as a mixture of Facies 3 and 4. 
+
+![Case validation](fig/validation_Miocene.png){.wide}
+
+Figure: Case validation. This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia. {#fig:validation_Miocene}
+
+Therefore, we suggest CarboKitten is able to reproduce major architeectural features of real carbonate atolls herein.
+
+
+
 ### Potential for GPU optimisation
 
 At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further. Going through the steps of the composed model [Section @sec:composed-model]: the cellular automaton is a stencil operation, production a map, disintegration a stencil, transport is implemented as an iterated stencil, and deposition is a map. Both stencil and map operations are highly localized in memory and are ideal for implementation on a GPU.
