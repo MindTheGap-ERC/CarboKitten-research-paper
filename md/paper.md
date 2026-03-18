@@ -1663,8 +1663,8 @@ This atoll has a 'pinnacle' shape, with the dimension of $5\ \unit{km}$, suggest
 | Pack/wackestone | Oligraphic algae (M factory) | Facies 2 |
 | Argillaceous carbonate | Pelagic (P factory) | Facies 3 |
 
-Four carbonate producers are fed into the model (see ablve table), corresponding to four geological facies/ producers. We used the production rate for the euphotic coral of $1800\ \unit{m/Ma}$, oligraphic algae of $800\ \unit{m/Ma}$, and pelagic of $8\ \unit{1/Ma}$. The fourth facies is transported facies of euphotic coal. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set before the actual run in order to generate an atoll-like initial topography. 
-s
+Four carbonate producers are fed into the model (see ablve table), corresponding to four geological facies/ producers. We used the production rate for the euphotic coral of $1800\ \unit{m/Ma}$, oligraphic algae of $800\ \unit{m/Ma}$, and pelagic of $8\ \unit{1/Ma}$. The fourth facies is transported facies of euphotic coal. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set in order to generate an atoll-like initial topography for the actual run. The total duration of modelling covers the whole Cycle IV (from -15.8Ma to -11.8Ma, duration: 4Ma). 
+
 The major comparing points between the modelled results and the interpreted seismic profiles are: 
 - the number of parasequences.
 - the 'pinnacle' shape.
