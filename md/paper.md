@@ -1671,15 +1671,15 @@ The major comparing points between the modelled results and the interpreted seis
 - total thickness of atoll.
 - Presence of slope.
 
-The results are listed in figure @fig. We compared the features in the figure and the interpreted seimic profile:
+The results are listed in figure @figCase_validation. We compared the features in the figure and the interpreted seimic profile:
 - The interpreted seismic profiles suggested four zones (thus four parasequences), and this is captured in the resultant figure (four parasequences).
 - The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
 - The total thickness (~$550\ \unit{m/Ma}$) is comparable to the data suggested by well penetration (~$600\ \unit{m/Ma}$).
 - The slope is presented in the modelled results, as a mixture of Facies 3 and 4. 
 
-![Case validation](fig/validation_Miocene.png){.wide}
+![Case_validation](fig/Validation_comparison.png){.wide}
 
-Figure: Case validation. This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia. {#fig:validation_Miocene}
+Figure: Case_validation. A: This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia: B: Seismic interpretation of the atoll, redrawn from Figure 9 of [@Henglai2024] {#fig:validation_Miocene}
 
 Therefore, we suggest CarboKitten is able to reproduce major architeectural features of real carbonate atolls herein.
 
