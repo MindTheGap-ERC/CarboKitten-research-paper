@@ -8,7 +8,7 @@ using Interpolations
 using CairoMakie
 using Tables
 using CSV
-using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Visualization: sediment_profile, summary_plot
 using CarboKitten.Export: read_slice
 
 const TAG = "alcap-validation"
@@ -34,37 +34,43 @@ function sea_level(filepath::String)
 end
 
 
-const INPUT = ALCAP.Input(
+input(feedback) = ALCAP.Input(
     tag="$TAG",
-    box=ValidationPrerun.INPUT.box,
+    box=ValidationPrerun.input(feedback).box,
     time=TimeProperties(
         t0 = -15.48u"Myr",
-        Δt=100u"yr",
-        steps=36600*2),
+        Δt=400u"yr",
+        steps=10000),
     output=Dict(
         :topography => OutputSpec(write_interval = 1000),
-        :profile => OutputSpec(slice=(:, 50), write_interval=50)),
+        :profile => OutputSpec(slice=(:, 50), write_interval=1)),
     ca_interval=10,
-    initial_topography = ValidationPrerun.dome_topography, #load_init_topo(),
+    ca_random_seed = 1,
+    initial_topography = load_init_topo(), 
     sea_level=sea_level(FILEPATH),
-    subsidence_rate=30.0u"m/Myr",
+    subsidence_rate=35.0u"m/Myr",
+    transport_solver = Val{:forward_euler},
     disintegration_rate=50.0u"m/Myr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
-    facies=ValidationPrerun.INPUT.facies)
+    lithification_time = 100.0u"yr",
+    disintegration_transfer = f -> stack((0.0.*f[1,:,:], 0.0.*f[2,:,:], 0.0.*f[3,:,:],
+                                      f[2,:,:].+f[4,:,:]), dims=1),
+    facies=ValidationPrerun.facies(feedback))
 
 function main()
-    run_model(Model{ALCAP}, INPUT, "$OUTPUT_FILE")
+    run_model(Model{ALCAP}, input(true), "$OUTPUT_FILE")
 end
 
 function plot()
+    
     header, data = read_slice("$OUTPUT_FILE", :profile)
 	fig = sediment_profile(header, data, show_unconformities = false)
     save("md/fig/validation_Miocene.png", fig)
 end
 
-end
 
 result = Validation.main()
 Validation.plot()
+end

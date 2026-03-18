@@ -18,67 +18,94 @@ const TAG = "alcap-validation"
 const FILEPATH = "data/Morley_2021.txt"
 const DATAFILE = "data/validation_prerun_topography.csv"
 const OUTPUT_FILE = "data/validationprerun.h5"
+const PERIOD = 0.2 * u"Myr"
+const AMPLITUDE = 30.0u"m"
+const BASE = 30.0u"m"
+const GRID_SIZE = (140, 100)
+const PHYS_SCALE = 50u"m"
 
 
-function dome_topography(x, y)
-    radius = sqrt(20.0 / π) * u"km"
-    center_x, center_y = 40u"km", 25u"km"
+function dome_topography(x,y)
+    X_DIM = GRID_SIZE[1] * PHYS_SCALE
+    Y_DIM = GRID_SIZE[2] * PHYS_SCALE
+    radius = 0.2 * min(X_DIM, Y_DIM)
+    center_x, center_y = 0.5 * X_DIM, 0.5 * Y_DIM
     dist = sqrt((x - center_x)^2 + (y - center_y)^2)
     if dist <= radius
-        20.0u"m"
+        45.0u"m"
     else
-        slope = (dist - radius) / (1.0u"km")
-        max(0.0u"m" - 100.0u"m", 20.0u"m" - 10.0u"m" * slope)
+        x = dist - radius
+        max(-70.0u"m", 45.0u"m" - 0.1 * x)
     end
 end
 
-const FACIES = [
+
+facies(feedback) = [
     ALCAP.Facies(
         viability_range = (4, 10),
         activation_range = (6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr"),
+        active = true,
+        production = BenthicProduction(
+            maximum_growth_rate=600u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2"),
+        diffusion_coefficient=2.0u"m/yr",
+        name="euphotic"),
     ALCAP.Facies(
         viability_range = (4, 10),
         activation_range = (6, 10),
-        maximum_growth_rate=200u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=25.0u"m/yr"),
+        active = true,
+        production = BenthicProduction(
+            maximum_growth_rate=200u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2"),
+        minimum_production=feedback ? 3.0u"m/Myr" : nothing,
+        diffusion_coefficient=2.0u"m/yr",
+        name="oligophotic"),
     ALCAP.Facies(
         viability_range = (4, 10),
         activation_range = (6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=12.5u"m/yr")
+        active = false,
+        production = PelagicProduction(
+            maximum_growth_rate=8u"1/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2",
+            maximum_production_depth=50u"m"),
+        diffusion_coefficient=2.0u"m/yr",
+        name="pelagic"),
+    ALCAP.Facies(
+        active=false,
+        diffusion_coefficient=2.0u"m/yr",
+        name="oligophotic transported")
 ]
 
-const INPUT = ALCAP.Input(
+input(feedback) = ALCAP.Input(
     tag=TAG,
-    box=CarboKitten.Box{Periodic{2}}(grid_size=(140, 100), phys_scale=50u"m"),
+    box=CarboKitten.Box{Periodic{2}}(grid_size=GRID_SIZE, phys_scale=PHYS_SCALE),
     time=TimeProperties(
         Δt=0.0001u"Myr",
-        steps=10000
+        steps=5000
     ),
     output=Dict(
         :topography => OutputSpec(write_interval=1000),
         :profile => OutputSpec(slice=(:, 50), write_interval=500)
     ),
     ca_interval=1,
+    ca_random_seed = 0,
     initial_topography = dome_topography,
-    sea_level= t -> 20.0u"m",
-    subsidence_rate=20.0u"m/Myr",
-    disintegration_rate=50.0u"m/Myr",
+    sea_level= t -> (sin(t * 2π / PERIOD) * AMPLITUDE + BASE),
+    subsidence_rate=10.0u"m/Myr",
+    disintegration_rate=20.0u"m/Myr",
     insolation=400.0u"W/m^2",
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
-    facies=FACIES)
+    lithification_time = 50.0u"yr",
+    disintegration_transfer = f -> stack((0.0.*f[1,:,:], 0.0.*f[2,:,:], 0.0.*f[3,:,:],
+                                      f[1,:,:].+f[4,:,:]), dims=1),
+    facies=facies(feedback))
 
 function main()
-    run_model(Model{ALCAP}, INPUT, "$OUTPUT_FILE")
+    run_model(Model{ALCAP}, input(true), "$OUTPUT_FILE")
 end
 
 function save_final_topography(prerun_filename)
