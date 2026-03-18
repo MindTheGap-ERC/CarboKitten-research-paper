@@ -1,0 +1,41 @@
+/* CSS Style-sheet for flowchart */
+
+#background {
+    fill: white;
+}
+
+#arrow {
+    fill: rgb(50, 100, 160);
+}
+
+.edge {
+    stroke-width: 2pt;
+    fill: none;
+    stroke: rgb(50, 100, 160);
+}
+
+.node rect {
+    fill: white;
+    stroke: black;
+}
+
+.node text {
+    fill: black;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.shadow-box {
+    fill: #eee;
+}
+
+.state .top-state-box {
+    fill: rgb(230, 220, 170);
+    stroke: none;
+}
+
+.state text {
+    fill: black;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}

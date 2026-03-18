@@ -13,6 +13,5 @@ include = [".entangled/tasks.json"]
 
 [tool.brei.runner.julia]
 command = "julia"
-# args = ["+1.11", "--project=workenv", "${script}"]
-args = ["--project=.", "--startup-file=no", "-e", "using DaemonMode; runexpr(\"include(\\\"${script}\\\")\")"]
-
+args = ["--project=.", "${script}"]
+# args = ["--project=.", "--startup-file=no", "-e", "using DaemonMode; runexpr(\"include(\\\"${script}\\\")\")"]

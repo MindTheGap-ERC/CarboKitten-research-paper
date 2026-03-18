@@ -1,6 +1,9 @@
-build
 data/*.h5
+build
 .entangled
 .brei_history
 
 .Rproj.user
+.Rhistory
+.vscode
+

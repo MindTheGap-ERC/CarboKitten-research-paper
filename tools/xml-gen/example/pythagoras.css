@@ -1,0 +1,9 @@
+/* ~/~ begin <<tools/xml-gen/README.md#xml-gen::tools/xml-gen/example/pythagoras.css>>[init] */
+g.leaf circle {
+   fill: #ffcccc;
+}
+
+g.leaf {
+   filter: brightness(80%);
+}
+/* ~/~ end */
