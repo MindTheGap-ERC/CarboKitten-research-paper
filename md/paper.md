@@ -1128,18 +1128,20 @@ This means that increasing the resolution of a model by a factor two may need a 
 
 # Validation
 
-We validated the model against an atoll case in Central Luconia, offshore Malaysia (Cycle IV to Cycle Lower V). Choosing this area is because this atoll has been extensively studied [@Henglai2024], and this means that the interpreted seismic profiles and reconstructed sea-level curves were all publicly reported (the sea-level data is obtained from Figure 2 of [@Henglai2024]). In addition, the tectonic settings in the region of this period (around 15.48 Ma to 11 Ma) are believed to be monotonic and simple  [@FathiyahJamaludin2025]. Four wells were drilled into the atoll providing discontinous cores and thus providing geological facies information.
+We validated the model by attempting to replicate the general architecture of an atoll in Central Luconia (part of the Sarawak Basin), offshore Malaysia (Cycle IV to Cycle Lower V). We chose this area is because this atoll has been extensively studied [@Henglai2024] and the interpreted seismic profiles and reconstructed sea-level curves were publicly reported. We informed model runs with the sea-level data obtained from Figure 2 of @Henglai2024). In addition, the tectonic setting of the region in the studied period (around 15.48 Ma to 11 Ma) is believed to be uncomplicated [@FathiyahJamaludin2025] and thus possible to represent with a constant subsidence rate. Four wells were drilled into the atoll, providing discontinous cores and, thus, geological facies information.
 
-This atoll has a 'pinnacle' shape, with the dimension of $5\ \unit{km}$, suggesting it was drawned in during this time period. The core suggested the top of carbonate platform is dominated by carbonate coral boundstones that is produced by coral. Although the sampling in the lower part of the cores are discontinous, the cores suggested that the facies are dominated by pack/wackestones and interbeded by coral boundstones, bioclastic boundstones and argillaceous carbonate. We related the geological facies to the carbonate producers via the following table:
+This atoll has a pinnacle shape, with the dimension of $5\ \unit{km}$, suggesting it was drowned in during this time period. The cores indicate that the top of carbonate platform is dominated by coral boundstones. Although the sampling in the lower part of the cores is discontinous, the cores suggest that the facies are dominated by pack- to wackestones and interbeded by coral boundstones, bioclastic boundstones and argillaceous carbonate. We related the geological facies to the carbonate producers via {@tbl:validation_facies}.
+
+Table: Conversion table between facies in the empirical carbonate platform and the carbonate facies used in CarboKitten validation {#tbl:validation_facies}
 
 | Geological Facies | Producers | Model Producer |
 |-------------------|-----------|----------------|
 | Coral boundstones | Euphotic coral (T factory) | Facies 1 |
 | Bioclastic boundstone| Transported coral | Facies 4 |
-| Pack/wackestone | Oligraphic algae (M factory) | Facies 2 |
+| Pack- to wackestone | Oligraphic algae (M factory) | Facies 2 |
 | Argillaceous carbonate | Pelagic (P factory) | Facies 3 |
 
-Four carbonate producers are fed into the model (see ablve table), corresponding to four geological facies/ producers. We used the production rate for the euphotic coral of $1800\ \unit{m/Ma}$, oligraphic algae of $800\ \unit{m/Ma}$, and pelagic of $8\ \unit{1/Ma}$. The fourth facies is transported facies of euphotic coal. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set in order to generate an atoll-like initial topography for the actual run. The total duration of modelling covers the whole Cycle IV (from -15.8Ma to -11.8Ma, duration: 4Ma). 
+Four carbonate producers are fed into the model {@tbl:validation_facies}, corresponding to four geological facies (producers). We used the following production rates: for euphotic corals - $1800\ \unit{m/Ma}$, oligotrophic algae - $800\ \unit{m/Ma}$, and for pelagic producers - $8\ \unit{1/Ma}$. The fourth facies is the transported facies of euphotic corals. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set in order to generate an atoll-like initial topography for the actual run. The total duration of modelling covers the entire Cycle IV (from -15.8 Ma to -11.8 Ma, duration: 4 Ma). 
 
 The major comparing points between the modelled results and the interpreted seismic profiles are: 
 - the number of parasequences.
