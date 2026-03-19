@@ -1143,14 +1143,14 @@ Table: Conversion table between facies in the empirical carbonate platform and t
 
 Four carbonate producers are fed into the model {@tbl:validation_facies}, corresponding to four geological facies (producers). We used the following production rates: for euphotic corals - $1800\ \unit{m/Ma}$, oligotrophic algae - $800\ \unit{m/Ma}$, and for pelagic producers - $8\ \unit{1/Ma}$. The fourth facies is the transported facies of euphotic corals. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set in order to generate an atoll-like initial topography for the actual run. The total duration of modelling covers the entire Cycle IV (from -15.8 Ma to -11.8 Ma, duration: 4 Ma). 
 
-The major comparing points between the modelled results and the interpreted seismic profiles are: 
-- the number of parasequences.
-- the 'pinnacle' shape.
-- total thickness of atoll.
-- Presence of slope.
+The criteria for comparison between the modelled results and the interpreted seismic profiles were: 
+- the number of parasequences
+- the pinnacle shape
+- total thickness of atoll
+- presence of a slope
 
-The results are listed in figure @figCase_validation. We compared the features in the figure and the interpreted seimic profile:
-- The interpreted seismic profiles suggested four zones (thus four parasequences), and this is captured in the resultant figure (four parasequences).
+The results are listed in figure {@figCase_validation}. We compared the features in the figure and the interpreted seimic profile:
+- The interpreted seismic profiles suggested four zones, and this is captured in the resultant figure (four parasequences).
 - The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
 - The total thickness (~$550\ \unit{m/Ma}$) is comparable to the data suggested by well penetration (~$600\ \unit{m/Ma}$).
 - The slope is presented in the modelled results, as a mixture of Facies 3 and 4. 
@@ -1159,7 +1159,7 @@ The results are listed in figure @figCase_validation. We compared the features i
 
 Figure: Case_validation. A: This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia: B: Seismic interpretation of the atoll, redrawn from Figure 9 of [@Henglai2024] {#fig:validation_Miocene}
 
-Therefore, we suggest CarboKitten is able to reproduce major architeectural features of real carbonate atolls herein.
+Therefore, we suggest CarboKitten is able to reproduce major architectural features of real-life carbonate atolls.
 
 
 # Software design
