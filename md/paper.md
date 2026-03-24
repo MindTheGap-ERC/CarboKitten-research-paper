@@ -784,7 +784,11 @@ $$D_{\textrm{Kaufman}}(W) = C_0 \exp(-C_1 W)$$
 
 where $C_0 = 0.005\ \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{\textrm{Kaufman}}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
-Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of $5\ \unit{m/Myr}$ lie in the range of $3.7\ \times 10^5 \unit{m^2/Myr}$ to $8.8\ \times 10^6 \unit{m^2/Myr}$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $d_f$ values obtained using this estimate scale linearly with input transport coefficient.
+Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of $5\ \unit{m/Myr}$ lie in the range of $3.7\ \times 10^5 \unit{m^2/Myr}$ to $8.8\ \times 10^6 \unit{m^2/Myr}$, see Table @tbl:diffusivity-scan, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $d_f$ values obtained using this estimate scale linearly with input transport coefficient. In fact, our numeric values for this scenario closely match the analytic value for effective diffusivity,
+
+$$D_{\textrm{eff}} = d_f \langle C\rangle = \frac{d_f r_d t_l}{\log 2}.$$
+
+For the higher values of disintegration rate $r_d$ in Table @tbl:diffusivity-scan, the values are a bit lower, mostly because the active layer concentration had not reached equilibrium before the test peak was dispersed.  
 
 :::hide
 ```julia
