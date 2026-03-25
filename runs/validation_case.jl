@@ -8,7 +8,7 @@ using Interpolations
 using CairoMakie
 using Tables
 using CSV
-using CarboKitten.Visualization: sediment_profile, summary_plot
+using CarboKitten.Visualization: sediment_profile!, summary_plot
 using CarboKitten.Export: read_slice
 
 const TAG = "alcap-validation"
@@ -16,6 +16,9 @@ const FILEPATH = "data/Morley_2021.txt"
 const OUTPUT_FILE = "data/validation.h5"
 
 include("validation_prerun.jl")
+inch = 96
+pt = 4/3
+cm = inch / 2.54
 
 function load_init_topo()
     (CSV.File(ValidationPrerun.DATAFILE) |> Tables.matrix) * u"m"
@@ -64,13 +67,17 @@ function main()
 end
 
 function plot()
-    
+
+    fig = Figure(size=(20cm, 12cm), fontsize=8pt)
+    ax1 = Axis(fig[1,1], title="sediment profile")
+    ax2 = Axis(fig[1,2], title="interpreted seismic profile")
     header, data = read_slice("$OUTPUT_FILE", :profile)
-	fig = sediment_profile(header, data, show_unconformities = false)
-    save("md/fig/validation_Miocene.png", fig)
+	sediment_profile!(ax1, header, data, show_unconformities = true)
+    save("md/fig/validation_comparison.svg", fig)
 end
 
 
 result = Validation.main()
 Validation.plot()
+
 end

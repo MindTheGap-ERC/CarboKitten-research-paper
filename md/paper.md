@@ -1130,9 +1130,9 @@ This means that increasing the resolution of a model by a factor two may need a 
 
 We validated the model by attempting to replicate the general architecture of an isolated carbonate platform in Central Luconia (part of the Sarawak Basin), offshore Malaysia (Cycle IV to Cycle Lower V). We chose this area is because this platform has been extensively studied [@Henglai2024] and the interpreted seismic profiles and reconstructed sea-level curves were publicly reported. We informed model runs with the sea-level data obtained from Figure 2 of @Henglai2024. In addition, the tectonic setting of the region in the studied period (around 15.48 Ma to 11 Ma) is believed to be uncomplicated [@FathiyahJamaludin2025] and thus possible to represent with a constant subsidence rate. Four wells were drilled into the atoll, providing discontinous cores and, thus, geological facies information.
 
-This platform has a pinnacle shape, with the length of approximately $5\ \unit{km}$ in NE-SW direction, suggesting it was drowned in during this time period. The cores indicate that the top of carbonate platform is dominated by coral boundstones. Although the sampling in the lower part of the cores is discontinous, the cores suggest that the facies are dominated by pack- to wackestones and interbeded by coral boundstones, bioclastic boundstones and argillaceous carbonate. We related the geological facies to the carbonate producers via {@tbl:validation_facies}.
+This platform has a pinnacle shape, with the length of approximately $5\ \unit{km}$ in NE-SW direction, suggesting it was drowned in during this time period. The cores indicate that the top of carbonate platform is dominated by coral boundstones. Although the sampling in the lower part of the cores is discontinous, the cores suggest that the facies are dominated by pack- to wackestones and interbeded by coral boundstones, bioclastic boundstones and argillaceous carbonate. We related the geological facies to the carbonate producers via Table @tab:validation_facies.
 
-Table: Conversion table between facies in the empirical carbonate platform and the carbonate facies used in CarboKitten validation {#tbl:validation_facies}
+Table: Conversion table between facies in the empirical carbonate platform and the carbonate facies used in CarboKitten validation {#tab:validation_facies}
 
 | Geological Facies | Producers | Model Producer |
 |-------------------|-----------|----------------|
@@ -1141,25 +1141,25 @@ Table: Conversion table between facies in the empirical carbonate platform and t
 | Pack- to wackestone | Oligophotic algae (M factory) | Facies 2 |
 | Argillaceous carbonate | Pelagic (P factory) | Facies 3 |
 
-Four carbonate producers are fed into the model {@tbl:validation_facies}, corresponding to four geological facies (producers). We used the following production rates: for euphotic corals - $1800\ \unit{m/Ma}$, oligophotic algae - $800\ \unit{m/Ma}$, and for pelagic producers - $8\ \unit{1/Ma}$. The fourth facies is the transported facies of euphotic corals. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set in order to generate an atoll-like initial topography for the actual run. The total duration of modelling covers the entire Cycle IV (from -15.8 Ma to -11.8 Ma, duration: 4 Ma). 
+Four carbonate producers are fed into the model {Table@tab:validation_facies}, corresponding to four geological facies (producers). We used the following production rates: for euphotic corals - $1800\ \unit{m Myr^{-1}}$, oligophotic algae - $800\ \unit{m Myr^{-1}}$, and for pelagic producers - $8\ \unit{Myr^{-1}}$. The fourth facies is the transported facies of euphotic corals. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set in order to generate an atoll-like initial topography for the actual run. The total duration of modelling covers the entire Cycle IV (from $-15.8\ \unit{Myr}$ to  $-11.8\ \unit{Myr}$, duration:  $4\ \unit{Myr}$). 
 
 The criteria for comparison between the modelled results and the interpreted seismic profiles were: 
-- the number of zones
-- the pinnacle shape
-- total thickness of carbonate stratigraphy
-- presence of a slope
+- the number of zones is four within the platform.
+- the platform should show a pinnacle shape.
+- total thickness of carbonate stratigraphy is approximately ($600\ \unit{m}$).
+- The platform has a slope indicating presence of off-shore sediments transport.
 
 The results are listed in figure {@figCase_validation}. We compared the features in the figure and the interpreted seimic profile:
 - The interpreted seismic profiles suggested four zones, and this is captured in the resultant figure (four parasequences).
 - The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
-- The total thickness of carbonate (~$550\ \unit{m/Ma}$) is comparable to the data suggested by well penetration (~$600\ \unit{m/Ma}$).
+- The total thickness of carbonate (~$550\ \unit{m}$) is comparable to the data suggested by well penetration (~$600\ \unit{m}$).
 - The slope is presented in the modelled results, as a mixture of Facies 3 and 4. 
 
 ![Case_validation](fig/Validation_comparison.png){.wide}
 
-Figure: Case_validation. A: This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia: B: Seismic interpretation of the atoll, redrawn from Figure 9 of [@Henglai2024] {#fig:validation_Miocene}
+Figure: Case_validation. A: This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia: B: Seismic interpretation of the platform, redrawn from Figure 9 of [@Henglai2024] {#fig:validation_Miocene}
 
-Therefore, we suggest CarboKitten is able to reproduce major architectural features of real-life carbonate atolls.
+Therefore, we suggest CarboKitten is able to reproduce major architectural features of real-life carbonate platform.
 
 
 # Software design
