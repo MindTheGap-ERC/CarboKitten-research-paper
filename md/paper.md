@@ -137,7 +137,7 @@ We also provide the option of specifying pelagic production curves. Here the pro
 
 ![Production curves](fig/production-curves.pdf){width=8.3cm}
 
-Figure: Production curves for our three default carbonate factories. Additionaly, we show the production curve for a pelagic facies with the same extinction coefficient and saturation intensity as the oligophotic facies, and a maximum growth rate of $5\ \unit{m Myr^{-1}}$. All of these production curves were computed with an insolation of $400\ \unit{Wm^{-2}}.$ {#fig:factories}
+Figure: Production curves for our three default carbonate factories. Additionaly, we show the production curve for a pelagic facies with the same extinction coefficient and saturation intensity as the oligophotic facies, and a maximum growth rate of $5\ \unit{Myr^{-1}}$. All of these production curves were computed with an insolation of $400\ \unit{Wm^{-2}}.$ {#fig:factories}
 
 ::: hide
 ``` julia
