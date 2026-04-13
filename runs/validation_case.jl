@@ -72,8 +72,8 @@ function plot()
     ax1 = Axis(fig[1,1], title="sediment profile")
     ax2 = Axis(fig[1,2], title="interpreted seismic profile")
     header, data = read_slice("$OUTPUT_FILE", :profile)
-	sediment_profile!(ax1, header, data, show_unconformities = true)
-    save("md/fig/validation_comparison.svg", fig)
+	sediment_profile!(ax1, header, data, show_coeval_lines = true, show_unconformities = true)
+    save("md/fig/validation_comparison.png", fig, px_per_unit=3)
 end
 
 

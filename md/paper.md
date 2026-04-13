@@ -1150,12 +1150,12 @@ The criteria for comparison between the modelled results and the interpreted sei
 - The platform has a slope indicating presence of off-shore sediments transport.
 
 The results are listed in figure {@figCase_validation}. We compared the features in the figure and the interpreted seimic profile:
-- The interpreted seismic profiles suggested four zones, and this is captured in the resultant figure (four parasequences).
+- The interpreted seismic profiles suggested five zones, and this is captured in the resultant figure (five parasequences).
 - The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
 - The total thickness of carbonate (~$550\ \unit{m}$) is comparable to the data suggested by well penetration (~$600\ \unit{m}$).
 - The slope is presented in the modelled results, as a mixture of Facies 3 and 4. 
 
-![Case_validation](fig/Validation_comparison.png){.wide}
+![Case_validation](fig/Validation_comparison.pdf){.wide}
 
 Figure: Case_validation. A: This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia: B: Seismic interpretation of the platform, redrawn from Figure 9 of [@Henglai2024] {#fig:validation_Miocene}
 
@@ -2334,7 +2334,7 @@ The authors declare that they have no conflict of interest.
 :::
 
 :::acknowledgements
-We thank Joris Eggenhuisen for discussions on the transport model and Charlotte Summers for programming support. Niels Drost provided administrative and management support during the project.
+We thank Joris Eggenhuisen for discussions on the transport model and Charlotte Summers for programming support. Niels Drost provided administrative and management support during the project. We thank Ton Markus for the visualization of figures.
 
 Funded by the European Union (ERC, MindTheGap, StG project no 101041077).
 Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council. Neither the European Union nor the granting authority can be held responsible for them.

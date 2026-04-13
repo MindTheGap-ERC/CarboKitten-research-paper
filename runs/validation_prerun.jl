@@ -59,7 +59,7 @@ facies(feedback) = [
             maximum_growth_rate=800u"m/Myr",
             extinction_coefficient=0.1u"m^-1",
             saturation_intensity=60u"W/m^2"),
-      #  minimum_production=feedback ? 0.1u"m/Myr" : nothing,
+#        minimum_production=feedback ? 0.1u"m/Myr" : nothing,
         diffusion_coefficient=2.0u"m/yr",
         name="oligophotic"),
     ALCAP.Facies(
