@@ -3,11 +3,11 @@ using CarboKitten
 using CarboKitten.Components.Common
 using CarboKitten.Components:
     TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth,
-    Tag, ActiveLayer, H5Writer
+    Tag, ActiveLayer, Output
 using ModuleMixins
 
 @compose module CustomProduction
-@mixin Tag, ActiveLayer, H5Writer
+@mixin Tag, ActiveLayer, Output
 
 @kwdef struct Input <: AbstractInput
     production    # a function of (x, y, wd)

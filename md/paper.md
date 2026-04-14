@@ -599,11 +599,11 @@ using CarboKitten
 using CarboKitten.Components.Common
 using CarboKitten.Components:
     TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth,
-    Tag, ActiveLayer, H5Writer
+    Tag, ActiveLayer, Output
 using ModuleMixins
 
 @compose module CustomProduction
-@mixin Tag, ActiveLayer, H5Writer
+@mixin Tag, ActiveLayer, Output
 
 @kwdef struct Input <: AbstractInput
     production    # a function of (x, y, wd)
@@ -665,7 +665,7 @@ include("CustomProductionModel.jl")
 using CarboKitten
 using CairoMakie
 using CarboKitten: Box
-using CarboKitten.OutputData: set_attribute
+using CarboKitten: set_attribute
 using .CustomProduction: CustomProduction as M
 
 const Time = typeof(1.0u"Myr")
@@ -1724,19 +1724,19 @@ const TAG = "lisiecki-sea-level"
 
 const FACIES = [
     ALCAP.Facies(
-        production=BenthicProduciton(
+        production=BenthicProduction(
             maximum_growth_rate=200u"m/Myr",
             extinction_coefficient=0.8u"m^-1",
             saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=20.0u"m/yr"),
     ALCAP.Facies(
-        production=BenthicProduciton(
+        production=BenthicProduction(
             maximum_growth_rate=500u"m/Myr",
             extinction_coefficient=0.1u"m^-1",
             saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=10.0u"m/yr"),
     ALCAP.Facies(
-        production=BenthicProduciton(
+        production=BenthicProduction(
             maximum_growth_rate=100u"m/Myr",
             extinction_coefficient=0.005u"m^-1",
             saturation_intensity=60u"W/m^2"),

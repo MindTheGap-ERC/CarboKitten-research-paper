@@ -6,7 +6,7 @@ include("CustomProductionModel.jl")
 using CarboKitten
 using CairoMakie
 using CarboKitten: Box
-using CarboKitten.OutputData: set_attribute
+using CarboKitten: set_attribute
 using .CustomProduction: CustomProduction as M
 
 const Time = typeof(1.0u"Myr")
