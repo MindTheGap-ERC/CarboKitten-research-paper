@@ -54,8 +54,8 @@ function run_with(;dt, diffusivity, disintegration_rate, lithification_time, pat
         production=production)
 
     result = run_model(Model{M}, input, MemoryOutput(input))
-    set_attribute(result, :diffusivity, diffusivity)
-    set_attribute(result, :disintegration_rate, disintegration_rate)
+    set_attribute(result, "diffusivity", diffusivity)
+    set_attribute(result, "disintegration_rate", disintegration_rate)
     return result
 end
 

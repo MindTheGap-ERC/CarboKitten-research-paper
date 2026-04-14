@@ -535,8 +535,8 @@ function plot_topography(result)
 end
 
 function plot_topography!(ax, result)
-    diffusivity::typeof(1.0u"m/yr") = result.header.attributes[:diffusivity]
-    disintegration_rate::typeof(1.0u"m/Myr") = result.header.attributes[:disintegration_rate]
+    diffusivity::typeof(1.0u"m/yr") = result.header.attributes["diffusivity"]
+    disintegration_rate::typeof(1.0u"m/Myr") = result.header.attributes["disintegration_rate"]
 
     dt = result.header.Δt
 
@@ -599,14 +599,29 @@ using CarboKitten
 using CarboKitten.Components.Common
 using CarboKitten.Components:
     TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth,
-    Tag, ActiveLayer, Output
-using ModuleMixins
+    Tag, ActiveLayer, Output, Diagnostics
+using CarboKitten.Output: Frame
+using ModuleMixins: @compose, @for_each
 
 @compose module CustomProduction
-@mixin Tag, ActiveLayer, Output
+@mixin Tag, ActiveLayer, Output, Diagnostics
+
+using CarboKitten.Output: Frame
 
 @kwdef struct Input <: AbstractInput
     production    # a function of (x, y, wd)
+end
+
+function write_header(input::AbstractInput, output::AbstractOutput)
+    @for_each(P -> P.write_header(input, output), PARENTS)
+end
+
+function initial_frame(input::AbstractInput)
+    nf = n_facies(input)
+    return Frame(
+        production=zeros(Sediment, nf, input.box.grid_size...),
+        disintegration=zeros(Sediment, nf, input.box.grid_size...),
+        deposition=zeros(Sediment, nf, input.box.grid_size...))
 end
 
 function initial_state(input::AbstractInput)
@@ -713,8 +728,8 @@ function run_with(;dt, diffusivity, disintegration_rate, lithification_time, pat
         production=production)
 
     result = run_model(Model{M}, input, MemoryOutput(input))
-    set_attribute(result, :diffusivity, diffusivity)
-    set_attribute(result, :disintegration_rate, disintegration_rate)
+    set_attribute(result, "diffusivity", diffusivity)
+    set_attribute(result, "disintegration_rate", disintegration_rate)
     return result
 end
 
