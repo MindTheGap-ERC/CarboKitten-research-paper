@@ -1016,9 +1016,10 @@ write_interval = max(1, t_steps ÷ 1000)
 facies1 = M.Facies(
 	viability_range = (0, 0),
 	activation_range = (0, 0),
-	maximum_growth_rate = 0u"m/Myr",
-	extinction_coefficient = 0u"m^-1",
-	saturation_intensity = 60u"W/m^2",
+	production = BenthicProduction(
+		maximum_growth_rate = 0u"m/Myr",
+		extinction_coefficient = 0u"m^-1",
+		saturation_intensity = 60u"W/m^2"),
 	diffusion_coefficient = 5u"m/yr",
 	wave_velocity = _ -> (Vec2(0.0u"m/Myr", 0.0u"m/Myr"), Vec2(0.0u"1/Myr", 0.0u"1/Myr")),
 	initial_sediment = (x, _) -> peak_height * exp(-(x - peak_centre)^2/(2 * peak_width^2)),
@@ -1030,7 +1031,7 @@ function make_input(; cementation_time, disintegration_rate)
 		box = box,
 		time = TimeProperties(Δt=Δt, steps=t_steps),
 		output = Dict(:profile => OutputSpec(slice=(:, 1), write_interval=write_interval)),
-		cementation_time = cementation_time,
+		lithification_time = cementation_time,
 		disintegration_rate = disintegration_rate,
 		subsidence_rate = 0.0u"m/Myr",
 		sea_level = _ -> 0.0u"m",
