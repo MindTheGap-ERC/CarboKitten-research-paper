@@ -43,22 +43,22 @@ dates:
 \renewcommand{\]}{\end{equation}}
 
 ::: abstract
-Stratigraphic forward modeling is a powerful tool for testing hypotheses about the geological record and conduct numerical experiments in stratigraphy at timescales not accessible to human observation. Open Source software for stratigraphic modeling available so far has focused on siliciclastic or terrestrial depositional environments. We present CarboKitten, a stratigraphic forward modeling toolkit for carbonate platforms. With performance and accessibility in mind, CarboKitten is implemented in Julia, using the literate programming approach.
+Stratigraphic forward modeling is a powerful tool for testing hypotheses about the geological record and conduct numerical experiments in stratigraphy at timescales not accessible to direct human observation. Open Source software for stratigraphic modeling available so far has focused on siliciclastic or terrestrial depositional environments. We present CarboKitten, a stratigraphic forward modeling toolkit for carbonate platforms. With performance and accessibility in mind, CarboKitten is implemented in Julia, using the literate programming approach.
 
 CarboKitten integrates three components: the carbonate production model of @Bosscher1992, the cellular automaton for spatial heterogeneity introduced by @Burgess2013, and a novel finite difference transport model inspired by @Paola1992. The model simulates carbonate production through multiple biological factories (typically euphotic, oligophotic and aphotic), accounts for ecological processes that create spatial facies patterns through cellular automaton rules, and implements sediment transport via an active layer approach where material moves along paths of steepest descent.
 
-Key features include support for different boundary conditions, variable sea level and insolation inputs, wave-induced transport capabilities, and visualization tools aiming at beautiful plots. The software exports data in the interoperable HDF5 format and includes functions for creating stratigraphic cross-sections, chronostratigraphic diagrams, topographic maps, and sediment accumulation curves. Performance benchmarks demonstrate linear scaling with grid size and time steps, enabling efficient execution on consumer hardware.
+Key features include support for different boundary conditions, variable sea level and insolation inputs, wave-induced transport capabilities, and visualization tools aiming at beautiful plots. The software exports data in the interoperable HDF5 format and includes functions for creating stratigraphic cross-sections, chronostratigraphic (Wheeler) diagrams, topographic maps, and sediment accumulation curves. Performance benchmarks demonstrate linear scaling with grid size and time steps, enabling efficient execution on consumer hardware.
 
 CarboKitten addresses a gap in available carbonate modeling tools by providing an accessible, well-documented, and modifiable toolkit for hypothesis testing in carbonate stratigraphy. The model operates on timescales from centuries to millions of years and can simulate various scenarios including orbital forcing, sea level change, and biological succession patterns. CarboKitten's accessibility should encourage broader adoption of stratigraphic forward modeling in carbonate research and education, supporting hypothesis-driven approaches to understanding the structure of the geological record and reconstructing the history of the Earth from carbonate strata.
 :::
 
 # Introduction
 
-Stratigraphic forward modelling is well established as a means of examining our understanding of the formation of stratal architectures [@granjeon_concepts_1999;@burgess_numerical_2001;@paterson_accommodation_2006;@schlager_record_2009;@ding_quantitative_2019;@jean_borgomano_quantitative_2020;@liu_formation_2022], prediction, correlation and imputation of architectures from incomplete data [@Warrlich2008;@masiero_syn-rift_2021], and testing hypotheses on the structure of the geological record [e.g., @kemp_stratigraphic_2018;@masiero_numerical_2020;@liu_estimating_2021] and the preservation of proxies [@curtis_natural_2025], fossils [@holland_quality_2000;@hannisdal_phenotypic_2006;@hohmann_identification_2024], or forcing mechanisms [@kemp_investigating_2016;@kemp_metre-scale_2019;@burgess_big_2019]. Owing to their economic interest, most such models are proprietary to exploration companies and their availability to researchers is limited. Some older models developed by researchers share the fate of many other research software packages and their maintenance ceases, e.g. when a project ends [@Warrlich2000]. It is not always possible to resuscitate such models, especially if documentation or license are lacking or code has not been shared [e.g., @strobel_interactive_1989;@demicco_cycopath_1998;@barrett_reef_2017]. As a result, the choice of stratigraphic forward models available to researchers at the moment is narrow and shifted towards siliciclastic [e.g., @hutton_sedflux_2008;@sylvester_stratigraphy_2024] or specifically fluvial depositional systems [@wild_sedsim_2019;@falivene_three-dimensional_2019], to the point that researchers may resort to these models to create simulations of carbonate sections [@zimmt_recognizing_2021].
+Stratigraphic forward modelling is well established as a means of examining our understanding of the formation of stratal architectures [@granjeon_concepts_1999;@burgess_numerical_2001;@paterson_accommodation_2006;@schlager_record_2009;@ding_quantitative_2019;@jean_borgomano_quantitative_2020;@liu_formation_2022], prediction, correlation and imputation of architectures from incomplete data [@Warrlich2008;@masiero_syn-rift_2021], and testing hypotheses on the structure of the geological record [e.g., @kemp_stratigraphic_2018;@masiero_numerical_2020;@liu_estimating_2021] and the preservation of proxies [@curtis_natural_2025], fossils [@holland_quality_2000;@hannisdal_phenotypic_2006;@hohmann_identification_2024], or forcing mechanisms [@kemp_investigating_2016;@kemp_metre-scale_2019;@burgess_big_2019]. Owing to their economic interest, most such models are proprietary to exploration companies and their availability to researchers is limited. Some older models developed by researchers share the fate of many other research software packages and their maintenance ceases, e.g. when a project ends [@Warrlich2000]. It is not always possible to resuscitate such models, especially if documentation or license are lacking or code has not been shared [e.g., @strobel_interactive_1989;@demicco_cycopath_1998;@barrett_reef_2017]. As a result, the choice of stratigraphic forward models available to researchers at the moment is narrow and shifted towards siliciclastic [e.g., @hutton_sedflux_2008;@sylvester_stratigraphy_2024] or fluvial depositional systems [@wild_sedsim_2019;@falivene_three-dimensional_2019], to the point that researchers may resort to these models to create simulations of carbonate sections [@zimmt_recognizing_2021].
 
-Modeling carbonate depositional systems requires not only accounting for water and atmospheric processes, but also for the biological character of sediment production and dispersal. Ecological processes, such as facilitation, competition and dispersal, may on one hand confound the relationships between sediment composition and water depth [e.g. @granjeon_concepts_1999;@dyer_quantifying_2018;@salles_exploring_2018;@pastier_genesis_2019;@weij_limited_2019] and, on the other hand, lead to creation of complex facies patterns under stable sea level conditions [@drummond_self-organizing_1999;@purkis_spatial_2016;@xi_stratigraphic_2022]. Complex models accounting for it have been mostly developed for exploration, e.g. `Carbonate 3D` [@warrlich_quantifying_2002;@Warrlich2008], `DIONISOS` [@granjeon_concepts_1999] and `Carbonate GPM` [@hill_modeling_2009].
-Of research-driven models operating in more than one dimension, two include a wider range of depositional environment with carbonate production modules: `CARB3D+` [@paterson_accommodation_2006], `SedSimple` [@tetzlaff_stratigraphic_2023] and `Badlands` [@salles_badlands_2016], including its Python interface `pyBadlands` [@salles_pybadlands_2018], but due to their general focus these models do not account for the spatial heterogeneity driven by biological processes.
-Finally, `CarboCAT` [@Burgess2013] is a research-driven 2D model dedicated to stratigraphic forward modeling of carbonate platforms, which includes a cellular automaton that approximates the spatial heterogeneity formed through ecological interactions between carbonate-producing organisms. `CarboCAT` has been used in multiple studies [e.g. @masiero_numerical_2020;@xi_stratigraphic_2022;@hohmann_identification_2024], but having been written in Matlab, it was not accessible to contributions from the entire scientific community. Based on the successful applications of `CarboCAT`, we set out to develop a new generation model with the following specifications:
+Modeling carbonate depositional systems requires not only accounting for aqueous and atmospheric processes, but also for the biological character of sediment production and dispersal. Ecological processes, such as facilitation, competition and dispersal, may on one hand confound the relationships between sediment composition and water depth [e.g. @granjeon_concepts_1999;@dyer_quantifying_2018;@salles_exploring_2018;@pastier_genesis_2019;@weij_limited_2019] and, on the other hand, lead to creation of complex facies patterns under stable sea level conditions [@drummond_self-organizing_1999;@purkis_spatial_2016;@xi_stratigraphic_2022]. Complex models accounting for this have been mostly developed for exploration, e.g. `Carbonate 3D` [@warrlich_quantifying_2002;@Warrlich2008], `DIONISOS` [@granjeon_concepts_1999] and `Carbonate GPM` [@hill_modeling_2009].
+Of research-driven models operating in more than one dimension, two include a wider range of depositional environments with carbonate production modules: `CARB3D+` [@paterson_accommodation_2006], `SedSimple` [@tetzlaff_stratigraphic_2023] and `Badlands` [@salles_badlands_2016], including its Python interface `pyBadlands` [@salles_pybadlands_2018], but due to their general focus these models do not account for the spatial heterogeneity driven by biological processes.
+Finally, `CarboCAT` [@Burgess2013] is a research-driven 3D model dedicated to stratigraphic forward modeling of carbonate platforms, which includes a cellular automaton that approximates the spatial heterogeneity formed through ecological interactions between carbonate-producing organisms. `CarboCAT` has been used in multiple studies [e.g. @masiero_numerical_2020;@xi_stratigraphic_2022;@hohmann_identification_2024], but having been written in Matlab, it is not accessible to contributions from the entire scientific community. Based on the successful applications of `CarboCAT`, we set out to develop a new generation model with the following specifications:
 
 1. it should be Open Source and it should be easy for researchers to understand the algorithm, which is a prerequisite to being able to contribute to it or modify it to one's needs,
 2. it should allow for spatial heterogeneity of carbonate facies,
@@ -101,7 +101,7 @@ $$w(x, t) = R(t) - \eta(x, t) + \int_{t_0}^{t} \sigma \textrm{d}t.$$
 
 ## Carbonate Production {#sec:carbonate-production}
 
-The general form of our production model follows that of @Bosscher1992 (BS92). This model finds the sediment accumulation curve by integrating an ODE that outside of the model parameters only depends on the initial topography.
+The general form of our production model follows that of @Bosscher1992. This model finds the sediment accumulation curve by integrating an ODE that outside of the model parameters only depends on the initial topography.
 
 $$\frac{\partial \eta}{\partial t} = P(\eta),$$
 
@@ -131,8 +131,8 @@ $$P(w) = \sum_f P_f(w)$$
 
 : Parameters for the production model of the three default carbonate factories. {#tbl:factories}
 
-Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A)) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
-
+Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
+<!-- NH: There is some ambiguity here between the default factories and their default parameters. Not sure how to clearly resolve this hierarchy of defaultness -->
 We also provide the option of specifying pelagic production curves. Here the production is computed as the integral of Equation @eq:production over the entire water column.
 
 ![Production curves](fig/production-curves.pdf){width=8.3cm}
@@ -192,11 +192,10 @@ Representing spatial heterogeneity resulting from positive and negative biologic
 3. the approach must be scalable to *n* facies, even if we focus the examples here on 3;
 4. adjustable temporal persistence: it must be possible to set the turnover frequency.
 
-These requirements are met by Celullar Automata (CA), as proposed by @drummond_self-organizing_1999, @burgess_sensitive_2004 and @Burgess2013, without substanial computational costs. For this reason we adopt this modeling approach in CarboKitten, directly reimplementing the automaton described by @Burgess2013 in his package CarboCAT. Cellular automata are commonly used to generate spatial heterogeneity in forward modeling, with some models serving as discrete approximations of partial differential equations that can generate complex spatial dynamics such as Turing patterns @Dormann2001 @drummond_self-organizing_1999.
+These requirements are met by Celullar Automata (CA), as proposed by @drummond_self-organizing_1999, @burgess_sensitive_2004 and @Burgess2013, without substanial computational costs. For this reason we adopt this modeling approach in CarboKitten, directly reimplementing the automaton described by @Burgess2013 in his package CarboCAT. Cellular automata are commonly used to generate spatial heterogeneity in forward modeling, with some models serving as discrete approximations of partial differential equations that can generate complex spatial dynamics such as Turing patterns [@Dormann2001 @drummond_self-organizing_1999].
 
 The CA emulates the biological succession of species by following a set of simple rules. If conditions are right, a species will multiply and occupy neighbouring territory. However, when there are too many of the same kind, the species will die from over population.
-
-For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive. The neighborhood size and the rules represent a case of Larger than Life family of two-dimensional cellula automata [@evans_larger_1996], but this particular set of rules has been proposed specifically for CarboCAT [@Burgess2013] and, to our knowledge, does not correspond to any documented Larger than Life rules. We examined other sets of rules [@johannes_hidding_2026_18925531], but most lead to rapid stabilization of spatial patterns. In Figure @fig:ca we illustrate the long-term and short-term behaviour of our default CA rule set.
+For each cell in the grid a centered neighbourhood of $5\times 5$ pixels is considered. We count the number of neighbouring cells of the same species. Then we consider two ranges: the *activation range* (default $6 \le n \le 10$) and *viability range* (default $4 \le n \le 10$). If the number of live neighbours is in the viability range, the cell stays alive. If the cell was dead, but the number of live neighbours is in the activation range, the cell becomes alive. The neighborhood size and the rules represent a case of Larger than Life family of two-dimensional cellular automata [@evans_larger_1996], but this particular set of rules has been proposed specifically for CarboCAT [@Burgess2013] and, to our knowledge, does not correspond to any documented Larger than Life rules. We examined other sets of rules [@johannes_hidding_2026_18925531], but most lead to rapid stabilization of spatial patterns. In Figure @fig:ca we illustrate the long-term and short-term behaviour of our default CA rule set.
 
 The initial CA grid is randomized. A dead cell may qualify to become alive for different carbonate factories at the same time. To resolve this priority collision, facies priority for occupying a dead cell is rotated every iteration using a deterministic cyclic shift (fixed round-robin pattern), which ensures that there is no priority given to any facies. 
 
@@ -232,10 +231,10 @@ function main()
   for (i, idx) in enumerate(axes_indices)
     ax = Axis(fig[Tuple(idx)...], aspect=AxisAspect(1), title="step $(i)")
     if idx[1] == 2
-      ax.xlabel = "x [m]"
+      ax.xlabel = "x"
     end
     if idx[2] == 1
-      ax.ylabel = "y [m]"
+      ax.ylabel = "y"
     end
     heatmap!(ax, xaxis/u"m", yaxis/u"m", state.ca)
     step!(state)
@@ -280,10 +279,10 @@ function main()
       ax = Axis(fig[row, col], aspect=AxisAspect(1), title="step $(i)")
 
       if row == 2
-        ax.xlabel = "x [m]"
+        ax.xlabel = "x"
       end
       if col == 1
-        ax.ylabel = "y [m]"
+        ax.ylabel = "y"
       end
 
       heatmap!(ax, xaxis/u"m", yaxis/u"m", state.ca)
@@ -311,7 +310,7 @@ Figure: Iterations of the CA, as described by @Burgess2013, on a periodic grid o
 
 ## Transport {#sec:model-transport}
 
-Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [See @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
+Our transport model is borrowed from other similar approaches in siliclastic (river bed) modeling [see @Paola1992; @James2010], where it is made plausible that this approach is viable for models that work on long time scales. Because our transport model is novel (at least for modelling carbonate platforms), we discuss the full model in a separate section. Here, we discuss how transport is embedded in the larger model.
 
 We consider all sediment transport to happen in an **active layer** close to the sea floor. This layer has a certain amount of sediment $C_f$ (in units of $\unit{m}$) that travels along a path of steepest descent. We say that this material is **entrained**. Every time step the active layer is supplied with sediment produced in the production step as well as older sediment through disintegration. After transport a fraction of the entrained sediment is deposited on the sea floor as the transported version of the original (donor) facies in a process that we refer to as **lithification**, being the process of turning loose sediment into rock. Although in reality sediment might not be mobile for a while before lithification sets in, for the purpose of our model, we chose the term to represent the immobilisation of sediment as a whole, see [Figure @fig:active-layer-diagram].
 
@@ -339,7 +338,7 @@ Advancing the CA can be configured to happen one-in-$n$ iterations to slow it do
 
 ## Input parameters
 
-CarboKitten has many input parameters: box geometry, time parameters, a list of facies properties, transport model intrinsics and external conditions: initial topography, relative sea level and insolation. We have already discussed the facies properties in Section @sec:carbonate-production, and the transport model is discussed in Section @sec:transport. That leaves us the external conditions that should be considered the driving forces of carbonate platform formation.
+CarboKitten has many input parameters: box geometry, time parameters, a list of facies properties, transport model intrinsics and external conditions such as initial topography, relative sea level and insolation. We have already discussed the facies properties in Section @sec:carbonate-production, and the transport model is discussed in Section @sec:transport. That leaves us the external conditions that should be considered the driving forces of carbonate platform formation.
 
 The initial topography, sea level and insolation can all be entered in three different ways: a given constant, a Julia function or an array exactly matching the box size or number of time steps.
 
@@ -348,11 +347,11 @@ A full list  of input parameters is available in the Appendix.
 
 ## Visualisations
 
-CarboKitten generates data in the accessible, binary HDF5 format, thus output can be visualised with most common tools, e.g. imported into R or a Jupyter notebook. Nevertheless, we provide some routines based on Makie [@DanischKrumbiegel2021] for creating cross-sections, Wheeler diagrams and topographic overviews. Some of the most common plot types have been collected into a summary plot, which is shown in Figure @fig:summary-plot.
+CarboKitten generates data in the accessible, binary HDF5 format, thus output can be visualised with most common tools, e.g. imported into R or a Jupyter notebook. Nevertheless, we provide some routines based on Makie [@DanischKrumbiegel2021] for creating cross-sections, chronostratigrahic (Wheeler) diagrams and topographic overviews. Some of the most common plot types have been collected into a summary plot, which is shown in Figure @fig:summary-plot.
 
 ![Summary plot](fig/summary-plot.png){.wide}
 
-Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic cross-section, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time (Wheeler diagram), (e) dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. {#fig:summary-plot}
+Figure: Overview of different visualizations supported by CarboKitten. Panel (a) shows a stratigraphic cross-section, including an indication for unconformities, (b) a topographic overview including two intermediate time steps, (c) the production curves used, (d) sedimentation rate as a function of time, (e) Wheeler diagram with preserved dominant facies as a function of time, (f) the sea-level curve given as input. The combined plot is arranged such that spatial data is on the top row, while time-dependent information is shown at the bottom with matching y-axes. {#fig:summary-plot}
 
 :::hide
 
@@ -445,7 +444,7 @@ We assume a local sediment flux proportional to the local gradient,
 
 $$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
 
-where $d_f$ is a facies-dependent transport coefficient ($\unit{m Myr^{-1}), and $v_f(w)$ is a chosen additional velocity as a function of water depth ($\unit{m Myr^{-1}}$). Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
+where $d_f$ is a facies-dependent transport coefficient ($\unit{m Myr^{-1}}$), and $v_f(w)$ is a chosen additional velocity as a function of water depth ($\unit{m Myr^{-1}}$). Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
 
 $$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
@@ -465,8 +464,7 @@ In the critical angle approach developed by @Warrlich2000, sediment is transport
 The problem with this critical angle-based method of transport is that production across an unstable region is deposited on a small strip, where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. Contrasting to that, both our transport model and production model (with the exception of the cellular automaton) are discretisations of otherwise continuous processes. This means that, at least assymptotically (i.e. as long as the time step is small enough), our implementation is independent of the chosen time step.
 
 One aspect of critical angle theory that we do use is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and there is no need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
-
-A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes (such as started by @Kenter1990 and studied by others, including @adams_basic_2000) and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In the study by @bosscher_carbplatcomputer_1992 an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms [e.g., @schlager_submarine_1986;@Kenter1990;@adams_basic_2000]. This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
+A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes [@Kenter1990, @adams_basic_2000] and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In the study by @bosscher_carbplatcomputer_1992 an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms [e.g., @schlager_submarine_1986;@Kenter1990;@adams_basic_2000]. This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
 
 ## Parameter choices
 
@@ -777,8 +775,7 @@ DisintegrationVsCementation.main()
 ### Facies-specific transport coefficient
 
 The facies-specific transport coefficient used in CarboKitten is expressed in $\unit{m/Myr}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $d_f$ appears in $\partial_t \eta = d_f \nabla^2 \eta$ and have units $\unit{m^2/Myr}$. In CarboKitten's formulation $\nu_f$ is one dimension of length smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting transport coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should empirically justified diffusion coefficients for carbonate sediment be available, converting these diffusion coefficients to values of the transport coefficient used in the model.
-
-Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from $1.25 \times 10^6$ for the sand fraction in the photozoan factory to $50 \times 10^6$ for the mud produced by the heterozoan factory and identified 2500 $10^5\ \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
+Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from $1.25 \times 10^6 \unit{m^2/Myr}$ for the sand fraction in the photozoan factory to $50 \times 10^6 \unit{m^2/Myr}$ for the mud produced by the heterozoan factory and identified 2500 $10^5\ \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
 
 $$D_{\textrm{Kaufman}}(W) = C_0 \exp(-C_1 W)$$
 
@@ -1422,6 +1419,7 @@ Our baseline model is the example included in CarboKitten, grid size $100 \times
 With regards to memory consumption, CarboKitten allocates a fixed amount of memory at the start of a model run, which scales linearly with the size of the grid. The most significant fraction of the memory is occupied by the sediment buffer. In the example run we have a buffer size of 50. With three facies types being stored this results in an array size of $100 \times 50 \times 50 \times 3$, stored in double precision gives a mere $6 \unit{MB}$. However, for a $300 \times 300$ sized grid this already increases to $108 \unit{MB}$.
 
 ### Scaling
+<!-- the diffusion coefficient in this section comes out of the blue. What is its empirical role?-->
 The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mitigated by setting a diffusion coefficient. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we are speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
 
 ### Benchmark
@@ -1654,14 +1652,14 @@ BenchmarkValidation.main()
 
 ### Potential for GPU optimisation
 
-At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further. Going through the steps of the composed model [Section @sec:composed-model]: the cellular automaton is a stencil operation, production a map, disintegration a stencil, transport is implemented as an iterated stencil, and deposition is a map. Both stencil and map operations are highly localized in memory and are ideal for implementation on a GPU.
+At the time of writing, CarboKitten is a single threaded CPU code. However, the structure of the model, is highly ammenable to optimisation on a GPU, which would drastically improve run-times further. Going through the steps of the composed model in [Section @sec:composed-model]: the cellular automaton is a stencil operation, production a map, disintegration a stencil, transport is implemented as an iterated stencil, and deposition is a map. Both stencil and map operations are highly localized in memory and are ideal for implementation on a GPU.
 
 ## Documentation
 
 CarboKitten is written entirely using literate programming [@Knuth1984]. This means that the implementation of CarboKitten is written as an integral part of its own documentation, using a system called Entangled [@Hidding2023]. The aim is that interested readers have a direct reference to the code implementing the methods that are explained in the documentation.
 
 # Examples {#sec:examples}
-
+<!-- NH: Fix the FIXME -->
 We provide two examples of typical tasks users are likely to undertake: creating a simulation using an empirical, externally provided sea level curve and one with explicit forcing by an insolation curve. These examples are supported by the code used to generate this executable manuscript (FIXME ref to the code) and users are encourage to use that code as a starting point for modifying these examples for their needs.
 
 The third example serves to illustrate the details of how the wave-induced transport is modelled and how modelling decisions and parameter choices affect the outcomes obtained using this feature.
@@ -1669,8 +1667,7 @@ The third example serves to illustrate the details of how the wave-induced trans
 ## Sea level
 
 Variables external to the model, which modulate the output the most, are the sea level and insolation. The sea level, together with subsidence, result in the *relative* sea level, which translates into *water depth* at any given position in the basin. The sea level must be specified as a function of time. It can be a constant, a continuous function or an empirical dataset. Empirical datasets can be read in as text files and need to be interpolated to equidistant intervals corresponding to the time step with which the model is run.
-
-The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y.
+The example here uses the sea level curve by @lisiecki_pliocene-pleistocene_2005, reproduced in the compilation by @miller_phanerozoic_2005. The dataset of relative sea level records derived from foraminifer $\delta^{18}O$ extracted from this compilation is included in CarboKitten to facilitate simulations of the most typical sea-level scenarios. In this example we start the model at $2\ \unit{Ma}$ and build the platform until $134.54\ \unit{ka}$, i.e. until the end of the record by @lisiecki_pliocene-pleistocene_2005, using a time step of 200 y (Figure @fig:variable-sl).
 
 ::: hide
 
@@ -1786,9 +1783,9 @@ Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). 
 
 The relationship between production and insolation can be modified with user-provided parameters. It may be confusing that the extinction coefficient $k$ is, in CarboKitten, a property of the carbonate factory and the facies it deposits and not of the basin or position in it. In reality extinction coefficient varies for different wavelengths of the sunlight spectrum, but the set of its values across the spectrum is constant for a given water body. While different carbonate factories exploit (or ignore, in the case of the aphotic factory) different parts of the light spectrum, the model is agnostic to it and allows users to set $k$ to values that may represent an average across different producers using different wavelengths.
 
-As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and on geological timescales this variation may affect the patterns of sediment production.
-
-Incoming solar radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
+As default, we use insolation of $400\ \unit{W/m^2}$, which is approximately equivalent to the $2000\ \unit{\mu E m^{-2} s^{-1}}$ used by @Bosscher1992. This is representative of insolation on the sea surface at midday in the tropics. However, insolation varies with the position of the Earth with respect to the Sun and over geological timescales this variation may affect the patterns of sediment production.
+<!-- NH: Link figure in text, add final sea level to figure-->
+Incoming solar radiation can be used as an input vector to modulate production. CarboKitten is agnostic with respect to the source of this information. As an example in Figure @fig:variable-insolation, here we use the daily mean insolation on June solstice, calculated using the astronomical solution by @laskar_long-term_2004, obtained through the R package `palinsol` [@Crucifix_palinsol]. Here we obtain it for the coming million year (starting in 1950, which is when the astronomical solution starts) at the 25° N latitude and use the total solar irradiance value of 1361 $\unit{kW m^{-2}}$. Variation in solar irradiance is so small that it would hardly manifest itself if linearly propagated to the sea level curve. A universal transfer function describing the relationship between insolation and sea level does not exist. For the purpose of illustrating the functionality of the model, we calculate the sea level as an amplified insolation value. The amplification is chosen arbitrarily as the square of the insolation anomaly, with the anomaly being the deviation from mean irradiation.
 
 ::: hide
 
@@ -1939,7 +1936,7 @@ Figure: Platform generated using the daily mean insolation during June solstice 
 
 ## Wave induced transport {#sec:wave-induced-transport}
 
-We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in the transport Equation @eq:transport. In this analysis we forego claims on any level of realism with respect to the true long term effects of wave transport, rather we study the behaviour of the model under an imposed additional velocity component. Our use of the term *wave transport* should also be understood as such. 
+We model the transport by waves by setting the velocity $v_f$ and shear $s_f$ components in Equation @eq:transport. In this analysis we forego claims on any level of realism with respect to the true long term effects of wave transport, rather we study the behaviour of the model under an imposed additional velocity component. Our use of the term *wave transport* should also be understood as such. 
 
 Considering the long timescales we are working with, we limit ourselves to a highly simplified model, with the goal of achieving an effect comparable with that of wave-induced transport. Given the timescales for which the model is developed, with time steps of the order of $100$ years, a more physical representation of wave-induced transport is not possible. By necessity, the result imitates the time-averaged effect of tranport.
 
@@ -2244,7 +2241,7 @@ Table: chosen parameters to generate results in Figure @fig:atoll. We used a lit
 
 CarboKitten is a new Open Source stratigraphic forward model dedicated for carbonate depositional environments and modeling of timescales between centuries and millions of years. It integrates previous, well-tested approaches used by the community, i.e. the production model by @Bosscher1992 and the generation of spatial heterogeneity proposed by @Burgess2013 with a new approach to sediment transport, based on the concept of the *active layer* by @Paola1992. The software allows modeling and visualization accessible to laptop users, including attractive plotting functions for common use-cases in stratigraphy and sedimentology, such as Wheeler diagrams, age-depth models and stratigraphic columns. CarboKitten uses heuristics to approximate the dynamics of carbonate production, wave transport and biologically driven spatial heterogeneity. The algorithms do not replicate the physical and biological processes behind these phenomena, but allow obtaining results imitating them at timescales at which they cannot be observed directly. 
 
-CarboKitten fills a gap identified at the outset of this manuscript: an Open Source, modular, performant stratiraphic forward model dedicated to carbonate platforms and their idiosyncracies. It complements the landscape of Earth-surface models such as Landlab [@hobley_creative_2017; barnhart_short_2020] and the broader suite of tools developed and maintained by the Community Surface Dynamics Modeling System (CSDMS). Future opportunities for CarboKitten include integration with Landlab and other CSDMS components.
+CarboKitten fills a gap identified at the outset of this manuscript: an Open Source, modular, performant stratiraphic forward model dedicated to carbonate platforms and their idiosyncracies. It complements the landscape of Earth-surface models such as Landlab [@hobley_creative_2017; @barnhart_short_2020] and the broader suite of tools developed and maintained by the Community Surface Dynamics Modeling System (CSDMS). Future opportunities for CarboKitten include integration with Landlab and other CSDMS components.
 
 At this stage, CarboKitten's primary value lies not in a realistic replication of empirical stratigraphic architectures, but in its utility for testing hypotheses on the formation of the carbonate geological record and on our own understanding on its governing processes. Further work is needed to allow more detailed reconstructions of known geological situations. Among future refinements are empirical validation of transport and production values or storing the history of sediment transport to track autochthonous and allochthonous sediment.
 
@@ -2270,7 +2267,7 @@ We can transform this assumption in to an advection equation by considering the 
 $$\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f(x) + P(x),$$
 
 where $P(x)$ is the sediment production rate (including disintegration). We can leave the production out of consideration for the moment. Using the product rule,
-
+<!-- NH: Overfull box! -->
 $$\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} C_f(x)\cdot(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))) - C_f(x)\ (d_f\nabla^2 w(x) - \vec{\nabla} \cdot \vec{v}_f(w(x)))).$$
 
 Now, we demand that the user provide the derivative $\vec{s}_f(w) = \vec{v}_f'(w)$, so applying the chain rule we can write,
@@ -2278,13 +2275,13 @@ Now, we demand that the user provide the derivative $\vec{s}_f(w) = \vec{v}_f'(w
 $$\vec{\nabla}\cdot\vec{v}_f(w(x)) = \vec{\nabla}w(x) \cdot \vec{s}_f(w).$$
 
 Substituting that into the previous equation brings us to Equation [@eq:transport],
-
+<!-- NH: Very overfull box -->
 $$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))\big)\cdot\vec{\nabla} C_f(x) + \big(\vec{\nabla}w(x) \cdot \vec{s}_f(w(x)) - d_f\nabla^2 w(x))\big)\ C_f(x).$$
 
 # Model parameters
 
 ## Notes
-
+<!-- NH: force order of appendix and tables, otherwise they will be distributed throughout the references -->
 - Parameters marked "—" in the *Default* column are **required** (no default provided in source).
 
 :::
