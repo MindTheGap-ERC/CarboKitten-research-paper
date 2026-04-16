@@ -70,4 +70,4 @@ flowchart: md/fig/flowchart.pdf
 
 md/fig/flowchart.pdf: md/flowchart.scm md/flowchart.css
 	@echo "Rendering flow chart"
-	@guile3.0 --r6rs tools/xml-gen/xml-gen.scm < md/flowchart.scm 2> /dev/null | rsvg-convert -f pdf1.5 -o $@
+	@guile --r6rs tools/xml-gen/xml-gen.scm < md/flowchart.scm 2> /dev/null | rsvg-convert -f pdf1.5 -o $@
