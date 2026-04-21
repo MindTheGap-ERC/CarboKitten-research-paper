@@ -14,8 +14,8 @@ function plot_topography(result)
 end
 
 function plot_topography!(ax, result)
-    diffusivity::typeof(1.0u"m/yr") = result.header.attributes[:diffusivity]
-    disintegration_rate::typeof(1.0u"m/Myr") = result.header.attributes[:disintegration_rate]
+    diffusivity::typeof(1.0u"m/yr") = result.header.attributes["diffusivity"]
+    disintegration_rate::typeof(1.0u"m/Myr") = result.header.attributes["disintegration_rate"]
 
     dt = result.header.Δt
 

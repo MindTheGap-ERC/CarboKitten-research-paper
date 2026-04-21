@@ -3,14 +3,29 @@ using CarboKitten
 using CarboKitten.Components.Common
 using CarboKitten.Components:
     TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth,
-    Tag, ActiveLayer, H5Writer
-using ModuleMixins
+    Tag, ActiveLayer, Output, Diagnostics
+using CarboKitten.Output: Frame
+using ModuleMixins: @compose, @for_each
 
 @compose module CustomProduction
-@mixin Tag, ActiveLayer, H5Writer
+@mixin Tag, ActiveLayer, Output, Diagnostics
+
+using CarboKitten.Output: Frame
 
 @kwdef struct Input <: AbstractInput
     production    # a function of (x, y, wd)
+end
+
+function write_header(input::AbstractInput, output::AbstractOutput)
+    @for_each(P -> P.write_header(input, output), PARENTS)
+end
+
+function initial_frame(input::AbstractInput)
+    nf = n_facies(input)
+    return Frame(
+        production=zeros(Sediment, nf, input.box.grid_size...),
+        disintegration=zeros(Sediment, nf, input.box.grid_size...),
+        deposition=zeros(Sediment, nf, input.box.grid_size...))
 end
 
 function initial_state(input::AbstractInput)
