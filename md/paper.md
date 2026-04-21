@@ -1130,9 +1130,9 @@ This means that increasing the resolution of a model by a factor two may need a 
 
 We validated the model by attempting to replicate the general architecture of an isolated carbonate platform in Central Luconia (part of the Sarawak Basin), offshore Malaysia (Cycle IV to Cycle Lower V). We chose this area is because this platform has been extensively studied [@Henglai2024] and the interpreted seismic profiles and reconstructed sea-level curves were publicly reported. We informed model runs with the sea-level data obtained from Figure 2 of @Henglai2024. In addition, the tectonic setting of the region in the studied period (around 15.48 Ma to 11 Ma) is believed to be uncomplicated [@FathiyahJamaludin2025] and thus possible to represent with a constant subsidence rate. Four wells were drilled into the atoll, providing discontinous cores and, thus, geological facies information.
 
-This platform has a pinnacle shape, with the length of approximately $5\ \unit{km}$ in NE-SW direction, suggesting it was drowned in during this time period. The cores indicate that the top of carbonate platform is dominated by coral boundstones. Although the sampling in the lower part of the cores is discontinous, the cores suggest that the facies are dominated by pack- to wackestones and interbeded by coral boundstones, bioclastic boundstones and argillaceous carbonate. We related the geological facies to the carbonate producers via Table @tab:validation_facies.
+This platform has a pinnacle shape, with the length of approximately $5\ \unit{km}$ in NE-SW direction, suggesting it was drowned in during this time period. The cores indicate that the top of carbonate platform is dominated by coral boundstones. Although the sampling in the lower part of the cores is discontinous, the cores suggest that the facies are dominated by pack- to wackestones and interbeded by coral boundstones, bioclastic boundstones and argillaceous carbonate. We related the geological facies to the carbonate producers via Table @tbl:validation_facies.
 
-Table: Conversion table between facies in the empirical carbonate platform and the carbonate facies used in CarboKitten validation {#tab:validation_facies}
+Table: Conversion table between facies in the empirical carbonate platform and the carbonate facies used in CarboKitten validation {#tbl:validation_facies}
 
 | Geological Facies | Producers | Model Producer |
 |-------------------|-----------|----------------|
@@ -1149,7 +1149,7 @@ The criteria for comparison between the modelled results and the interpreted sei
 - total thickness of carbonate stratigraphy is approximately ($600\ \unit{m}$).
 - The platform has a slope indicating presence of off-shore sediments transport.
 
-The results are listed in figure {@figCase_validation}. We compared the features in the figure and the interpreted seimic profile:
+The results are listed in figure {@fig:case-validation}. We compared the features in the figure and the interpreted seimic profile:
 - The interpreted seismic profiles suggested five zones, and this is captured in the resultant figure (five parasequences).
 - The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
 - The total thickness of carbonate (~$550\ \unit{m}$) is comparable to the data suggested by well penetration (~$600\ \unit{m}$).
@@ -1157,7 +1157,7 @@ The results are listed in figure {@figCase_validation}. We compared the features
 
 ![Case_validation](fig/Validation_comparison.pdf){.wide}
 
-Figure: Case_validation. A: This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia: B: Seismic interpretation of the platform, redrawn from Figure 9 of [@Henglai2024] {#fig:validation_Miocene}
+Figure: Case_validation. A: This shows a cross-section of the results modelling the atoll case in Central Luconia, offshore Malaysia: B: Seismic interpretation of the platform, redrawn from Figure 9 of [@Henglai2024] {#fig:case-validation}
 
 Therefore, we suggest CarboKitten is able to reproduce major architectural features of real-life carbonate platform.
 
