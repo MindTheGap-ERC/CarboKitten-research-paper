@@ -6,7 +6,7 @@ include("CustomProductionModel.jl")
 using CarboKitten
 using CairoMakie
 using CarboKitten: Box
-using CarboKitten.OutputData: set_attribute
+using CarboKitten: set_attribute
 using .CustomProduction: CustomProduction as M
 
 const Time = typeof(1.0u"Myr")
@@ -54,8 +54,8 @@ function run_with(;dt, diffusivity, disintegration_rate, lithification_time, pat
         production=production)
 
     result = run_model(Model{M}, input, MemoryOutput(input))
-    set_attribute(result, :diffusivity, diffusivity)
-    set_attribute(result, :disintegration_rate, disintegration_rate)
+    set_attribute(result, "diffusivity", diffusivity)
+    set_attribute(result, "disintegration_rate", disintegration_rate)
     return result
 end
 

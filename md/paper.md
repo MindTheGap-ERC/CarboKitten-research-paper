@@ -533,8 +533,8 @@ function plot_topography(result)
 end
 
 function plot_topography!(ax, result)
-    diffusivity::typeof(1.0u"m/yr") = result.header.attributes[:diffusivity]
-    disintegration_rate::typeof(1.0u"m/Myr") = result.header.attributes[:disintegration_rate]
+    diffusivity::typeof(1.0u"m/yr") = result.header.attributes["diffusivity"]
+    disintegration_rate::typeof(1.0u"m/Myr") = result.header.attributes["disintegration_rate"]
 
     dt = result.header.Δt
 
@@ -597,14 +597,29 @@ using CarboKitten
 using CarboKitten.Components.Common
 using CarboKitten.Components:
     TimeIntegration, Boxes, FaciesBase, SedimentBuffer, WaterDepth,
-    Tag, ActiveLayer, H5Writer
-using ModuleMixins
+    Tag, ActiveLayer, Output, Diagnostics
+using CarboKitten.Output: Frame
+using ModuleMixins: @compose, @for_each
 
 @compose module CustomProduction
-@mixin Tag, ActiveLayer, H5Writer
+@mixin Tag, ActiveLayer, Output, Diagnostics
+
+using CarboKitten.Output: Frame
 
 @kwdef struct Input <: AbstractInput
     production    # a function of (x, y, wd)
+end
+
+function write_header(input::AbstractInput, output::AbstractOutput)
+    @for_each(P -> P.write_header(input, output), PARENTS)
+end
+
+function initial_frame(input::AbstractInput)
+    nf = n_facies(input)
+    return Frame(
+        production=zeros(Sediment, nf, input.box.grid_size...),
+        disintegration=zeros(Sediment, nf, input.box.grid_size...),
+        deposition=zeros(Sediment, nf, input.box.grid_size...))
 end
 
 function initial_state(input::AbstractInput)
@@ -663,7 +678,7 @@ include("CustomProductionModel.jl")
 using CarboKitten
 using CairoMakie
 using CarboKitten: Box
-using CarboKitten.OutputData: set_attribute
+using CarboKitten: set_attribute
 using .CustomProduction: CustomProduction as M
 
 const Time = typeof(1.0u"Myr")
@@ -711,8 +726,8 @@ function run_with(;dt, diffusivity, disintegration_rate, lithification_time, pat
         production=production)
 
     result = run_model(Model{M}, input, MemoryOutput(input))
-    set_attribute(result, :diffusivity, diffusivity)
-    set_attribute(result, :disintegration_rate, disintegration_rate)
+    set_attribute(result, "diffusivity", diffusivity)
+    set_attribute(result, "disintegration_rate", disintegration_rate)
     return result
 end
 
@@ -998,9 +1013,10 @@ write_interval = max(1, t_steps ÷ 1000)
 facies1 = M.Facies(
 	viability_range = (0, 0),
 	activation_range = (0, 0),
-	maximum_growth_rate = 0u"m/Myr",
-	extinction_coefficient = 0u"m^-1",
-	saturation_intensity = 60u"W/m^2",
+	production = BenthicProduction(
+		maximum_growth_rate = 0u"m/Myr",
+		extinction_coefficient = 0u"m^-1",
+		saturation_intensity = 60u"W/m^2"),
 	diffusion_coefficient = 5u"m/yr",
 	wave_velocity = _ -> (Vec2(0.0u"m/Myr", 0.0u"m/Myr"), Vec2(0.0u"1/Myr", 0.0u"1/Myr")),
 	initial_sediment = (x, _) -> peak_height * exp(-(x - peak_centre)^2/(2 * peak_width^2)),
@@ -1012,7 +1028,7 @@ function make_input(; cementation_time, disintegration_rate)
 		box = box,
 		time = TimeProperties(Δt=Δt, steps=t_steps),
 		output = Dict(:profile => OutputSpec(slice=(:, 1), write_interval=write_interval)),
-		cementation_time = cementation_time,
+		lithification_time = cementation_time,
 		disintegration_rate = disintegration_rate,
 		subsidence_rate = 0.0u"m/Myr",
 		sea_level = _ -> 0.0u"m",
@@ -1721,19 +1737,19 @@ const TAG = "lisiecki-sea-level"
 
 const FACIES = [
     ALCAP.Facies(
-        production=BenthicProduciton(
+        production=BenthicProduction(
             maximum_growth_rate=200u"m/Myr",
             extinction_coefficient=0.8u"m^-1",
             saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=20.0u"m/yr"),
     ALCAP.Facies(
-        production=BenthicProduciton(
+        production=BenthicProduction(
             maximum_growth_rate=500u"m/Myr",
             extinction_coefficient=0.1u"m^-1",
             saturation_intensity=60u"W/m^2"),
         diffusion_coefficient=10.0u"m/yr"),
     ALCAP.Facies(
-        production=BenthicProduciton(
+        production=BenthicProduction(
             maximum_growth_rate=100u"m/Myr",
             extinction_coefficient=0.005u"m^-1",
             saturation_intensity=60u"W/m^2"),
