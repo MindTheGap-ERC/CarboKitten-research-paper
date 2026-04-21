@@ -442,7 +442,7 @@ Our transport model supposes that all entrained sediment resides in a layer of c
 
 We assume a local sediment flux proportional to the local gradient,
 
-$$\vec{q}_f = - C_f (d_f \vec{\nabla} \eta + \vec{v}_f(w)),$$
+$$\vec{q}_f = - C_f d_f \vec{\nabla} \eta + C_f \vec{v}_f(w),$$
 
 where $d_f$ is a facies-dependent transport coefficient ($\unit{m Myr^{-1}}$), and $v_f(w)$ is a chosen additional velocity as a function of water depth ($\unit{m Myr^{-1}}$). Optionally, we use $v_f(w)$ to model wave induced sediment transport (for an example see [Section @sec:wave-induced-transport]). The mass balance (continuity equation) is then,
 
@@ -450,8 +450,8 @@ $$\frac{\partial C_f}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f$$
 
 This gives us an advection equation for the sediment concentration $C_f$. We also express everything in terms of water depth, having $\nabla w = -\nabla \eta$, arriving at
 
-$$\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f +
-(\vec{s}_f(w) \cdot \vec{\nabla} w - d_f \nabla^2 w) C_f,$${#eq:transport}
+$$\frac{\partial C_f}{\partial t} = -(d_f \vec{\nabla} w + \vec{v}_f(w)) \cdot \vec{\nabla}C_f -
+(d_f \nabla^2 w + \vec{s}_f(w) \cdot \vec{\nabla} w) C_f,$${#eq:transport}
 
 where $\vec{s}_f(w) = \vec{v}_f'(w)$ is the velocity shear, or the derivative of the velocity with respect to water depth. We solve this PDE using a finite difference method-of-lines approach with an explicit solver (forward Euler and $4^{th}$ order Runge-Kuta are supported).
 
@@ -2272,27 +2272,27 @@ CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Git
 # Derivation of transport equations
 Our basic assumption is that the sediment flux scales linearly with the local bathymetric gradient and the concentration of sediment in the active layer,
 
-$$\vec{q}_f(x) = -C_f(x)\ (d_f\ \vec{\nabla}\eta(x) + \vec{v}_f(w(x)))),$$
+$$\vec{q}_f(x) = -d_f C_f(x) \vec{\nabla}\eta(x) + \vec{v}_f(w(x))) C_f,$$
 
 where $C_f$ is the active sediment amount per facies (all $f$ suffixes indicate facies dependent quantities), $d_f$ the transport (diffusivity) coefficient, $\eta(x)$ the bathymetry, and $\vec{v}_f$ the wave velocity as a function of water depth $w(x)$. Since the water depth and bathymetry differ at any time by a constant an a minus sign, $\vec{\nabla}w = -\vec{\nabla}\eta$, it is advantageous to write the equation completely in terms of $w$,
 
-$$\vec{q}_f(x) = C_f(x)\ (d_f\ \vec{\nabla}w(x) - \vec{v}_f(w(x))).$$
+$$\vec{q}_f(x) = C_f(x)\ (d_f\ \vec{\nabla}w(x) + \vec{v}_f(w(x))).$$
 
 We can transform this assumption in to an advection equation by considering the continuity equation,
 
 $$\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} \cdot \vec{q}_f(x) + P(x),$$
 
-where $P(x)$ is the sediment production rate (including disintegration). We can leave the production out of consideration for the moment. Using the product rule,
-<!-- NH: Overfull box! -->
-$$\frac{\partial C_f(x)}{\partial t} = -\vec{\nabla} C_f(x)\cdot(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))) - C_f(x)\ (d_f\nabla^2 w(x) - \vec{\nabla} \cdot \vec{v}_f(w(x)))).$$
+where $P(x)$ is the sediment production rate (including disintegration). We can leave the production out of consideration for the moment. Also, for readability, we will be dropping the function dependencies on $x$ and in our notation, as well as the $f$ suffix, considering each facies independently. Using the product rule,
 
-Now, we demand that the user provide the derivative $\vec{s}_f(w) = \vec{v}_f'(w)$, so applying the chain rule we can write,
+$$\frac{\partial C}{\partial t} = -\vec{\nabla} C\cdot(d\vec{\nabla}w + \vec{v}(w)) - C\ (d\nabla^2 w + \vec{\nabla} \cdot \vec{v}(w))).$$
 
-$$\vec{\nabla}\cdot\vec{v}_f(w(x)) = \vec{\nabla}w(x) \cdot \vec{s}_f(w).$$
+Now, we demand that the user provide the derivative $\vec{s}(w) = \vec{v}'(w)$, so applying the chain rule we can write,
 
-Substituting that into the previous equation brings us to Equation [@eq:transport],
-<!-- NH: Very overfull box -->
-$$\frac{\partial C_f(x)}{\partial t} = -\big(d_f\vec{\nabla}w(x) - \vec{v}_f(w(x))\big)\cdot\vec{\nabla} C_f(x) + \big(\vec{\nabla}w(x) \cdot \vec{s}_f(w(x)) - d_f\nabla^2 w(x))\big)\ C_f(x).$$
+$$\vec{\nabla}\cdot\vec{v}(w) = \vec{\nabla}w \cdot \vec{s}(w).$$
+
+Substituting that into the previous equation and collecting terms by $C$ and $\nabla C$ brings us to Equation [@eq:transport],
+
+$$\frac{\partial C}{\partial t} = -\big(d\vec{\nabla}w + \vec{v}(w)\big)\cdot\vec{\nabla} C - \big(d\nabla^2 w + \vec{\nabla}w \cdot \vec{s}(w))\big)\ C.$$
 
 # Model parameters
 
