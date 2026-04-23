@@ -49,7 +49,7 @@ facies(feedback) = [
             maximum_growth_rate=1800u"m/Myr",
             extinction_coefficient=0.6u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=2.0u"m/yr",
+        transport_coefficient=2.0u"m/yr",
         name="euphotic"),
     ALCAP.Facies(
         viability_range = (4, 10),
@@ -60,7 +60,7 @@ facies(feedback) = [
             extinction_coefficient=0.1u"m^-1",
             saturation_intensity=60u"W/m^2"),
 #        minimum_production=feedback ? 0.1u"m/Myr" : nothing,
-        diffusion_coefficient=2.0u"m/yr",
+        transport_coefficient=2.0u"m/yr",
         name="oligophotic"),
     ALCAP.Facies(
         viability_range = (4, 10),
@@ -71,11 +71,11 @@ facies(feedback) = [
             extinction_coefficient=0.6u"m^-1",
             saturation_intensity=60u"W/m^2",
             maximum_production_depth=50u"m"),
-        diffusion_coefficient=2.0u"m/yr",
+        transport_coefficient=2.0u"m/yr",
         name="pelagic"),
     ALCAP.Facies(
         active=false,
-        diffusion_coefficient=2.0u"m/yr",
+        transport_coefficient=2.0u"m/yr",
         name="oligophotic transported")
 ]
 
