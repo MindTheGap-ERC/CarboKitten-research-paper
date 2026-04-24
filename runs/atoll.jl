@@ -33,21 +33,21 @@ facies(v) = [
             maximum_growth_rate=500u"m/Myr",
             extinction_coefficient=0.8u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=20.0u"m/yr",
+        transport_coefficient=20.0u"m/yr",
         wave_velocity=v(-2.0u"m/yr")),
     ALCAP.Facies(
         production=BenthicProduction(
             maximum_growth_rate=400u"m/Myr",
             extinction_coefficient=0.1u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=10.0u"m/yr",
+        transport_coefficient=10.0u"m/yr",
         wave_velocity=v(-0.5u"m/yr")),
     ALCAP.Facies(
         production=BenthicProduction(
             maximum_growth_rate=100u"m/Myr",
             extinction_coefficient=0.005u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=50.0u"m/yr",
+        transport_coefficient=50.0u"m/yr",
         wave_velocity=v(-2.0u"m/yr"))
 ]
 

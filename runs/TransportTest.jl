@@ -14,7 +14,7 @@ const Time = typeof(1.0u"Myr")
 function run_with(;dt, diffusivity, disintegration_rate, lithification_time, patch_width = 2.0u"km")
     facies = [
         M.Facies(
-            diffusion_coefficient=diffusivity)  # 10u"m/yr"
+            transport_coefficient=diffusivity)  # 10u"m/yr"
     ]
 
     box = Box{Periodic{2}}(
