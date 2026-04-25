@@ -131,8 +131,8 @@ $$P(w) = \sum_f P_f(w)$$
 
 : Parameters for the production model of the three default carbonate factories. {#tbl:factories}
 
-Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
-<!-- NH: There is some ambiguity here between the default factories and their default parameters. Not sure how to clearly resolve this hierarchy of defaultness -->
+In the examples presented here we set default values of factory parameters that corrspond to three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A) factories. These default values are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
+
 We also provide the option of specifying pelagic production curves. Here the production is computed as the integral of Equation @eq:production over the entire water column.
 
 ![Production curves](fig/production-curves.pdf){width=8.3cm}
@@ -1475,7 +1475,6 @@ Our baseline model is the example included in CarboKitten, grid size $100 \times
 With regards to memory consumption, CarboKitten allocates a fixed amount of memory at the start of a model run, which scales linearly with the size of the grid. The most significant fraction of the memory is occupied by the sediment buffer. In the example run we have a buffer size of 50. With three facies types being stored this results in an array size of $100 \times 50 \times 50 \times 3$, stored in double precision gives a mere $6 \unit{MB}$. However, for a $300 \times 300$ sized grid this already increases to $108 \unit{MB}$.
 
 ### Scaling
-<!-- the diffusion coefficient in this section comes out of the blue. What is its empirical role?-->
 The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mitigated by setting the transport coefficient $d_f$: higher values will lead to smoothed-out and gentler slopes. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we are speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
 
 ### Benchmark
