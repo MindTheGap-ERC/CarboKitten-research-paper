@@ -11,13 +11,13 @@ function main()
     facies = [
         M.Facies(
             production=Production.EXAMPLE[:euphotic],
-            diffusion_coefficient=10.0u"m/yr"),
+            transport_coefficient=10.0u"m/yr"),
         M.Facies(
             production=Production.EXAMPLE[:oligophotic],
-            diffusion_coefficient=10.0u"m/yr"),
+            transport_coefficient=10.0u"m/yr"),
         M.Facies(
             production=Production.EXAMPLE[:aphotic],
-            diffusion_coefficient=10.0u"m/yr")
+            transport_coefficient=10.0u"m/yr")
     ]
 
     sea_level(t) =
