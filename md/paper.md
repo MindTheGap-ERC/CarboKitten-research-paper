@@ -686,7 +686,7 @@ const Time = typeof(1.0u"Myr")
 function run_with(;dt, diffusivity, disintegration_rate, lithification_time, patch_width = 2.0u"km")
     facies = [
         M.Facies(
-            diffusion_coefficient=diffusivity)  # 10u"m/yr"
+            transport_coefficient=diffusivity)  # 10u"m/yr"
     ]
 
     box = Box{Periodic{2}}(
@@ -1018,7 +1018,7 @@ facies1 = M.Facies(
 		maximum_growth_rate = 0u"m/Myr",
 		extinction_coefficient = 0u"m^-1",
 		saturation_intensity = 60u"W/m^2"),
-	diffusion_coefficient = 5u"m/yr",
+	transport_coefficient = 5u"m/yr",
 	wave_velocity = _ -> (Vec2(0.0u"m/Myr", 0.0u"m/Myr"), Vec2(0.0u"1/Myr", 0.0u"1/Myr")),
 	initial_sediment = (x, _) -> peak_height * exp(-(x - peak_centre)^2/(2 * peak_width^2)),
 )
@@ -1106,7 +1106,7 @@ fig_summary = Figure()
 ax = Axis(fig_summary[1, 1],
 	xlabel = "cementation time [yr]",
 	ylabel = "disintegration rate [m/Myr]",
-	title  = "Estimated diffusion coefficient for diffusivity = $(facies1.diffusion_coefficient)",
+	title  = "Estimated diffusion coefficient for diffusivity = $(facies1.transport_coefficient)",
     aspect = length(ct_axis) / length(dr_axis))
 hm = heatmap!(ax, ct_axis, dr_axis, D_matrix)
 Colorbar(fig_summary[1, 2], hm, label = "D [$D_unit]")
@@ -1201,13 +1201,13 @@ function main()
     facies = [
         M.Facies(
             production=Production.EXAMPLE[:euphotic],
-            diffusion_coefficient=10.0u"m/yr"),
+            transport_coefficient=10.0u"m/yr"),
         M.Facies(
             production=Production.EXAMPLE[:oligophotic],
-            diffusion_coefficient=10.0u"m/yr"),
+            transport_coefficient=10.0u"m/yr"),
         M.Facies(
             production=Production.EXAMPLE[:aphotic],
-            diffusion_coefficient=10.0u"m/yr")
+            transport_coefficient=10.0u"m/yr")
     ]
 
     sea_level(t) =
@@ -1313,13 +1313,13 @@ function main()
     facies = [
         M.Facies(
             production=Production.EXAMPLE[:euphotic],
-            diffusion_coefficient=10.0u"m/yr"),
+            transport_coefficient=10.0u"m/yr"),
         M.Facies(
             production=Production.EXAMPLE[:oligophotic],
-            diffusion_coefficient=10.0u"m/yr"),
+            transport_coefficient=10.0u"m/yr"),
         M.Facies(
             production=Production.EXAMPLE[:aphotic],
-            diffusion_coefficient=10.0u"m/yr")
+            transport_coefficient=10.0u"m/yr")
     ]
 
     sea_level(t) =
@@ -1518,26 +1518,32 @@ const FACIES = [
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
-        maximum_growth_rate=500u"m/Myr",
-        extinction_coefficient=0.8u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=50.0u"m/yr",
+        production = BenthicProduction(
+            maximum_growth_rate=500u"m/Myr",
+            extinction_coefficient=0.8u"m^-1",
+            saturation_intensity=60u"W/m^2"
+        ),
+        transport_coefficient=50.0u"m/yr",
         wave_velocity=v_const(-2.0u"m/yr")),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
-        maximum_growth_rate=400u"m/Myr",
-        extinction_coefficient=0.1u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=10.0u"m/yr",
+        production = BenthicProduction(
+            maximum_growth_rate=400u"m/Myr",
+            extinction_coefficient=0.1u"m^-1",
+            saturation_intensity=60u"W/m^2"
+        ),
+        transport_coefficient=10.0u"m/yr",
         wave_velocity=v_const(-0.5u"m/yr")),
     ALCAP.Facies(
         viability_range=(4, 10),
         activation_range=(6, 10),
-        maximum_growth_rate=100u"m/Myr",
-        extinction_coefficient=0.005u"m^-1",
-        saturation_intensity=60u"W/m^2",
-        diffusion_coefficient=10.0u"m/yr",
+        production = BenthicProduction(
+            maximum_growth_rate=100u"m/Myr",
+            extinction_coefficient=0.005u"m^-1",
+            saturation_intensity=60u"W/m^2"
+        ),
+        transport_coefficient=10.0u"m/yr",
         wave_velocity=v_const(-2.0u"m/yr"))
 ]
 
@@ -1781,19 +1787,22 @@ const FACIES = [
             maximum_growth_rate=200u"m/Myr",
             extinction_coefficient=0.8u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=20.0u"m/yr"),
+        transport_coefficient=20.0u"m/yr",
+        name="euphotic"),
     ALCAP.Facies(
         production=BenthicProduction(
             maximum_growth_rate=500u"m/Myr",
             extinction_coefficient=0.1u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=10.0u"m/yr"),
+        transport_coefficient=10.0u"m/yr",
+        name="oligophotic"),
     ALCAP.Facies(
         production=BenthicProduction(
             maximum_growth_rate=100u"m/Myr",
             extinction_coefficient=0.005u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=50.0u"m/yr")
+        transport_coefficient=50.0u"m/yr",
+        name="aphotic")
 ]
 
 const INPUT = ALCAP.Input(
@@ -1879,7 +1888,7 @@ for (t in 1:length(times)) {
 }
 
 insolation = inso_values <- unlist(insolation)
-write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
+write.csv(insolation, file="data/insolation.csv", row.names = FALSE)
 ```
 
 :::
@@ -1927,19 +1936,22 @@ const FACIES = [
             maximum_growth_rate=200u"m/Myr",
             extinction_coefficient=0.8u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=50.0u"m/yr"),
+        transport_coefficient=50.0u"m/yr",
+        name="euphotic"),
     ALCAP.Facies(
         production=BenthicProduction(
             maximum_growth_rate=500u"m/Myr",
             extinction_coefficient=0.1u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=25.0u"m/yr"),
+        transport_coefficient=25.0u"m/yr",
+        name="oligophotic"),
     ALCAP.Facies(
         production=BenthicProduction(
             maximum_growth_rate=100u"m/Myr",
             extinction_coefficient=0.005u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=12.5u"m/yr")
+        transport_coefficient=12.5u"m/yr",
+        name="aphotic")
 ]
 
 const time_vector = collect(time_axis(TIME_PROPERTIES)) / u"yr" .|> NoUnits
@@ -2095,21 +2107,21 @@ facies(v) = [
             maximum_growth_rate=500u"m/Myr",
             extinction_coefficient=0.8u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=20.0u"m/yr",
+        transport_coefficient=20.0u"m/yr",
         wave_velocity=v(-2.0u"m/yr")),
     ALCAP.Facies(
         production=BenthicProduction(
             maximum_growth_rate=400u"m/Myr",
             extinction_coefficient=0.1u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=10.0u"m/yr",
+        transport_coefficient=10.0u"m/yr",
         wave_velocity=v(-0.5u"m/yr")),
     ALCAP.Facies(
         production=BenthicProduction(
             maximum_growth_rate=100u"m/Myr",
             extinction_coefficient=0.005u"m^-1",
             saturation_intensity=60u"W/m^2"),
-        diffusion_coefficient=50.0u"m/yr",
+        transport_coefficient=50.0u"m/yr",
         wave_velocity=v(-2.0u"m/yr"))
 ]
 
