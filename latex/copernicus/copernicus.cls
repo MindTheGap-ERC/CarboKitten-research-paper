@@ -16,10 +16,11 @@
 %% -----------------------------------------------------------------
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{copernicus}
-    [2024/08/28 10.1.20 Copernicus papers]
+    [2026/02/03 10.1.31 Copernicus papers]
 \frenchspacing
 \clubpenalty10000
 \widowpenalty10000
+\RequirePackage{etoolbox}%
 \RequirePackage{iftex}
 %% protrudechars, \adjustspacing \hypenationmin,
 %% lccode, \hjcode ???, exhyphenchar,\automatichyphenmode, hyphenchar
@@ -126,9 +127,14 @@
                               \def\specialp@perstring{Editorial note}%
                               \@noreftrue
                               \AtEndOfClass{%
-                                \edef\@journalnameabbreviation{\@journalnameabbreviation\space Discuss.}%
-                                \expandafter\jurl@splitter\@journalurl\@nil
-                                \edef\@journalurl{\jurl@first-discuss.net}}}
+                                \def\@tempa{https://egusphere.copernicus.org}%
+                                \ifx\@journalurl\@tempa
+                                \else
+                                  \edef\@journalnameabbreviation{\@journalnameabbreviation\space Discuss.}%
+                                  \expandafter\jurl@splitter\@journalurl\@nil
+                                  \edef\@journalurl{\jurl@first-discuss.net}%
+                                \fi
+                              }}
 \newif\if@preface%ask Lupino
 \DeclareOption{preface}  {\@prefacetrue}
 \DeclareOption{forHTML}  {\@forHTMLtrue}
@@ -140,6 +146,7 @@
 \newif\if@bar            %only used under \if@stage@final and \@cop@hometrue; for modern layout as well as for the classically layouted sub-journal "angeocom"
 \newif\if@firstbar       %only used under \if@stage@final and \@cop@hometrue; for modern layout as well as for the classically layouted sub-journal "angeocom"
 \newif\if@hvmath         \DeclareOption{hvmath}{\@hvmathtrue}%only used for discussions and only under \@cop@hometrue
+\newif\ifproofreadingchanges
 \InputIfFileExists{copernicus.cfg}%
   {\typeout{Additional configuration file copernicus.cfg used}}%
   {\CopernicusError{No additional configuration file copernicus.cfg}
@@ -548,16 +555,23 @@
 \ifx\xmltexversion\@undefined
   \ifcopyediting
     \let\title\ltx@title
-  \else
-    \def\title#1{\ltx@title{#1}\hypersetup{pdftitle=\@title}\xmp@title{#1}}
-  \fi
+    \else
+      \ifproofreadingchanges
+        \let\title\ltx@title
+      \else
+        \def\title#1{\ltx@title{#1}\hypersetup{pdftitle=\@title}\xmp@title{#1}}
+  \fi\fi
 \else
   \def\title#1{\ltx@title{#1}\xmp@title{#1}}
 \fi
 \def\maketitle{%
   \gdef\supplement##1{%
-    \href{https://doi.org/10.5194/\@journalnameshortlower-\@pvol-\@fpage-\@pyear-supplement}%
-         {https://doi.org/10.5194/\@journalnameshortlower-\@pvol-\@fpage-\@pyear-supplement}}%
+    \if@proof
+      [the link will be implemented upon publication]%
+    \else
+      \href{https://doi.org/10.5194/\@journalnameshortlower-\@pvol-\@fpage-\@pyear-supplement}%
+           {https://doi.org/10.5194/\@journalnameshortlower-\@pvol-\@fpage-\@pyear-supplement}%
+    \fi}%
   \ifnum\@fpage<0
     \CopernicusError{No article number given but citation by article number required}
                     {Please provide \string\articlenumber.}
@@ -1308,23 +1322,17 @@
   \fi
 \fi
 \RequirePackage[normalem]{ulem}%
-\RequirePackage[T3,T1]{fontenc}
+\RequirePackage[T5,T3,T1]{fontenc}
 \RequirePackage[warn]{textcomp}
-\if@cop@home
-    \RequirePackage{fontawesome5}
-    \ifluatex
-      \newcommand*{\faicon}[1]{{\csname faicon@#1\endcsname}}
-      \input{fontawesomesymbols-generic.tex}
-      \DeclareRobustCommand\FAone{\fontencoding{U}\fontfamily{fontawesomeone}\selectfont}
-      \DeclareRobustCommand\FAtwo{\fontencoding{U}\fontfamily{fontawesometwo}\selectfont}
-      \DeclareRobustCommand\FAthree{\fontencoding{U}\fontfamily{fontawesomethree}\selectfont}
-      \input{fontawesomesymbols-pdftex.tex}
-      \renewcommand{\faHourglass}[1][]{\faicon{hourglass\if\relax\detokenize{#1}\relax\else-#1\fi}}
-      \renewcommand{\faBattery}[1][4]{\faicon{battery-#1}}
-    \else
-      \RequirePackage{fontawesome}
-    \fi
-\fi
+\RequirePackage{fontawesome5}
+\newcommand*{\faicon}[1]{{\csname faicon@#1\endcsname}}
+\input{fontawesomesymbols-generic.tex}
+\DeclareRobustCommand\FAone{\fontencoding{U}\fontfamily{fontawesomeone}\selectfont}
+\DeclareRobustCommand\FAtwo{\fontencoding{U}\fontfamily{fontawesometwo}\selectfont}
+\DeclareRobustCommand\FAthree{\fontencoding{U}\fontfamily{fontawesomethree}\selectfont}
+\input{fontawesomesymbols-pdftex.tex}
+\renewcommand{\faHourglass}[1][]{\faicon{hourglass\if\relax\detokenize{#1}\relax\else-#1\fi}}
+\renewcommand{\faBattery}[1][4]{\faicon{battery-#1}}
 \usepackage{upquote}%% #7510
 \usepackage{regexpatch}
 \def\active@text@prime{\ifin@texttt\textquotesingle\else'\fi}
@@ -1370,7 +1378,10 @@
 \fi
 \def\cmrng{{\fontfamily{cmr}\selectfont\ng}}
 \let\old@classoptionslist\@classoptionslist
-\edef\@classoptionslist{english,\old@classoptionslist}
+\preto\@classoptionslist{english,}
+\ifdefined\@raw@classoptionslist
+  \preto\@raw@classoptionslist{english,}
+\fi
 \RequirePackage{babel}
 \let\@classoptionslist\old@classoptionslist
 \ifx\StandardLayout\@undefined\let\StandardLayout\relax\fi
@@ -1573,13 +1584,12 @@
           \xdef\AB@thenote{\arabic{affil}}%
        \fi
        \ifcopyediting\else
+         \ifproofreadingchanges\else
          \xmp@author{#2}%
-       \fi
+       \fi\fi
        \global\advance\c@authnum\@ne
-       \if@cop@home
-         \expandafter\ifx\csname deceased@\the\c@authnum\endcsname\true\relax\def\@@deceased{$^{,\text{\faCross}}$}\fi
-         \expandafter\ifx\csname econtrib@\the\c@authnum\endcsname\true\relax\def\@@econtrib{$^{,\text{\faStar}}$}\fi
-       \fi
+       \expandafter\ifx\csname deceased@\the\c@authnum\endcsname\true\relax\def\@@deceased{$^{,\text{\faRibbon}}$}\fi
+       \expandafter\ifx\csname econtrib@\the\c@authnum\endcsname\true\relax\def\@@econtrib{$^{,\text{\faStar}}$}\fi
        \def\@tempa{#1}\ifx\@tempa\@empty\def\AB@note{\AB@thenote}\else\def\AB@note{#1}%
         \setcounter{Maxaffil}{0}\fi
       \ifnum\value{authors}>1\relax
@@ -1653,13 +1663,12 @@
   \if!#2!\else\econtrib@sep#2\@nil\fi}
 
 \newcommand\deceased[2][]{\gdef\@deceasedtext{#1}\@deceased{#2}}
-\if@cop@home
 \def\@deceased#1{%
   \ifx\@deceasedtext\@empty\gdef\@deceasedNote{deceased}\else\gdef\@deceasedNote{deceased, \@deceasedtext}\fi
    \deceased@sep#1,\@nil
    \@temptokena=\expandafter{\AB@affillist}%
    \protected@xdef\AB@affillist{\the\@temptokena \AB@affilsep
-     \AB@affilnote{\faCross}\protect\Affilfont\@deceasedNote}%
+     \AB@affilnote{\faRibbon}\protect\Affilfont\@deceasedNote}%
   }
 \newcommand\equalcontrib[1]{%
   \gdef\@econtribNote{These authors contributed equally to this work.}%
@@ -1668,10 +1677,6 @@
    \protected@xdef\AB@affillist{\the\@temptokena \AB@affilsep
      \AB@affilnote{\faStar}\protect\Affilfont\@econtribNote}%
  }
-\else
-  \let\equalcontrib\@gobble
-  \let\@deceased\@gobble
-\fi
 \newcount\corr@cnt      \corr@cnt\z@\relax
 \newcount\curr@corr@cnt \curr@corr@cnt\z@\relax
 \def\Author{\let\curr@corr\@empty\@ifnextchar[\@Author{\@Author[]}}%]
@@ -2126,6 +2131,7 @@
      \patchBothAmsMathEnvironmentsForLinenoX{multline}}}
   {\CopernicusWarningNoLine{Cannot find lineno.sty; proceeding without it}%
    \let\nolinenumbers\bgroup\let\endnolinenumbers\egroup}
+\usepackage{tikz}
 \IfFileExists{times.sty}
   {\RequirePackage{times}
    \def\Hv@scale{0.95}}
@@ -2155,7 +2161,6 @@
     \provide@orig@symbol{Phi}
     \provide@orig@symbol{Psi}
     \provide@orig@symbol{Omega}
-    \usepackage{etoolbox}%
     \ifluatex\else
       %% Fix fuer #6924, vgl https://tex.stackexchange.com/questions/561236/setmathalphabet-messes-with-rm
       \@iflatexlater{2020/10/01}{}{\patchcmd\document@select@group{#1{#4}}{\expandafter#1\ifx\math@bgroup\bgroup{#4}\else#4\fi}{}{}}%
@@ -2164,6 +2169,17 @@
     \DeclareSymbolFont{largesymbolsA}{U}{esint}{m}{n}%from esint.sty
     \DeclareMathSymbol{\oiintop}{\mathop}{largesymbolsA}{'015}%from esint.sty
     \def\oiint{\oiintop\nolimits}%from esint.sty
+    %%%% Ticket 5093, Dreifachintegrale.
+    \DeclareFontEncoding{LS2}{}{\noaccents@}
+    \DeclareFontSubstitution{LS2}{stix}{m}{n}
+    \DeclareSymbolFont{integrals}{LS2}{stixcal}{m}{n}
+    \DeclareMathSymbol{\smalloiiintsl}{\mathop}{integrals}{"05}
+    \DeclareMathSymbol{\smalloiiintup}{\mathop}{integrals}{"20}
+    \DeclareMathSymbol{\oiiintslop}{\mathop}{integrals}{"99}
+    \DeclareMathSymbol{\oiiintupop}{\mathop}{integrals}{"B4}
+    \let\oiiintop=\oiiintslop
+    \def\oiiint{\DOTSI\oiiintop\ilimits@}
+    %%%%%%
     \DeclareMathSymbol{\fintop}{\mathop}{largesymbolsA}{'037}%from esint.sty
     \def\fint{\fintop\nolimits}%from esint.sty
     \ifx\xmltexversion\@undefined\else{\catcode`\_=\active\global\let_\xmltexUndersc@re}\fi
@@ -2287,7 +2303,7 @@
       \hypersetup{anchorcolor=black,citecolor=black,filecolor=black,linkcolor=black,unicode,%
         menucolor=black,urlcolor=black}%%
     }{%
-      \usepackage[\ifcopyediting bookmarks=false\else bookmarks=true\fi,colorlinks]{hyperref}
+      \usepackage[bookmarks=\ifcopyediting false\else\ifproofreadingchanges false\else true\fi\fi,colorlinks]{hyperref}%
       \hypersetup{anchorcolor=black,citecolor=black,filecolor=black,linkcolor=black,%
         menucolor=black,pagecolor=black,urlcolor=black}
     }%
@@ -2599,9 +2615,12 @@
   \else
     \ifcopyediting
       \gdef\@howtocite{}%
-    \else
-      \gdef\@howtocite{#1, \@journalnameabbreviation, \@pvol, \@fpage--\@lpage, \expandafter\url{\@@doi}, \@pyear.}%
-    \fi
+      \else
+        \ifproofreadingchanges
+          \gdef\@howtocite{}%
+        \else
+          \gdef\@howtocite{#1, \@journalnameabbreviation, \@pvol, \@fpage--\@lpage, \expandafter\url{\@@doi}, \@pyear.}%
+    \fi\fi
   \fi
 }\def\@howtocite{}%+1,+2,+d
 \def\msnumber#1{\if@cop@home\gdef\@msnumber{#1}\fi}
@@ -2636,13 +2655,13 @@
 \fi
 \if@stage@final
   \def\keywords#1{%
-    \ifcopyediting\else\xmp@keywords{#1}\fi%
+    \ifcopyediting\else\ifproofreadingchanges\else\xmp@keywords{#1}\fi\fi%
     \def\@keyw{#1}%
   }
   \def\@keyw{}
 \else
   \def\keywords#1{%
-    \ifcopyediting\else\xmp@keywords{#1}\fi%
+    \ifcopyediting\else\ifproofreadingchanges\else\xmp@keywords{#1}\fi\fi%
     \CopernicusWarningNoLine{Keywords are not supported.}%
     \vspace{1.7mm}\par\noindent\textbf{Keywords.}\enspace\ignorespaces#1}
 \fi
@@ -2781,7 +2800,7 @@
   \fi
   \let\do@skip\relax
   \def\@argi{#1}\ifx\@argi\@empty\else\let\do@skip\space\fi%
-  \item \dosupplement{#1\do@skip The supplement related to this article is available online at:
+  \item \dosupplement{#1\do@skip The supplement related to this article is available online at
     \if@stage@final\else\\\fi
     \supplement{#2}.}%
   \end{trivlist}%
@@ -2839,7 +2858,13 @@
     \csname specialsection-#1\endcsname{#2}%
   \fi}
 
-\generateCommand{acknowledgement}   {}        \def\endacknowledgement{\endlist\egroup}
+\newenvironment{acknowledgement}{%
+  \PackageError{copernicus}{%
+    Environment `acknowledgement` (singular) is deprecated. Please use environment `acknowledgements` (plural)%
+  }{%
+    \string\begin{acknowledgements} Text. \string\end{acknowledgements}%
+  }%
+}{}
 \generateCommand{acknowledgements}  {}        \def\endacknowledgements{\endlist\egroup}
 \iffalse %instead of \if@stage@final, to check what they want
   \def\appendixfigures{%
@@ -3105,6 +3130,11 @@
 \fi
 
 \def\invbreve#1{\def\x##1{\fontencoding{T3}\selectfont\textroundcap{{\fontencoding{T1}\selectfont##1}}}\ifmmode \x{$#1$}\else\x{#1}\fi}
+\let\texthookabove\h
+\let\textdotbelow\d
+\def\h#1{{\fontencoding{T5}\selectfont\texthookabove{#1}}}
+\def\d#1{{\fontencoding{T5}\selectfont\textdotbelow{#1}}}
+\hypersetup{pdfencoding=auto}
 
 \endinput
 %%
