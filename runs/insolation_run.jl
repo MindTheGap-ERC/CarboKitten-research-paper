@@ -7,7 +7,7 @@ using DelimitedFiles: readdlm
 using Unitful
 using Interpolations
 using CairoMakie
-using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Visualization: sediment_profile, sediment_profile!
 using Statistics
 
 function import_insolation(file::String)
@@ -86,9 +86,26 @@ const INPUT = ALCAP.Input(
     end
 
     function plot(result::MemoryOutput)
-	    fig = sediment_profile(result.header, result.data_slices[:profile])
+        fig = Figure(size=(1250, 600))
+        ax_left = Axis(fig[1, 1])
+        ax_right = Axis(fig[1, 2])
+        colsize!(fig.layout, 1, Relative(0.2))
+        Label(fig[1, 1, TopLeft()], "(a)")
+        Label(fig[1, 2, TopLeft()], "(b)")
+
+        sl_fn = get_sea_level(time_vector, insolation_vector)
+        times = collect(time_axis(TIME_PROPERTIES))
+        sl_values = [ustrip(u"m", sl_fn(t)) for t in times]
+        times_myr = ustrip.(u"Myr", times)
+
+        lines!(ax_left, sl_values, times_myr)
+        ax_left.xlabel = "Sea level (m)"
+        ax_left.ylabel = "Time (Myr)"
+
+        sediment_profile!(ax_right, result.header, result.data_slices[:profile])
+
         save("md/fig/variable-insolation.png", fig)
-end
+    end
 
 end
 
