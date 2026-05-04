@@ -1161,17 +1161,17 @@ Three carbonate producers are fed into the model {Table@tab:validation_facies}, 
 
 The criteria for comparison between the modelled results and the interpreted seismic profiles were: 
 
-- We obtain five major zones within the platform.
-- The platform should show a pinnacle shape.
-- The total thickness of carbonate stratigraphy is approximately ($600\ \unit{m}$).
-- The platform has a slope indicating presence of off-shore sediments transport.
+1. We obtain five major zones within the platform.
+2. The platform should show a pinnacle shape.
+3. The total thickness of carbonate stratigraphy is approximately ($600\ \unit{m}$).
+4. The platform has a slope indicating presence of off-shore sediments transport.
 
 The results are listed in Figure @fig:case-validation. We compared the features in the figure and the interpreted seimic profile:
 
-- The interpreted seismic profiles suggested five zones, and this is captured in the resultant figure (five parasequences).
-- The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
-- The total thickness of carbonate (~$550\ \unit{m}$) is comparable to the data suggested by well penetration (~$600\ \unit{m}$).
-- The slope is presented in the modelled results, as a mixture of facies 3 and 4. 
+1. The interpreted seismic profiles suggested five zones, and this is captured in the resultant figure (five parasequences).
+2. The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
+3. The total thickness of carbonate ($\sim 550\ \unit{m}$) is comparable to the data suggested by well penetration ($\sim 600\ \unit{m}$).
+4. The slope is presented in the modelled results, as a mixture of facies 3 and 4. 
 
 ![Case_validation](fig/Validation_comparison.pdf){.wide}
 
@@ -2080,7 +2080,6 @@ Script.main()
 #| classes: ["task"]
 #| creates: data/atoll.h5
 #| collect: atoll
-
 module Atoll
 
 using CarboKitten
