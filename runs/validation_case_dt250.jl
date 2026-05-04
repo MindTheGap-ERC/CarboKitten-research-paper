@@ -47,7 +47,7 @@ input(feedback) = ALCAP.Input(
     output=Dict(
         :topography => OutputSpec(write_interval = 1000),
         :profile => OutputSpec(slice=(:, 50), write_interval=1)),
-    ca_interval=10,
+    ca_interval=16,
     ca_random_seed = 1,
     initial_topography = load_init_topo(), 
     sea_level=sea_level(FILEPATH),
@@ -58,7 +58,7 @@ input(feedback) = ALCAP.Input(
     sediment_buffer_size=50,
     depositional_resolution=0.5u"m",
     lithification_time = 100.0u"yr",
-    disintegration_transfer = f -> stack((0.0.*f[1,:,:], 0.0.*f[2,:,:], 0.0.*f[3,:,:],
+    disintegration_transfer = f -> stack((f[1,:,:], 0.0.*f[2,:,:], f[3,:,:],
                                       f[2,:,:].+f[4,:,:]), dims=1),
     facies=ValidationPrerun.facies(feedback))
 
