@@ -2383,7 +2383,7 @@ Views and opinions expressed are however those of the author(s) only and do not 
 | **Insolation** | | | | |
 | `insolation` | Surface insolation $\dagger$ | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
 
-Table: Grid and time parameters. Parameters marked with $\dagger$ can be specified as a constant, table or Julia function. Paramaters that have $-$ as default value are required. {#tab:grid-and-time-param}
+Table: Grid and time parameters. Parameters marked with $\dagger$ can be specified as a constant, table or Julia function. Parameters that have $-$ as default value are required. {#tab:grid-and-time-param}
 :::
 
 :::wide-table
