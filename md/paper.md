@@ -131,8 +131,8 @@ $$P(w) = \sum_f P_f(w)$$
 
 : Parameters for the production model of the three default carbonate factories. {#tbl:factories}
 
-Our default parameters define three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A) factories. The default values for these factories are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
-<!-- NH: There is some ambiguity here between the default factories and their default parameters. Not sure how to clearly resolve this hierarchy of defaultness -->
+In the examples presented here we set default values of factory parameters that corrspond to three biological facies based on sediment produced by three carbonate factories: the euphotic (E), oligophotic (O) and aphotic (A) factories. These default values are shown in Table @tbl:factories, and the resulting production curves shown in Figure @fig:factories.
+
 We also provide the option of specifying pelagic production curves. Here the production is computed as the integral of Equation @eq:production over the entire water column.
 
 ![Production curves](fig/production-curves.pdf){width=8.3cm}
@@ -330,9 +330,9 @@ Putting everything together, we evaluate the model as follows each iteration:
 
 1. Advance the cellular automaton.
 2. Compute the production $P_f$.
-3. Disintegrate sediment $D_f$.
+3. Disintegrate sediment at the rate $r_d$.
 4. Transport entrained sediment $C_f$.
-5. Deposit lithified sediment.
+5. Lithify (cement) sediment with half-time of $t_l$.
 
 Advancing the CA can be configured to happen one-in-$n$ iterations to slow it down. Transporting the sediment can be computed on smaller time steps if required for numeric stability. The complete loop is illustrated in Figure @fig:flowchart.
 
@@ -438,7 +438,7 @@ StandardExamplePlot.main()
 The transport module is designed with timesteps of the order of centuries in mind and therefore it aims to lead to a similar average sediment redistribution as would have resulted from individual short-term physical processes (storms, waves, tidal currents, grain-size sorting), without attempting to resolve them. CarboKitten currently does not resolve grain-size-dependent transport, storm-driven episodic redistribution, longshore transport, or bioturbation contributing to sediment disintegration. However, such extensions are principally possible, should modelling on shorter time scales become the focus of the model's users.
 
 In Section @sec:model-transport we discussed how transport is embedded in the larger model.
-Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ (in units of $\unit{m}$) is considered separately for each facies (as with all quantities with the $f$ subscript). Each iteration of the larger model we supply the active layer with freshly produced (autochthonous) sediment as well as disintegrated older (allochthonous) sediment. We then compute transport of the active layer for as many sub-iterations as is deemed needed for the solver to remain stable. After that, a percentage of the contents in the active layer is deposited on the sea floor. The lithification percentage depends both on the time step taken and the given lithification time, which is configured in terms of a half-life time. There are many ways to compute sediment transport in the active layer. We have opted for a finite difference strategy inspired by @Paola1992.
+Our transport model supposes that all entrained sediment resides in a layer of constant thickness just above the sea floor, also known as the **active layer**. The concentration of sediment $C_f$ (in units of $\unit{m}$) is considered separately for each facies (as with all quantities with the $f$ subscript). Each iteration of the larger model we supply the active layer with freshly produced (autochthonous) sediment as well as disintegrated older (allochthonous) sediment. We then compute transport of the active layer for as many sub-iterations as is deemed needed for the solver to remain stable. After that, a percentage of the contents in the active layer is deposited on the sea floor. The lithification percentage depends both on the time step taken and the given lithification time $t_l$, which is configured in terms of a half-life time. There are many ways to compute sediment transport in the active layer. We have opted for a finite difference strategy inspired by @Paola1992.
 
 We assume a local sediment flux proportional to the local gradient,
 
@@ -463,12 +463,12 @@ In the critical angle approach developed by @Warrlich2000, sediment is transport
 
 The problem with this critical angle-based method of transport is that production across an unstable region is deposited on a small strip, where slopes are below the critical angle. It becomes unclear how to interpret these models from a physics point of view, as results depend heavily on the time-step that is chosen. Contrasting to that, both our transport model and production model (with the exception of the cellular automaton) are discretisations of otherwise continuous processes. This means that, at least assymptotically (i.e. as long as the time step is small enough), our implementation is independent of the chosen time step.
 
-One aspect of critical angle theory that we do use is that we can modulate the disintegration rate (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and there is no need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
+One aspect of critical angle theory that we do use is that we can modulate the disintegration rate $r_d$ (and therefore the amount of entrained material) with the magnitude of the slope $|\nabla \eta|$. If we only disintegrate material where the slope is supercritical, the net effect is that sediment is transported from supercritical to stable areas. The difference is that we have a much better control over the physics, and there is no need to convert back and forth between gridded values and a particle representation used in the critical angle approach [e.g. @Warrlich2000].
 A different approach has been used in the early model `CARBPLAT` by @bosscher_carbplatcomputer_1992, which took empirically observed carbonate slopes [@Kenter1990, @adams_basic_2000] and defined a slope function that returned slope parameters bounded by the limits of the angle of repose. In the study by @bosscher_carbplatcomputer_1992 an exponential slope function was assumed, although it should be noted that there is literature debate on the distribution of slope shapes of carbonate platforms [e.g., @schlager_submarine_1986;@Kenter1990;@adams_basic_2000]. This modelling approach is agnostic with respect to sediment properties and transport mechanisms and optimises the similarity to observed shapes, allowing the user to choose the parameter that produces the best result. However, it does not allow modelling a mixture of sediment types with different properties and requires an a priori assumption on the expected slope shape. It had not been adapted in subsequent models.
 
 ## Parameter choices
 
-Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of transport coefficient, disintegration rate and lithification time can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
+Our transport model is based on the elementary assumption that sediment flux is proportional to the slope of the sea floor. Nevertheless, we are extrapolating this idea to time scales on which it is hard to reason or otherwise measure the parameters to our model. Especially the combination of transport coefficient $d_f$, disintegration rate $r_d$ and lithification time $t_l$ can be pivotal in acquiring a set of physical outcomes, while we have no good way to estimate acceptable ranges of values for them, other than trying them out and see if the results are plausible.
 
 That being said, by considering some artificial scenarios we can gain more insight into the behaviour of our main parameters.
 
@@ -476,13 +476,13 @@ That being said, by considering some artificial scenarios we can gain more insig
 The chosen disintegration rate will determine wheter our model is on average erosive or accumulative. In the case of a platform morphology, the potential production exceeds the subsidence, meaning that the subsidence rate sets the pace at which the platform grows. At the edge of the platform, there is a transitional region where the maximum production is at pace with the subsidence. If the distintegration rate is higher than the subsidence rate, produced sediment will be immediately disintegrated, stay in the active layer for much longer, and be transported down slope. If the disintegration rate is much lower than the subsidence rate, produced (autochthonous) sediment can accumulate *in situ*, generating steeper morphologies.
 
 ### Equilibrium Concentration
-The model parametrizes sediment disintegration (i.e. activation or entrainment of older sediments) by a global constant disintegration rate $r_d$. Entrained sediment is transported by the mechanism described above, and then (re)lithifies by a given percentage every time step. The lithification time is specified as a half-life time $l$. In absence of production, and with infinite available sediment for disintegration, we can see the amount of entrained sediment $C$ reaching an equilibrium:
+The model parametrizes sediment disintegration (i.e. activation or entrainment of older sediments) by a global constant disintegration rate $r_d$. Entrained sediment is transported by the mechanism described above, and then (re)lithifies by a given percentage every time step. The lithification time is specified as a half-life time $t_l$. In absence of production, and with infinite available sediment for disintegration, we can see the amount of entrained sediment $C$ reaching an equilibrium:
 
-$$C(t + \Delta t) = C(t) 2^{-\Delta t / l} + r\Delta t,$$
+$$C(t + \Delta t) = C(t) 2^{-\Delta t / t_l} + r\Delta t,$$
 
 and taking the limit $\Delta t \to 0$, the equilibrium is reached at,
 
-$$\langle C\rangle = \frac{1}{\ln 2}\ r_d\ l.$$
+$$\langle C\rangle = \frac{1}{\ln 2}\ r_d\ t_l.$$
 
 This equilibrium (having units of $\unit{m}$) can be useful when estimating the effects of choosing the disintegration rate and lithification time.
 
@@ -497,7 +497,7 @@ To understand the relative effects of choosing a certain lithification time and/
 ![Comparison between lithification and disintegration](fig/disintegration-vs-lithification.pdf){.wide}
 
 Figure: Comparison between lithification and disintegration. The four panes show different combinations of parameters for a one-dimensional model. We have enabled a production of $100\ \unit{m/Myr}$ for a $4\ \unit{km}$ wide patch in the middle of the box, and chose a runtime of $1\ \unit{Myr}$ with a time step of $100\ \unit{yr}$ (the sharp edges in the production profile induce fast transport, requiring small time steps), and the transport coefficient was set to $10\ \unit{m/Myr}$.
-Panels $(a)$ and $(b)$ have a short lithification time `ct` ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long lithification time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate `dr` ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-lithification}
+Panels $(a)$ and $(b)$ have a short lithification time $t_l$ ($100\ \unit{yr}$), while panels $(c)$ and $(d)$ have a long lithification time ($1000\ \unit{yr}$). On the columns, $(a)$ and $(c)$ have a low disintegration rate $r_d$ ($10\ \unit{m/Myr}$), while $(b)$ and $(d)$ have a high disintegration rate ($500\ \unit{m/Myr}$). Values were chosen to have a similar net effect on the dispersion of produced sediment. {#fig:disintegration-vs-lithification}
 
 :::hide
 
@@ -754,6 +754,7 @@ using CairoMakie
 using .ParameterScan: cartesian_product
 using .TransportTest: run_with
 using .TransportPlots: plot_matrix, plot_topography!
+using LaTeXStrings
 
 function main()
     CarboKitten.init()
@@ -771,8 +772,8 @@ function main()
     end
 
     fig = plot_matrix(result[1,:,1,:],
-            ["dr = $(d.val) m/Myr" for d in pars.disintegration_rate],
-            ["ct = $(d.val) yr" for d in pars.lithification_time];
+            [latexstring("r_d = $(d.val) m/Myr") for d in pars.disintegration_rate],
+            [latexstring("t_l = $(d.val) yr") for d in pars.lithification_time];
             fontsize = 10) do ax, result
         plot_topography!(ax, result)
     end
@@ -787,16 +788,16 @@ DisintegrationVsCementation.main()
 
 :::
 
-### Facies-specific transport coefficient
+### Facies-specific transport coefficient $d_f$
 
 The facies-specific transport coefficient used in CarboKitten is expressed in $\unit{m/Myr}$, because it is derived from the parameter $\nu_f$, transport velocity, that is expressed per unit slope. A diffusion coefficient $d_f$ appears in $\partial_t \eta = d_f \nabla^2 \eta$ and have units $\unit{m^2/Myr}$. In CarboKitten's formulation $\nu_f$ is one dimension of length smaller because the active-layer concentration $C_f$ [m] is already present in the flux. This approach presents two challenges: 1) setting transport coefficients that yield realistic results for carbonate facies modeled at the timescales at which CarboKitten is run, 2) should empirically justified diffusion coefficients for carbonate sediment be available, converting these diffusion coefficients to values of the transport coefficient used in the model.
-Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusion coefficients, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from $1.25 \times 10^6 \unit{m^2/Myr}$ for the sand fraction in the photozoan factory to $50 \times 10^6 \unit{m^2/Myr}$ for the mud produced by the heterozoan factory and identified 2500 $10^5\ \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
+Because advection-diffusion is a modeling approach in carbonate transport and not a direct representation of the physical process of sediment transport, prior empirical diffusion coefficient values are limited. @sultana_how_2022 reviewed published values, which lie in the range of $10^5 \unit{m^2/Myr}$ to $7 \times 10^9 \unit{m^2/Myr}$ [@bosence_computer_1994; @mitchell_carbon_1996]. Modeling studies differ on the orders of magnitude, which is partly a matter of what processes are accounted for in effective diffusivity, and partly reflects different timescales of measurement. In Dionisos simulations, @sultana_how_2022 used values ranging from $1.25 \times 10^6 \unit{m^2/Myr}$ for the sand fraction in the photozoan factory to $50 \times 10^6 \unit{m^2/Myr}$ for the mud produced by the heterozoan factory and identified 2500 $10^5\ \unit{m^2/Myr}$ as the upper limit, beyond which no sediment accumulation took place. In a different model, values many orders of magnitude lower have been proposed for the effective diffusion coefficient that implicitly accounts for lithification and depth-dependent wave velocity, introduced by @kaufman_depth-dependent_1991:
 
 $$D_{\textrm{Kaufman}}(W) = C_0 \exp(-C_1 W)$$
 
 where $C_0 = 0.005\ \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{\textrm{Kaufman}}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
-Effective sediment diffusion coefficient values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of $5\ \unit{m/Myr}$ lie in the range of $3.7\ \times 10^5 \unit{m^2/Myr}$ to $8.8\ \times 10^6 \unit{m^2/Myr}$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $d_f$ values obtained using this estimate scale linearly with input transport coefficient.
+Effective sediment diffusion coefficient $D_eff$ values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of $5\ \unit{m/Myr}$ lie in the range of $3.7\ \times 10^5 \unit{m^2/Myr}$ to $8.8\ \times 10^6 \unit{m^2/Myr}$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $D_eff$ values obtained using this estimate scale linearly with the input transport coefficient $d_f$.
 
 :::hide
 ```julia
@@ -1105,7 +1106,7 @@ fig_summary = Figure()
 ax = Axis(fig_summary[1, 1],
 	xlabel = "cementation time [yr]",
 	ylabel = "disintegration rate [m/Myr]",
-	title  = "Estimated diffusion coefficient for diffusivity = $(facies1.transport_coefficient)",
+	title  = "Estimated diffusivity for transport coefficient = $(facies1.transport_coefficient)",
     aspect = length(ct_axis) / length(dr_axis))
 hm = heatmap!(ax, ct_axis, dr_axis, D_matrix)
 Colorbar(fig_summary[1, 2], hm, label = "D [$D_unit]")
@@ -1114,9 +1115,9 @@ save("data/diffusivity_scan/D_summary.png", fig_summary)
 :::
 
 :::wide-table
-Table: Estimated effective diffusion coefficient $D [\unit{m^2 Myr^{-1}}]$ for combinations of cementation time and disintegration rate $d_r$ at facies transport coefficient equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
+Table: Estimated effective diffusivity $D_eff\ [\unit{m^2 Myr^{-1}}]$ for combinations of lithification time $t_l$ and disintegration rate $r_d$ at facies transport coefficient $d_f$ equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
 
-| Cementation time | $d_r = 5\ \unit{m/Myr}$ | $d_r = 10\ \unit{m/Myr}$ | $d_r = 20\ \unit{m/Myr}$ | $d_r = 50\ \unit{m/Myr}$ |
+| Lithification time $t_l$ | $r_d = 5\ \unit{m/Myr}$ | $r_d = 10\ \unit{m/Myr}$ | $r_d = 20\ \unit{m/Myr}$ | $r_d = 50\ \unit{m/Myr}$ |
 |:---|---:|---:|---:|---:|
 | 1000 yr | 36,565 | 72,237 | 137,595 | 299,711 |
 | 2500 yr | 84,136 | 165,496 | 301,921 | 540,862 |
@@ -1131,7 +1132,7 @@ $$|c_{\textrm{adv}}|_{\infty} \frac{\Delta t}{\Delta x} \le 1.$$
 
 This states that we cannot move matter further than a single pixel distance in one iteration, or our computation becomes unstable.
 
-In practice, we compute the transport coefficients, and the maximum resulting advective Courant number. Then we integrate the transport equation adaptively, choosing the minimum number of subdivided time steps that keeps the advection stable. Since we computed the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use a first-order upwind scheme.
+In practice, we compute the transport coefficients and the maximum resulting advective Courant number. Then we integrate the transport equation adaptively, choosing the minimum number of subdivided time steps that keeps the advection stable. Since we computed the transport coefficients in advance, it is relatively cheap to apply multiple iterations of the advection solver, for which we use a first-order upwind scheme.
 
 Now consider our transport model in the context of the larger carbonate platform model. Each time we disintegrate some matter which gets entrained and transported as part of the sediment concentration $C_f$, after which a fraction is cemented, increasing $\eta$. If we consider $\partial{\eta}/\partial{t} \sim \partial{C}/\partial{t}$, then part of the transport equation is the diffusion equation $\partial{\eta}/\partial{t} \sim d_f C_f \nabla^2 \eta$. This leaves our implementation vulnerable to instabilities when the global time step is taken too large. For just this diffusion term the CFL limit is
 
@@ -1160,17 +1161,17 @@ Three carbonate producers are fed into the model {Table@tab:validation_facies}, 
 
 The criteria for comparison between the modelled results and the interpreted seismic profiles were: 
 
-- We obtain five major zones within the platform.
-- The platform should show a pinnacle shape.
-- The total thickness of carbonate stratigraphy is approximately ($600\ \unit{m}$).
-- The platform has a slope indicating presence of off-shore sediments transport.
+1. We obtain five major zones within the platform.
+2. The platform should show a pinnacle shape.
+3. The total thickness of carbonate stratigraphy is approximately ($600\ \unit{m}$).
+4. The platform has a slope indicating presence of off-shore sediments transport.
 
 The results are listed in Figure @fig:case-validation. We compared the features in the figure and the interpreted seimic profile:
 
-- The interpreted seismic profiles suggested five zones, and this is captured in the resultant figure (five parasequences).
-- The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
-- The total thickness of carbonate (~$550\ \unit{m}$) is comparable to the data suggested by well penetration (~$600\ \unit{m}$).
-- The slope is presented in the modelled results, as a mixture of facies 3 and 4. 
+1. The interpreted seismic profiles suggested five zones, and this is captured in the resultant figure (five parasequences).
+2. The results displayed a 'pinacle' shape, showing upper parasequences bearing smaller horizonal dimensions than the lower parasequences. 
+3. The total thickness of carbonate ($\sim 550\ \unit{m}$) is comparable to the data suggested by well penetration ($\sim 600\ \unit{m}$).
+4. The slope is presented in the modelled results, as a mixture of facies 3 and 4. 
 
 ![Case_validation](fig/Validation_comparison.pdf){.wide}
 
@@ -1474,8 +1475,7 @@ Our baseline model is the example included in CarboKitten, grid size $100 \times
 With regards to memory consumption, CarboKitten allocates a fixed amount of memory at the start of a model run, which scales linearly with the size of the grid. The most significant fraction of the memory is occupied by the sediment buffer. In the example run we have a buffer size of 50. With three facies types being stored this results in an array size of $100 \times 50 \times 50 \times 3$, stored in double precision gives a mere $6 \unit{MB}$. However, for a $300 \times 300$ sized grid this already increases to $108 \unit{MB}$.
 
 ### Scaling
-<!-- the diffusion coefficient in this section comes out of the blue. What is its empirical role?-->
-The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mitigated by setting a diffusion coefficient. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we are speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
+The run-time and memory consumption of CarboKitten should scale linearly with the number of pixels in the grid, with two complicating factors. Firstly, for smaller models the run-time can become limited by many smaller writes to HDF5. For those cases we provide a method of running models entirely in-memory. The second complication is the transport model. Here run times may vary due to the number of integration steps required for stability reasons. Increasing the resolution of a model also means increasing the number of transport integration time steps required by the same factor (considering the CFL condition for advective transport). Transport efficiency is also affected by the local topography: increasing the slope also increases the number of integration steps required. Carbonate platforms have the tendency to generate steep slopes due to exponential sedimentation rates in the production model. These steep slopes can be mitigated by setting the transport coefficient $d_f$: higher values will lead to smoothed-out and gentler slopes. On the other hand, modelling on-shore transport due to wave transport can induce steeper slopes, again requiring smaller integration time steps. Note that we are speaking of integration steps of the transport model, which can be any integer fraction of a full model time step. When the transport model needs too many steps for every model step, we can start to question the accuracy of the model as a whole, and the user should try decreasing the time-step of the full model to compensate.
 
 ### Benchmark
 
@@ -2097,7 +2097,6 @@ Script.main()
 #| classes: ["task"]
 #| creates: data/atoll.h5
 #| collect: atoll
-
 module Atoll
 
 using CarboKitten
@@ -2364,10 +2363,7 @@ $$\frac{\partial C}{\partial t} = -\big(d\vec{\nabla}w + \vec{v}(w)\big)\cdot\ve
 
 # Model parameters
 
-## Notes
-<!-- NH: force order of appendix and tables, otherwise they will be distributed throughout the references -->
-- Parameters marked "—" in the *Default* column are **required** (no default provided in source).
-
+For completeness we give an overview of the paramaters that enter CarboKitten's main model called ALCAP (Active Layer, Cellular Automaton and Production), at the time of writing the most extensive model in CarboKitten. We split these parameters in three categories. The global parameters deal with the grid geometry, time integration and external forcings (see Table @tbl:grid-and-time-param). A second set of parameters are specified for each facies individually, e.g. production rates and CA behaviour (see Table @tbl:facies-param). The third category concerns everything related to the transport model (see Table @tbl:transport-parameters). Note that the transport coefficients are facies dependent, all others are global parameters.
 :::
 
 :::author-contribution
@@ -2396,24 +2392,24 @@ Views and opinions expressed are however those of the author(s) only and do not 
 | `time.steps` | Number of time steps | — | — | 100 – 50000 |
 | **Box parameters** | | | | |
 | `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (512,512) |
-| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 $\unit{m}$ |
+| `box.phys_scale` | Physical size of each cell | — | $\unit{m}$ | 50 – 600 $\unit{m}$ |
 | **Water depth** | | | | |
-| `sea_level` | Relative sea-level function `f(t)` or constant | `t -> 0.0` | m | user functions |
-| `initial_topography` | Initial seafloor elevation function `f(x,y)` or matrix | `(x,y) -> 0.0` | m | example: ramp slope `-x/300.0` |
-| `subsidence_rate` | Rate of tectonic subsidence | `0.0` | m/Myr | 0.0 – 50.0 m/Myr |
+| `sea_level` | Relative sea-level function $\dagger$ | $t \to 0.0$ | $\unit{m}$ | — |
+| `initial_topography` | Initial seafloor elevation $\dagger$ | $(x,y) \to 0$ | m | example: $x \to -x/300.0$ |
+| `subsidence_rate` | Rate of tectonic subsidence | 0.0 | $\unit{m\ Myr^{-1}}$ | $0.0$ – $50.0\ \unit{m\ Myr^{-1}}$ |
 | **Insolation** | | | | |
-| `insolation` | Surface insolation (constant, vector, or function of time) | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
+| `insolation` | Surface insolation $\dagger$ | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
 
-Table: Grid and time parameters. {#tab:grid-and-time-param}
+Table: Grid and time parameters. Parameters marked with $\dagger$ can be specified as a constant, table or Julia function. Parameters that have $-$ as default value are required. {#tbl:grid-and-time-param}
 :::
 
 :::wide-table
-Table: Facies parameters. {#tab:facies-param}
+Table: Facies parameters. {#tbl:facies-param}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
 | **Benthic Production** | | | | |
-| `maximum_growth_rate` | Maximum carbonate accumulation rate | `0.0` | m/Myr | 100 – 500 m/Myr |
+| `maximum_growth_rate` | Maximum growth rate | `0.0` | m/Myr | 100 – 500 m/Myr |
 | `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.005 – 0.8 $\unit{m^{-1}}$ |
 | `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 50 – 60 $\unit{Wm^{-2}}$ |
 | **Pelagic Production** | | | | |
@@ -2421,30 +2417,30 @@ Table: Facies parameters. {#tab:facies-param}
 | `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.1 $\unit{m^{-1}}$ |
 | `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 60 $\unit{Wm^{-2}}$ |
 | **Cellular Automaton** | | | | |
-| `ca_interval` | Update CA every N time steps | `1` | steps | 1 |
+| `ca_interval` | Update CA every N time steps | `1` | — | 1 |
 | `ca_random_seed` | Random seed for initial CA state | `0` | — | 0 |
 | `viability_range` | Min–max neighbour count to stay alive | `(4, 10)` | — | (4, 10) |
 | `activation_range` | Min–max neighbour count to be born | `(6, 10)` | — | (6, 10) |
-| `active` | Whether facies participates in CA dynamics | `true` | — | `true`, `false` |
+| `active` | Whether facies participates in CA | `true` | — | `true`, `false` |
 :::
 
 :::wide-table
-Table: Transport parameters. {#tab:transport-parameters}
+Table: Transport parameters. $\star$: The user needs to specify both velocity and its derivative as function of water depth. {#tbl:transport-parameters}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
-| **Transport coefficients** | | | | |
-| `diffusion_coefficient` | Facies-specific sediment diffusivity | `0.0` | m/yr | 1.0 – 50.0 m/yr |
-| `wave_velocity` | Facies advection velocity field `f(t) -> (v, `$\nabla$`)` | zero | m/Myr, 1/Myr | custom function |
+| **Transport coefficients** | facies dependent | | | |
+| `transport_coefficient` | Facies-specific transport coefficient | `0.0` | m/yr | 1.0 – 50.0 m/yr |
+| `wave_velocity` | Facies advection velocity and shear $\star$ | zero | m/Myr | custom function |
 | **Control parameters** | | | | |
 | `intertidal_zone` | Upward extension of the intertidal zone | `0.0` | m | 0.0 |
-| `disintegration_rate` | Max rate at which buried sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
-| `disintegration_transfer` | Function remapping disintegrated sediment across facies | identity | — | custom redistribution |
-| `lithification_time` | Half-life for active-layer settling (`nothing` = instant) | `nothing` | Myr | 100 yr – 5000 yr |
+| `disintegration_rate` | Rate at which sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
+| `disintegration_transfer` | Remapping disintegrated sediment | identity | — | custom redistribution |
+| `lithification_time` | Half-life time for active-layer settling | | Myr | 100 yr – 5000 yr |
 | **Transport solver** | | | | |
-| `transport_solver` | ODE solver: `:forward_euler` or `:RK4` | `:forward_euler` | — | `:forward_euler`, `:RK4` |
-| `transport_substeps` | Fixed sub-steps per $\Delta$t, or `:adaptive` | `:adaptive` | — | `:adaptive` or integer |
+| `transport_solver` | ODE solver | forward Euler | — | `:forward_euler`, `:RK4` |
+| `transport_substeps` | Number of sub-steps per iteration | adaptive | — | `:adaptive` or integer |
 | **Sediment buffer** | | | | |
-| `sediment_buffer_size` | Number of layers in the stratigraphic buffer | `50` | layers | 2 – 150 |
-| `depositional_resolution` | Thickness of each buffer layer | `0.5` | m | 0.5 – 1.0 m |
+| `sediment_buffer_size` | Depth of sediment buffer | `50` | — | 2 – 150 |
+| `depositional_resolution` | Resolution of sediment buffer | `0.5` | m | 0.5 – 1.0 m |
 :::

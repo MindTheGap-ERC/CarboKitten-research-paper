@@ -112,7 +112,7 @@ fig_summary = Figure()
 ax = Axis(fig_summary[1, 1],
 	xlabel = "cementation time [yr]",
 	ylabel = "disintegration rate [m/Myr]",
-	title  = "Estimated diffusion coefficient for diffusivity = $(facies1.transport_coefficient)",
+	title  = "Estimated diffusivity for transport coefficient = $(facies1.transport_coefficient)",
     aspect = length(ct_axis) / length(dr_axis))
 hm = heatmap!(ax, ct_axis, dr_axis, D_matrix)
 Colorbar(fig_summary[1, 2], hm, label = "D [$D_unit]")
