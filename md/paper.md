@@ -2347,6 +2347,7 @@ $$\frac{\partial C}{\partial t} = -\big(d\vec{\nabla}w + \vec{v}(w)\big)\cdot\ve
 
 # Model parameters
 
+For completeness we give an overview of the paramaters that enter CarboKitten's main model called ALCAP (Active Layer, Cellular Automaton and Production), at the time of writing the most extensive model in CarboKitten. We split these parameters in three categories. The global parameters deal with the grid geometry, time integration and external forcings (see Table @tbl:grid-and-time-param). A second set of parameters are specified for each facies individually, e.g. production rates and CA behaviour (see Table @tbl:facies-param). The third category concerns everything related to the transport model (see Table @tbl:transport-parameters). Note that the transport coefficients are facies dependent, all others are global parameters.
 :::
 
 :::author-contribution
@@ -2383,11 +2384,11 @@ Views and opinions expressed are however those of the author(s) only and do not 
 | **Insolation** | | | | |
 | `insolation` | Surface insolation $\dagger$ | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
 
-Table: Grid and time parameters. Parameters marked with $\dagger$ can be specified as a constant, table or Julia function. Parameters that have $-$ as default value are required. {#tab:grid-and-time-param}
+Table: Grid and time parameters. Parameters marked with $\dagger$ can be specified as a constant, table or Julia function. Parameters that have $-$ as default value are required. {#tbl:grid-and-time-param}
 :::
 
 :::wide-table
-Table: Facies parameters. {#tab:facies-param}
+Table: Facies parameters. {#tbl:facies-param}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
@@ -2408,11 +2409,11 @@ Table: Facies parameters. {#tab:facies-param}
 :::
 
 :::wide-table
-Table: Transport parameters. $\star$: The user needs to specify both velocity and its derivative as function of water depth. {#tab:transport-parameters}
+Table: Transport parameters. $\star$: The user needs to specify both velocity and its derivative as function of water depth. {#tbl:transport-parameters}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
-| **Transport coefficients** | | | | |
+| **Transport coefficients** | facies dependent | | | |
 | `transport_coefficient` | Facies-specific transport coefficient | `0.0` | m/yr | 1.0 – 50.0 m/yr |
 | `wave_velocity` | Facies advection velocity and shear $\star$ | zero | m/Myr | custom function |
 | **Control parameters** | | | | |
