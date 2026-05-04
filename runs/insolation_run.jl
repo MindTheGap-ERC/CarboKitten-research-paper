@@ -1,5 +1,4 @@
 # ~/~ begin <<md/paper.md#runs/insolation_run.jl>>[init]
-
 module Insolation
 
 using CarboKitten
@@ -86,7 +85,11 @@ const INPUT = ALCAP.Input(
     end
 
     function plot(result::MemoryOutput)
-        fig = Figure(size=(1250, 600))
+        inch = 96
+        pt = 4/3
+        cm = inch / 2.54
+
+        fig = Figure(size=(20cm, 12cm), fontsize=8pt)
         ax_left = Axis(fig[1, 1])
         ax_right = Axis(fig[1, 2])
         colsize!(fig.layout, 1, Relative(0.2))
