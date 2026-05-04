@@ -31,5 +31,5 @@ for (t in 1:length(times)) {
 }
 
 insolation = inso_values <- unlist(insolation)
-write.csv(insolation, file="data/insolation.csv", sep=",", row.names = FALSE)
+write.csv(insolation, file="data/insolation.csv", row.names = FALSE)
 # ~/~ end
