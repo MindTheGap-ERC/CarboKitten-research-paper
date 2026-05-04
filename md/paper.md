@@ -2347,10 +2347,7 @@ $$\frac{\partial C}{\partial t} = -\big(d\vec{\nabla}w + \vec{v}(w)\big)\cdot\ve
 
 # Model parameters
 
-## Notes
-<!-- NH: force order of appendix and tables, otherwise they will be distributed throughout the references -->
-- Parameters marked "—" in the *Default* column are **required** (no default provided in source).
-
+For completeness we give an overview of the paramaters that enter CarboKitten's main model called ALCAP (Active Layer, Cellular Automaton and Production), at the time of writing the most extensive model in CarboKitten. We split these parameters in three categories. The global parameters deal with the grid geometry, time integration and external forcings (see Table @tbl:grid-and-time-param). A second set of parameters are specified for each facies individually, e.g. production rates and CA behaviour (see Table @tbl:facies-param). The third category concerns everything related to the transport model (see Table @tbl:transport-parameters). Note that the transport coefficients are facies dependent, all others are global parameters.
 :::
 
 :::author-contribution
@@ -2379,24 +2376,24 @@ Views and opinions expressed are however those of the author(s) only and do not 
 | `time.steps` | Number of time steps | — | — | 100 – 50000 |
 | **Box parameters** | | | | |
 | `box.grid_size` | Number of grid cells (x, y) | — | — | (100,1) – (512,512) |
-| `box.phys_scale` | Physical size of each cell | — | m | 50 – 600 $\unit{m}$ |
+| `box.phys_scale` | Physical size of each cell | — | $\unit{m}$ | 50 – 600 $\unit{m}$ |
 | **Water depth** | | | | |
-| `sea_level` | Relative sea-level function `f(t)` or constant | `t -> 0.0` | m | user functions |
-| `initial_topography` | Initial seafloor elevation function `f(x,y)` or matrix | `(x,y) -> 0.0` | m | example: ramp slope `-x/300.0` |
-| `subsidence_rate` | Rate of tectonic subsidence | `0.0` | m/Myr | 0.0 – 50.0 m/Myr |
+| `sea_level` | Relative sea-level function $\dagger$ | $t \to 0.0$ | $\unit{m}$ | — |
+| `initial_topography` | Initial seafloor elevation $\dagger$ | $(x,y) \to 0$ | m | example: $x \to -x/300.0$ |
+| `subsidence_rate` | Rate of tectonic subsidence | 0.0 | $\unit{m\ Myr^{-1}}$ | $0.0$ – $50.0\ \unit{m\ Myr^{-1}}$ |
 | **Insolation** | | | | |
-| `insolation` | Surface insolation (constant, vector, or function of time) | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
+| `insolation` | Surface insolation $\dagger$ | — | $\unit{Wm^{-2}}$ | 400 $\unit{Wm^{-2}}$ |
 
-Table: Grid and time parameters. {#tab:grid-and-time-param}
+Table: Grid and time parameters. Parameters marked with $\dagger$ can be specified as a constant, table or Julia function. Parameters that have $-$ as default value are required. {#tbl:grid-and-time-param}
 :::
 
 :::wide-table
-Table: Facies parameters. {#tab:facies-param}
+Table: Facies parameters. {#tbl:facies-param}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
 | **Benthic Production** | | | | |
-| `maximum_growth_rate` | Maximum carbonate accumulation rate | `0.0` | m/Myr | 100 – 500 m/Myr |
+| `maximum_growth_rate` | Maximum growth rate | `0.0` | m/Myr | 100 – 500 m/Myr |
 | `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.005 – 0.8 $\unit{m^{-1}}$ |
 | `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 50 – 60 $\unit{Wm^{-2}}$ |
 | **Pelagic Production** | | | | |
@@ -2404,30 +2401,30 @@ Table: Facies parameters. {#tab:facies-param}
 | `extinction_coefficient` | Light attenuation coefficient | `0.0` | $\unit{m^{-1}}$ | 0.1 $\unit{m^{-1}}$ |
 | `saturation_intensity` | Half-saturation light intensity | `1.0` | $\unit{Wm^{-2}}$ | 60 $\unit{Wm^{-2}}$ |
 | **Cellular Automaton** | | | | |
-| `ca_interval` | Update CA every N time steps | `1` | steps | 1 |
+| `ca_interval` | Update CA every N time steps | `1` | — | 1 |
 | `ca_random_seed` | Random seed for initial CA state | `0` | — | 0 |
 | `viability_range` | Min–max neighbour count to stay alive | `(4, 10)` | — | (4, 10) |
 | `activation_range` | Min–max neighbour count to be born | `(6, 10)` | — | (6, 10) |
-| `active` | Whether facies participates in CA dynamics | `true` | — | `true`, `false` |
+| `active` | Whether facies participates in CA | `true` | — | `true`, `false` |
 :::
 
 :::wide-table
-Table: Transport parameters. {#tab:transport-parameters}
+Table: Transport parameters. $\star$: The user needs to specify both velocity and its derivative as function of water depth. {#tbl:transport-parameters}
 
 | Parameter | Description | Default | Unit | Tested range |
 |---|---|---|---|---|
-| **Transport coefficients** | | | | |
-| `diffusion_coefficient` | Facies-specific sediment diffusivity | `0.0` | m/yr | 1.0 – 50.0 m/yr |
-| `wave_velocity` | Facies advection velocity field `f(t) -> (v, `$\nabla$`)` | zero | m/Myr, 1/Myr | custom function |
+| **Transport coefficients** | facies dependent | | | |
+| `transport_coefficient` | Facies-specific transport coefficient | `0.0` | m/yr | 1.0 – 50.0 m/yr |
+| `wave_velocity` | Facies advection velocity and shear $\star$ | zero | m/Myr | custom function |
 | **Control parameters** | | | | |
 | `intertidal_zone` | Upward extension of the intertidal zone | `0.0` | m | 0.0 |
-| `disintegration_rate` | Max rate at which buried sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
-| `disintegration_transfer` | Function remapping disintegrated sediment across facies | identity | — | custom redistribution |
-| `lithification_time` | Half-life for active-layer settling (`nothing` = instant) | `nothing` | Myr | 100 yr – 5000 yr |
+| `disintegration_rate` | Rate at which sediment is mobilised | `50.0` | m/Myr | 5 – 500 m/Myr |
+| `disintegration_transfer` | Remapping disintegrated sediment | identity | — | custom redistribution |
+| `lithification_time` | Half-life time for active-layer settling | | Myr | 100 yr – 5000 yr |
 | **Transport solver** | | | | |
-| `transport_solver` | ODE solver: `:forward_euler` or `:RK4` | `:forward_euler` | — | `:forward_euler`, `:RK4` |
-| `transport_substeps` | Fixed sub-steps per $\Delta$t, or `:adaptive` | `:adaptive` | — | `:adaptive` or integer |
+| `transport_solver` | ODE solver | forward Euler | — | `:forward_euler`, `:RK4` |
+| `transport_substeps` | Number of sub-steps per iteration | adaptive | — | `:adaptive` or integer |
 | **Sediment buffer** | | | | |
-| `sediment_buffer_size` | Number of layers in the stratigraphic buffer | `50` | layers | 2 – 150 |
-| `depositional_resolution` | Thickness of each buffer layer | `0.5` | m | 0.5 – 1.0 m |
+| `sediment_buffer_size` | Depth of sediment buffer | `50` | — | 2 – 150 |
+| `depositional_resolution` | Resolution of sediment buffer | `0.5` | m | 0.5 – 1.0 m |
 :::
