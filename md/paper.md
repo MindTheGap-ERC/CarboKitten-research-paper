@@ -797,7 +797,7 @@ $$D_{\textrm{Kaufman}}(W) = C_0 \exp(-C_1 W)$$
 
 where $C_0 = 0.005\ \unit{m^2/Myr}$ for carbonates and $C_1$ values considered are 0.05 and 0.1 $\unit{m^{-1}}$, resulting in maximum $D_{\textrm{Kaufman}}$ values of 0.005 $\unit{m^2/Myr}$, i.e. much lower than the empirical ones.
 
-Effective sediment diffusion coefficient $D_eff$ values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of $5\ \unit{m/Myr}$ lie in the range of $3.7\ \times 10^5 \unit{m^2/Myr}$ to $8.8\ \times 10^6 \unit{m^2/Myr}$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $D_eff$ values obtained using this estimate scale linearly with the input transport coefficient $d_f$.
+Effective sediment diffusion coefficient $D_{\textrm{eff}}$ values in CarboKitten runs can be estimated from the dispersal of a sediment pulse under any scenario with a given value of transport coefficient, lithification time and disintegration rate. Diffusivity values obtained from runs with a transport coefficient of $5\ \unit{m/Myr}$ lie in the range of $3.7\ \times 10^5 \unit{m^2/Myr}$ to $8.8\ \times 10^6 \unit{m^2/Myr}$ {@tbl:diffusivity-scan}, i.e. well within those reported empirically and overlapping with those used by @sultana_how_2022 to obtain realistic platform morphologies. Effective $D_{\textrm{eff}}$ values obtained using this estimate scale linearly with the input transport coefficient $d_f$.
 
 :::hide
 ```julia
@@ -1115,7 +1115,7 @@ save("data/diffusivity_scan/D_summary.png", fig_summary)
 :::
 
 :::wide-table
-Table: Estimated effective diffusivity $D_eff\ [\unit{m^2 Myr^{-1}}]$ for combinations of lithification time $t_l$ and disintegration rate $r_d$ at facies transport coefficient $d_f$ equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
+Table: Estimated effective diffusivity $D_{\textrm{eff}}\ [\unit{m^2 Myr^{-1}}]$ for combinations of lithification time $t_l$ and disintegration rate $r_d$ at facies transport coefficient $d_f$ equal to 5 $\unit{m/yr}$. {#tbl:diffusivity-scan}
 
 | Lithification time $t_l$ | $r_d = 5\ \unit{m/Myr}$ | $r_d = 10\ \unit{m/Myr}$ | $r_d = 20\ \unit{m/Myr}$ | $r_d = 50\ \unit{m/Myr}$ |
 |:---|---:|---:|---:|---:|
