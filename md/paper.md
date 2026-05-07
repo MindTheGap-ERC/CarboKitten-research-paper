@@ -1746,7 +1746,7 @@ using Interpolations
 using CategoricalArrays
 using CarboKitten.DataSets: artifact_dir
 using CairoMakie
-using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Visualization: sediment_profile!
 using CarboKitten.Export: read_slice
 
 function miller_2020()
@@ -1825,15 +1825,38 @@ function main()
     run_model(Model{ALCAP}, INPUT, "data/variable-sl.h5")
 end
 
-function plot(result)
-    h, d = read_slice(result, :profile)
-    fig = sediment_profile(h, d)
-    save("md/fig/variable-sl.png", fig)
+function plot(result_file)
+    header, result_profile = read_slice(result_file, :profile)
+
+    inch = 96
+    pt = 4/3
+    cm = inch / 2.54
+
+    fig = Figure(size=(20cm, 12cm), fontsize=8pt)
+    ax_left = Axis(fig[1, 1])
+    ax_right = Axis(fig[1, 2])
+    colsize!(fig.layout, 1, Relative(0.2))
+    Label(fig[1, 1, TopLeft()], "(a)")
+    Label(fig[1, 2, TopLeft()], "(b)")
+
+    sl_fn = sea_level()
+    times = collect(time_axis(TIME_PROPERTIES))
+    sl_values = [ustrip(u"m", sl_fn(t)) for t in times]
+    times_myr = ustrip.(u"Myr", times)
+
+    lines!(ax_left, sl_values, times_myr)
+    ax_left.xlabel = "Sea level [m]"
+    ax_left.ylabel = "Time [Myr]"
+
+    sediment_profile!(ax_right, header, result_profile, show_unconformities=50)
+
+    save("md/fig/variable-sl.png", fig, px_per_unit=300/inch)
 end
 
 end
 
-result = VariableSL.main()
+# result = VariableSL.main()
+result = "data/variable-sl.h5"
 VariableSL.plot(result)
 ```
 
@@ -1841,7 +1864,7 @@ VariableSL.plot(result)
 
 ![variable-sl](fig/variable-sl.png){.wide}
 
-Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). {#fig:variable-sl}
+Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). Panel (a) shows the sea level curve. Panel (b) the corresponding output stratigraphy. {#fig:variable-sl}
 
 ## Insolation
 
@@ -1898,7 +1921,6 @@ The insolation file can be read into a CarboKitten script defining the model to 
 
 ```julia
 #| file: runs/insolation_run.jl
-
 module Insolation
 
 using CarboKitten
@@ -1906,7 +1928,7 @@ using DelimitedFiles: readdlm
 using Unitful
 using Interpolations
 using CairoMakie
-using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Visualization: sediment_profile, sediment_profile!
 using Statistics
 
 function import_insolation(file::String)
@@ -1985,9 +2007,31 @@ const INPUT = ALCAP.Input(
     end
 
     function plot(result::MemoryOutput)
-	    fig = sediment_profile(result.header, result.data_slices[:profile])
-        save("md/fig/variable-insolation.png", fig)
-end
+        inch = 96
+        pt = 4/3
+        cm = inch / 2.54
+
+        fig = Figure(size=(20cm, 12cm), fontsize=8pt)
+        ax_left = Axis(fig[1, 1])
+        ax_right = Axis(fig[1, 2])
+        colsize!(fig.layout, 1, Relative(0.2))
+        Label(fig[1, 1, TopLeft()], "(a)")
+        Label(fig[1, 2, TopLeft()], "(b)")
+
+        sl_fn = get_sea_level(time_vector, insolation_vector)
+        times = collect(time_axis(TIME_PROPERTIES))
+        sl_values = [ustrip(u"m", sl_fn(t)) for t in times]
+        times_myr = ustrip.(u"Myr", times)
+
+        lines!(ax_left, sl_values, times_myr)
+        ax_left.xlabel = "Sea level [m]"
+        ax_left.ylabel = "Time [Myr]"
+        ax_left.xticks = Makie.LinearTicks(4)
+
+        sediment_profile!(ax_right, result.header, result.data_slices[:profile], show_unconformities=10)
+
+        save("md/fig/variable-insolation.png", fig, px_per_unit=300/inch)
+    end
 
 end
 
@@ -1999,7 +2043,7 @@ Insolation.plot(result)
 
 ![variable-insolation](fig/variable-insolation.png){.wide}
 
-Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. {#fig:variable-insolation}
+Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. Panel (a) shows the insolation-based amplified sea level curve. Panel (b) shows the corresponding output stratigraphy. {#fig:variable-insolation}
 
 ## Wave induced transport {#sec:wave-induced-transport}
 
@@ -2080,6 +2124,7 @@ Script.main()
 #| classes: ["task"]
 #| creates: data/atoll.h5
 #| collect: atoll
+
 module Atoll
 
 using CarboKitten
