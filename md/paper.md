@@ -1864,7 +1864,7 @@ VariableSL.plot(result)
 
 ![variable-sl](fig/variable-sl.png){.wide}
 
-Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). Panel (a) shows the sea level curve. Panel (b) the correpsonding output stratigraphy. {#fig:variable-sl}
+Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). Panel (a) shows the sea level curve. Panel (b) the corresponding output stratigraphy. {#fig:variable-sl}
 
 ## Insolation
 
@@ -2043,7 +2043,7 @@ Insolation.plot(result)
 
 ![variable-insolation](fig/variable-insolation.png){.wide}
 
-Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. Panel (a) shows the insolation amplified sea level curve. Panel (b) shows the corresponding output stratigraphy. {#fig:variable-insolation}
+Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. Panel (a) shows the insolation-based amplified sea level curve. Panel (b) shows the corresponding output stratigraphy. {#fig:variable-insolation}
 
 ## Wave induced transport {#sec:wave-induced-transport}
 
