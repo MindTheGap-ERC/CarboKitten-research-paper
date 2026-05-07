@@ -2,7 +2,7 @@ module ValidationConstants
 
 using Unitful
 using CarboKitten
-using CarboKitten.Export: read_slice, read_slice
+using CarboKitten.Export: read_slice, read_volume
 using DelimitedFiles
 using DataFrames
 using Interpolations
