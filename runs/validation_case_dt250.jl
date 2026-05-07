@@ -2,44 +2,21 @@ module Validation
 
 using Unitful
 using CarboKitten
-using DelimitedFiles
-using DataFrames
 using Interpolations
 using CairoMakie
-using Tables
-using CSV
 using CarboKitten.Visualization: sediment_profile!, summary_plot
-using CarboKitten.Export: read_slice
+using CarboKitten.Export: read_volume
+using CarboKitten.Boxes: Box
 
-const TAG = "alcap-validation"
-const FILEPATH = "data/Morley_2021.txt"
-const OUTPUT_FILE = "data/validation_dt250.h5"
 
-include("validation_prerun.jl")
-inch = 96
-pt = 4/3
-cm = inch / 2.54
+const TAG = "validation_dt250"
+const PRERUN = "data/validationprerun.h5"
 
-function load_init_topo()
-    (CSV.File(ValidationPrerun.DATAFILE) |> Tables.matrix) * u"m"
-end
-
-function sea_level(filepath::String)
-    sealevel_data, header = readdlm(filepath,header=true)
-    sealevel_data_df = DataFrame(sealevel_data, vec(header))
-    sealevel_data_df = filter(row -> 8.0 <= row.Time <= 15.5, sealevel_data_df) # cycles IV-V
-    sort!(sealevel_data_df, [:Time], rev=true)
-    Time = sealevel_data_df.Time .* -1.0u"Myr"
-    Sealevel = sealevel_data_df.Sealevel .* 1.0u"m"
-    sl_interpolated = LinearInterpolation(
-        Time, Sealevel)
-    return sl_interpolated
-end
-
+include("ValidationConstants.jl")
 
 input(feedback) = ALCAP.Input(
     tag="$TAG",
-    box=ValidationPrerun.input(feedback).box,
+    box=ValidationConstants.VALIDATION_BOX,
     time=TimeProperties(
         t0 = -15.48u"Myr",
         Δt=250u"yr",
@@ -49,8 +26,8 @@ input(feedback) = ALCAP.Input(
         :profile => OutputSpec(slice=(:, 50), write_interval=1)),
     ca_interval=16,
     ca_random_seed = 1,
-    initial_topography = load_init_topo(), 
-    sea_level=sea_level(FILEPATH),
+    initial_topography = ValidationConstants.add_final_topography("data/validationprerun.h5"), 
+    sea_level=ValidationConstants.sea_level(ValidationConstants.FILEPATH),
     subsidence_rate=150.0u"m/Myr",
     transport_solver = Val{:forward_euler},
     disintegration_rate=50.0u"m/Myr",
@@ -60,24 +37,13 @@ input(feedback) = ALCAP.Input(
     lithification_time = 100.0u"yr",
     disintegration_transfer = f -> stack((f[1,:,:], 0.0.*f[2,:,:], f[3,:,:],
                                       f[2,:,:].+f[4,:,:]), dims=1),
-    facies=ValidationPrerun.facies(feedback))
+    facies=ValidationConstants.facies(feedback))
 
 function main()
-    run_model(Model{ALCAP}, input(true), "$OUTPUT_FILE")
+    run_model(Model{ALCAP}, input(true), "data/$(TAG).h5")
 end
-
-function plot()
-
-    fig = Figure(size=(20cm, 12cm), fontsize=8pt)
-    ax1 = Axis(fig[1,1], title="sediment profile")
-    ax2 = Axis(fig[1,2], title="interpreted seismic profile")
-    header, data = read_slice("$OUTPUT_FILE", :profile)
-	sediment_profile!(ax1, header, data, show_coeval_lines = true, show_unconformities = true)
-    save("md/fig/validation_comparison_dt250.png", fig, px_per_unit=3)
-end
-
 
 result = Validation.main()
-Validation.plot()
+ValidationConstants.plot(TAG)
 
 end
