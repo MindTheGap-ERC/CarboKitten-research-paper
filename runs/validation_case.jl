@@ -5,13 +5,14 @@ using CarboKitten
 using Interpolations
 using CairoMakie
 using CarboKitten.Visualization: sediment_profile!, summary_plot
-using CarboKitten.Export: read_volume, read_profile
+using CarboKitten.Export: read_volume, read_profile, read_slice
 using CarboKitten.Boxes: Box
 
 const TAG = "validation_dt400"
 const PRERUN = "data/validationprerun.h5"
 
 include("ValidationConstants.jl")
+using .ValidationConstants: cm, pt
 
 
 input(feedback) = ALCAP.Input(

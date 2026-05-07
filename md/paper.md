@@ -1173,6 +1173,8 @@ The results are listed in Figure @fig:case-validation. We compared the features 
 3. The total thickness of carbonate ($\sim 550\ \unit{m}$) is comparable to the data suggested by well penetration ($\sim 600\ \unit{m}$).
 4. The slope is presented in the modelled results, as a mixture of facies 3 and 4. 
 
+The model yields nearly identical - i.e., qualitatively the same - results for different timesteps. Users should note that changing the timestep requires adjusting the CA interval, which has been applied for the tested versions of the code: a timestep of 100, 250 and 250 yr. Results for a time step of 400 yr are shown in @fig:case-validation.
+
 ![Case_validation](fig/Validation_comparison.pdf){.wide}
 
 Figure: Validation case. A: This shows a cross-section of our model of the platform in Central Luconia, offshore Malaysia. The white lines indicate unconformities, and the black lines are coeval lines at regular intervals, every solid black line separating one million years. The colours indicate the dominant facies type of the modelled sediment, blue for facies 1 (T factory), yellow for facies 2 (M factory), green for facies 3 (P factory) and pink represents facies 4 (transported coral, i.e. formerly facies 1). B: Seismic interpretation of the platform, redrawn from Figure 9 of @Henglai2024. {#fig:case-validation}
