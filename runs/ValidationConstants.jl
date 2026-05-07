@@ -82,12 +82,12 @@ inch = 96
 pt = 4/3
 cm = inch / 2.54
 
-function plot()
+function plot(tag::String)
     fig = Figure(size=(12cm, 12cm), fontsize=8pt)
     ax1 = Axis(fig[1,1], title="sediment profile")
-    header, data = read_slice("data/$(TAG).h5", :profile)
+    header, data = read_slice("data/$(tag).h5", :profile)
 	sediment_profile!(ax1, header, data, show_coeval_lines = true, show_unconformities = true)
-    save("md/fig/$TAG.png", fig, px_per_unit=3)
+    save("md/fig/$tag.png", fig, px_per_unit=3)
 end
 
 end

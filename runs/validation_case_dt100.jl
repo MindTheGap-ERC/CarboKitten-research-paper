@@ -44,6 +44,6 @@ function main()
 end
 
 result = Validation.main()
-ValidationConstants.plot()
+ValidationConstants.plot(TAG)
 
 end
