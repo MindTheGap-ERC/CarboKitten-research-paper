@@ -9,7 +9,7 @@ using Interpolations
 using CategoricalArrays
 using CarboKitten.DataSets: artifact_dir
 using CairoMakie
-using CarboKitten.Visualization: sediment_profile
+using CarboKitten.Visualization: sediment_profile!
 using CarboKitten.Export: read_slice
 
 function miller_2020()
@@ -88,14 +88,37 @@ function main()
     run_model(Model{ALCAP}, INPUT, "data/variable-sl.h5")
 end
 
-function plot(result)
-    h, d = read_slice(result, :profile)
-    fig = sediment_profile(h, d)
-    save("md/fig/variable-sl.png", fig)
+function plot(result_file)
+    header, result_profile = read_slice(result_file, :profile)
+
+    inch = 96
+    pt = 4/3
+    cm = inch / 2.54
+
+    fig = Figure(size=(20cm, 12cm), fontsize=8pt)
+    ax_left = Axis(fig[1, 1])
+    ax_right = Axis(fig[1, 2])
+    colsize!(fig.layout, 1, Relative(0.2))
+    Label(fig[1, 1, TopLeft()], "(a)")
+    Label(fig[1, 2, TopLeft()], "(b)")
+
+    sl_fn = sea_level()
+    times = collect(time_axis(TIME_PROPERTIES))
+    sl_values = [ustrip(u"m", sl_fn(t)) for t in times]
+    times_myr = ustrip.(u"Myr", times)
+
+    lines!(ax_left, sl_values, times_myr)
+    ax_left.xlabel = "Sea level [m]"
+    ax_left.ylabel = "Time [Myr]"
+
+    sediment_profile!(ax_right, header, result_profile, show_unconformities=50)
+
+    save("md/fig/variable-sl.png", fig, px_per_unit=300/inch)
 end
 
 end
 
-result = VariableSL.main()
+# result = VariableSL.main()
+result = "data/variable-sl.h5"
 VariableSL.plot(result)
 # ~/~ end
