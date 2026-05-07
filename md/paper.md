@@ -1157,7 +1157,7 @@ Table: Facies used in validation. We used three producing facies in modelling ou
 | Bioclastic boundstone| Transported coral | Facies 4 | n.a. |
 :::
 
-Three carbonate producers are fed into the model {Table@tab:validation_facies}, corresponding to three geological facies (producers). Their respective production rates are listed in Table @tbl:validation_facies. A fourth facies is the transported facies of euphotic corals. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set in order to generate an atoll-like initial topography for the actual run. The total duration of modelling covers the entire Cycle IV (from $15.8\ \unit{Ma}$ to  $11.8\ \unit{Ma}$, having a duration of $4\ \unit{Myr}$). 
+Three carbonate producers are fed into the model, corresponding to three geological facies (producers). Their respective production rates are listed in Table @tbl:validation_facies. A fourth facies is the transported facies of euphotic corals. These values are within the production rates estimated by [@Ceci2025]. A pre-run was set in order to generate an atoll-like initial topography for the actual run. The total duration of modelling covers the entire Cycle IV (from $15.8\ \unit{Ma}$ to  $11.8\ \unit{Ma}$, having a duration of $4\ \unit{Myr}$). 
 
 The criteria for comparison between the modelled results and the interpreted seismic profiles were: 
 
