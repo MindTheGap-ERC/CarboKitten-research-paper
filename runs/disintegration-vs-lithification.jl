@@ -10,6 +10,7 @@ using CairoMakie
 using .ParameterScan: cartesian_product
 using .TransportTest: run_with
 using .TransportPlots: plot_matrix, plot_topography!
+using LaTeXStrings
 
 function main()
     CarboKitten.init()
@@ -27,8 +28,8 @@ function main()
     end
 
     fig = plot_matrix(result[1,:,1,:],
-            ["dr = $(d.val) m/Myr" for d in pars.disintegration_rate],
-            ["ct = $(d.val) yr" for d in pars.lithification_time];
+            [latexstring("r_d = $(d.val) m/Myr") for d in pars.disintegration_rate],
+            [latexstring("t_l = $(d.val) yr") for d in pars.lithification_time];
             fontsize = 10) do ax, result
         plot_topography!(ax, result)
     end

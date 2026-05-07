@@ -33,8 +33,8 @@
 % Earth System Science Data (essd)
 % E&G Quaternary Science Journal (egqsj)
 % EGUsphere (egusphere) | This is only for EGUsphere preprints submitted without relation to an EGU journal.
+% Earth Observation (eo)
 % European Journal of Mineralogy (ejm)
-% Fossil Record (fr)
 % Geochronology (gchron)
 % Geographica Helvetica (gh)
 % Geoscience Communication (gc)
@@ -43,6 +43,7 @@
 % History of Geo- and Space Sciences (hgss)
 % Hydrology and Earth System Sciences (hess)
 % Journal of Bone and Joint Infection (jbji)
+% Journal of Environmentally Compatible Air Transport System (jecats)
 % Journal of Micropalaeontology (jm)
 % Journal of Sensors and Sensor Systems (jsss)
 % Magnetic Resonance (mr)
@@ -51,8 +52,8 @@
 % Nonlinear Processes in Geophysics (npg)
 % Ocean Science (os)
 % Polarforschung - Journal of the German Society for Polar Research (polf)
-% Primate Biology (pb)
 % Proceedings of the International Association of Hydrological Sciences (piahs)
+% Proceedings of the International Ocean Drilling Programme (piodp)
 % Safety of Nuclear Waste Disposal (sand)
 % Scientific Drilling (sd)
 % SOIL (soil)
@@ -94,9 +95,12 @@
 
 %% The [] brackets identify the author with the corresponding affiliation. 1, 2, 3, etc. should be inserted.
 
-%% If an author is deceased, please mark the respective author name(s) with a dagger, e.g. "\Author[2,$\dag$]{Anton}{Smith}", and add a further "\affil[$\dag$]{deceased, 1 July 2019}".
+%% If an author is deceased, please add \deceased[$Deceased date if applicable$]{$Author number$} (e.g. \deceased[13 November 2015]{2}) at the end of the affiliations. The author number depends on the placement of the author in the author list, e.g. the third author has number 3.
 
-%% If authors contributed equally, please mark the respective author names with an asterisk, e.g. "\Author[2,*]{Anton}{Smith}" and "\Author[3,*]{Bradley}{Miller}" and add a further affiliation: "\affil[*]{These authors contributed equally to this work.}".
+
+%% If authors contributed equally, please add \equalcontrib{$Author numbers$} (e.g. \equalcontrib{1,3}) at the end of the affiliations. The author number depends on the placement of the author in the author list, e.g. the third author has number 3.
+
+
 
 
 \runningtitle{TEXT}
@@ -115,9 +119,8 @@
 
 %% These dates will be inserted by Copernicus Publications during the typesetting process.
 
-$if(firstpage)$
-\firstpage{$firstpage$}
-$endif$
+
+\firstpage{1}
 
 \maketitle
 
@@ -390,7 +393,7 @@ REFERENCE 2
 %
 %%% PHYSICAL UNITS
 %%%
-%%% Please use \unit{} and apply the exponential notation
+%%% Please use \unit{} and apply the exponential notation (e.g. 20\,\unit{W\,m^{-2}})
 
 
 \end{document}
