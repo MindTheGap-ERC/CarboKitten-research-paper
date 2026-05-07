@@ -102,12 +102,13 @@ const INPUT = ALCAP.Input(
         times_myr = ustrip.(u"Myr", times)
 
         lines!(ax_left, sl_values, times_myr)
-        ax_left.xlabel = "Sea level (m)"
-        ax_left.ylabel = "Time (Myr)"
+        ax_left.xlabel = "Sea level [m]"
+        ax_left.ylabel = "Time [Myr]"
+        ax_left.xticks = Makie.LinearTicks(4)
 
-        sediment_profile!(ax_right, result.header, result.data_slices[:profile])
+        sediment_profile!(ax_right, result.header, result.data_slices[:profile], show_unconformities=10)
 
-        save("md/fig/variable-insolation.png", fig)
+        save("md/fig/variable-insolation.png", fig, px_per_unit=300/inch)
     end
 
 end

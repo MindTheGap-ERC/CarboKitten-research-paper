@@ -1845,12 +1845,12 @@ function plot(result_file)
     times_myr = ustrip.(u"Myr", times)
 
     lines!(ax_left, sl_values, times_myr)
-    ax_left.xlabel = "Sea level (m)"
-    ax_left.ylabel = "Time (Myr)"
+    ax_left.xlabel = "Sea level [m]"
+    ax_left.ylabel = "Time [Myr]"
 
-    sediment_profile!(ax_right, header, result_profile)
+    sediment_profile!(ax_right, header, result_profile, show_unconformities=50)
 
-    save("md/fig/variable-sl.png", fig)
+    save("md/fig/variable-sl.png", fig, px_per_unit=300/inch)
 end
 
 end
@@ -1864,7 +1864,7 @@ VariableSL.plot(result)
 
 ![variable-sl](fig/variable-sl.png){.wide}
 
-Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). {#fig:variable-sl}
+Figure: Platform generated using the sea level curve of Lisiecki et al. (2005). Panel (a) shows the sea level curve. Panel (b) the correpsonding output stratigraphy. {#fig:variable-sl}
 
 ## Insolation
 
@@ -2024,12 +2024,13 @@ const INPUT = ALCAP.Input(
         times_myr = ustrip.(u"Myr", times)
 
         lines!(ax_left, sl_values, times_myr)
-        ax_left.xlabel = "Sea level (m)"
-        ax_left.ylabel = "Time (Myr)"
+        ax_left.xlabel = "Sea level [m]"
+        ax_left.ylabel = "Time [Myr]"
+        ax_left.xticks = Makie.LinearTicks(4)
 
-        sediment_profile!(ax_right, result.header, result.data_slices[:profile])
+        sediment_profile!(ax_right, result.header, result.data_slices[:profile], show_unconformities=10)
 
-        save("md/fig/variable-insolation.png", fig)
+        save("md/fig/variable-insolation.png", fig, px_per_unit=300/inch)
     end
 
 end
@@ -2042,7 +2043,7 @@ Insolation.plot(result)
 
 ![variable-insolation](fig/variable-insolation.png){.wide}
 
-Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. {#fig:variable-insolation}
+Figure: Platform generated using the daily mean insolation during June solstice at the 25° N latitude for a period of 1 Myr starting in 1950 and using a sea level curve obtained by amplifying the insolation values. Panel (a) shows the insolation amplified sea level curve. Panel (b) shows the corresponding output stratigraphy. {#fig:variable-insolation}
 
 ## Wave induced transport {#sec:wave-induced-transport}
 

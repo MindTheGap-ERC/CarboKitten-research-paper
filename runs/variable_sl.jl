@@ -108,12 +108,12 @@ function plot(result_file)
     times_myr = ustrip.(u"Myr", times)
 
     lines!(ax_left, sl_values, times_myr)
-    ax_left.xlabel = "Sea level (m)"
-    ax_left.ylabel = "Time (Myr)"
+    ax_left.xlabel = "Sea level [m]"
+    ax_left.ylabel = "Time [Myr]"
 
-    sediment_profile!(ax_right, header, result_profile)
+    sediment_profile!(ax_right, header, result_profile, show_unconformities=50)
 
-    save("md/fig/variable-sl.png", fig)
+    save("md/fig/variable-sl.png", fig, px_per_unit=300/inch)
 end
 
 end
