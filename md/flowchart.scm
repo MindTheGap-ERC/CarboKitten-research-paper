@@ -43,7 +43,7 @@
   `((g class: "node" transform: ,(format "translate(~a ~a)" x y))
       (rect rx: 5 ry: 5 x: ,(- (div node-width 2)) y: ,(- (div node-height 2))
             width: ,node-width height: ,node-height /)
-    (text) ,name (/text)
+    (text font-size: "smaller") ,name (/text)
     (/g)))
 
 `((?xml version: "1.0" standalone: "no" ?)
