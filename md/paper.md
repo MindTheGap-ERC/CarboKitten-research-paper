@@ -2362,7 +2362,7 @@ CarboKitten offers a powerful tool to ground-truth concepts of how time is repre
 
 
 ::: code-availability
-CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Github](https://github.com/MindTheGap-ERC/CarboKitten.jl). Releases are also made available on Zenodo ([doi:10.5281/zenodo.14051612](https://doi.org/10.5281/zenodo.14051612)), see @CarboKitten.
+CarboKitten is available under the GNU Public Licencse 3.0 and is hosted on [Github](https://github.com/MindTheGap-ERC/CarboKitten.jl). Releases are also made available on Zenodo ([doi:10.5281/zenodo.14051612](https://doi.org/10.5281/zenodo.14051612)), see @CarboKitten. The full source code for this paper including all of its figures is also made available on Zenodo ([doi:10.5281/zenodo.17135660](https://doi.org/10.5281/zenodo.17135660)).
 :::
 
 :::appendix

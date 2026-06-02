@@ -18,7 +18,7 @@ function Div(el)
 
     if cls["code-availability"] then
         return {
-            pandoc.RawBlock("latex", "\\codeavailability{"),
+            pandoc.RawBlock("latex", "\\codedataavailability{"),
             el,
             pandoc.RawBlock("latex", "}")
         }

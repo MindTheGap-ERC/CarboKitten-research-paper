@@ -4,6 +4,7 @@ pandoc_args += -fmarkdown+latex_macros
 pandoc_args += --lua-filter pandoc/hide.lua
 pandoc_args += --lua-filter pandoc/special-divs.lua
 pandoc_args += --lua-filter pandoc/eqnos.lua
+pandoc_args += --lua-filter pandoc/copy-figs.lua
 pandoc_args += --lua-filter pandoc/fignos.lua
 pandoc_args += --lua-filter pandoc/figref.lua
 pandoc_args += --lua-filter pandoc/wide_tables.lua
