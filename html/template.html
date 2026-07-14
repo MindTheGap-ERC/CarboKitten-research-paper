@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="$lang$" xml:lang="$lang$"$if(dir)$ dir="$dir$"$endif$>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+$for(author-meta)$
+  <meta name="author" content="$author-meta$" />
+$endfor$
+$if(description-meta)$
+  <meta name="description" content="$description-meta$" />
+$endif$
+  <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+$for(css)$
+  <link rel="stylesheet" href="$css$" />
+$endfor$
+$for(header-includes)$
+  $header-includes$
+$endfor$
+$if(math)$
+  $math$
+$endif$
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle" />
+  <label for="nav-toggle" class="nav-toggle-label" aria-label="Toggle navigation">&#9776;</label>
+$if(toc)$
+  <nav id="TOC" role="doc-toc">
+    <div class="toc-title">Contents</div>
+$table-of-contents$
+  </nav>
+$endif$
+  <main id="content">
+$if(title)$
+    <header id="title-block-header">
+      <h1 class="title">$title$$if(subtitle)$<br /><span class="subtitle">$subtitle$</span>$endif$</h1>
+$if(author)$
+      <p class="author">
+$for(author)$
+        <span class="author-name">$author.given_name$ $author.surname$$if(author.affiliation)$<sup>$author.affiliation$</sup>$endif$</span>$sep$, $endfor$
+      </p>
+$endif$
+$if(affiliation)$
+      <ol class="affiliations">
+$for(affiliation/pairs)$
+        <li value="$affiliation.key$">$affiliation.value$</li>
+$endfor$
+      </ol>
+$endif$
+    </header>
+$endif$
+$body$
+  </main>
+</body>
+</html>

@@ -40,6 +40,15 @@ Use TeXLive &ge; 2023, building with LuaTeX and `latexmk`. On Fedora:
 dnf install texlive-scheme-medium latexmk texlive-selnolig texlive-svg
 ```
 
+### HTML site
+
+Building the HTML version (`make site`) additionally needs `pdftocairo`
+(from `poppler-utils`) to convert PDF figures to SVG. On Fedora:
+
+```bash
+dnf install poppler-utils
+```
+
 ### Entangled
 
 ```bash
@@ -115,6 +124,20 @@ Figure: Depth profile of velocity and shear. The velocity profile was taylored t
 ### Template
 
 We use a modified version of the standard Pandoc template for LaTeX output. The `copernicus` document class and citation styles are shipped in the `latex/copernicus` directory. The template in `latex/template.tex` is configured to use the Geoscientific Model Development (gmd) format. To create a (single column) manuscript version, run `make manuscript`.
+
+## HTML site
+
+Run `make site` to render the paper as a standalone HTML page at `build/site/index.html`, with figures copied into `build/site/fig` (PDF figures are converted to SVG using `pdftocairo`).
+
+The HTML output reuses the format-agnostic filters (`fignos.lua`, `wide_tables.lua`) but needs its own versions of the format-specific ones, kept in `pandoc/html/`:
+
+- `hide.lua` wraps `:::hide` code blocks in a collapsed `<details>` element instead of dropping them, using the `id` or `file` attribute from the code block's YAML header as the summary text.
+- `special-divs.lua` turns divs like `:::abstract`, `:::appendix` or `:::acknowledgements` into headed sections instead of Copernicus LaTeX macros.
+- `numbering.lua` numbers figures, tables, equations and (sub)sections, resolves `@fig:`, `@tbl:`, `@eq:` and `@sec:` references into anchor links, and renders wide figures (`{.wide}`) and wide tables (`:::wide-table`) full width. Appendix sections are numbered with letters (A, B, ...) instead of digits.
+
+Bibliographic citations are resolved with `--citeproc` and `md/ref.bib`, using Pandoc's default citation style (pass `--csl` in the Makefile to use a different one). Equations are rendered with MathJax, loaded from a CDN, so an internet connection is needed to view the equations.
+
+The page layout (`html/template.html`, `html/style.css`) puts the table of contents in a fixed side panel, which collapses behind a menu button on narrow screens.
 
 ## Debugging output
 
