@@ -1,4 +1,4 @@
-.PHONY: all debug clean daemon manuscript copy-figures flowchart
+.PHONY: all debug clean daemon manuscript copy-figures flowchart site
 
 pandoc_args += -fmarkdown+latex_macros
 pandoc_args += --lua-filter pandoc/hide.lua
@@ -18,7 +18,20 @@ pandoc_latex_args += -s --template latex/template.tex -t latex
 figures_md = $(wildcard md/fig/*)
 figures = $(figures_md:md/%=build/%)
 
+site_pandoc_args += -fmarkdown+latex_macros
+site_pandoc_args += --lua-filter pandoc/html/hide.lua
+site_pandoc_args += --lua-filter pandoc/html/special-divs.lua
+site_pandoc_args += --lua-filter pandoc/fignos.lua
+site_pandoc_args += --lua-filter pandoc/wide_tables.lua
+site_pandoc_args += --lua-filter pandoc/html/numbering.lua
+site_pandoc_args += --citeproc
+site_pandoc_args += --metadata bibliography=md/ref.bib
+site_pandoc_html_args += -s --template html/template.html -t html5
+site_pandoc_html_args += --toc --toc-depth=3 --mathjax --css style.css
+
 all: build/paper.pdf
+
+site: build/site/index.html
 
 manuscript: build/manuscript.pdf build/manuscript.diff.pdf
 
@@ -36,6 +49,12 @@ build/manuscript.tex: md/paper.md
 	@echo "Running pandoc"
 	@mkdir -p $(@D)
 	@pandoc $(pandoc_args) -V manuscript $(pandoc_latex_args) -o $@ $^
+
+build/site/index.html: md/paper.md html/template.html pandoc/html/*.lua
+	@echo "Running pandoc (HTML)"
+	@mkdir -p build/site/fig
+	@pandoc $(site_pandoc_args) $(site_pandoc_html_args) -o $@ $<
+	@cp html/style.css build/site/style.css
 
 build/ref.bib: md/ref.bib
 	@echo "Copying ref.bib"
