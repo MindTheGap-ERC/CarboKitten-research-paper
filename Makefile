@@ -28,6 +28,7 @@ site_pandoc_args += --citeproc
 site_pandoc_args += --metadata bibliography=md/ref.bib
 site_pandoc_html_args += -s --template html/template.html -t html5
 site_pandoc_html_args += --toc --toc-depth=3 --mathjax --css style.css
+site_pandoc_html_args += --highlight-style=tango
 
 all: build/paper.pdf
 

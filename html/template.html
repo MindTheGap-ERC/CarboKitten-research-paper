@@ -11,6 +11,9 @@ $if(description-meta)$
   <meta name="description" content="$description-meta$" />
 $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+  <style>
+    $styles.html()$
+  </style>
 $for(css)$
   <link rel="stylesheet" href="$css$" />
 $endfor$
@@ -48,6 +51,9 @@ $for(affiliation/pairs)$
 $endfor$
       </ol>
 $endif$
+      <p>
+      This paper was originally published in Geoscientific Model Development <a href="https://gmd.copernicus.org/articles/19/6207/2026/">GMD, 19, 6207–6229, 2026</a>. The present version contains all the source code we used to generate the presented results. These scripts were run with CarboKitten version 0.6.1. This site is best enjoyed in a light color theme.
+      </p>
     </header>
 $endif$
 $body$
