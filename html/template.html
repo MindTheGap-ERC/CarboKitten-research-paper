@@ -11,9 +11,6 @@ $if(description-meta)$
   <meta name="description" content="$description-meta$" />
 $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
-  <style>
-    $styles.html()$
-  </style>
 $for(css)$
   <link rel="stylesheet" href="$css$" />
 $endfor$
@@ -23,6 +20,9 @@ $endfor$
 $if(math)$
   $math$
 $endif$
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
 </head>
 <body>
   <span class="math display">\[\newcommand{unit}[1]{{\rm #1}}\]</span>
